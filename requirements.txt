@@ -1,0 +1,19 @@
+numpy
+pandas
+scipy
+matplotlib
+seaborn
+torch
+torchvision
+tqdm
+pyyaml
+# Wireless / channel modeling
+sionna          # NVIDIA differentiable wireless library
+DeepMIMO        # DeepMIMO dataset generator, if environment supports it
+# Jupyter / dev
+jupyter
+notebook
+ipykernel
+# Optional: RL / experiment management
+gymnasium
+tensorboard

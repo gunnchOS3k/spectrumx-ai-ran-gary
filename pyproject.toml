@@ -1,0 +1,10 @@
+[project]
+name = "edge-ran-gary"
+version = "0.1.0"
+description = "EDGE-RAN Gary: AI-native RAN controller for SpectrumX Student Data & Algorithm Competition"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.setuptools.packages.find]
+where = ["src"]
