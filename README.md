@@ -101,7 +101,9 @@ We will report:
 
 - **Edmund Gunn, Jr.** – Team lead; 6G / AI-RAN, digital twin design
 
-- **Noah [Last name]** – Data pipeline, evaluation, visualization
+- **Noah Newman** – Data pipeline, evaluation, visualization  
+  - [LinkedIn](https://www.linkedin.com/in/noah-n-5a5943384)
 
-- **Ananya [Last name]** – ML modeling, optimization, MLOps
+- **Ananya Jha** – ML modeling, optimization, MLOps  
+  - [LinkedIn](https://www.linkedin.com/in/ananya-jha-9968b01b7) | [GitHub](https://github.com/Ananya-Jha-code)
 
