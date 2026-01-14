@@ -1,0 +1,423 @@
+"""
+SpX-DAC Baseline Comparison Dashboard
+
+Streamlit dashboard for visualizing IQ data and running baseline detection models.
+Supports user-uploaded .npy files with various IQ formats.
+"""
+
+import streamlit as st
+import numpy as np
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+from scipy import signal
+import io
+
+# Page config
+st.set_page_config(
+    page_title="SpX-DAC Baseline Comparison Dashboard",
+    page_icon="📡",
+    layout="wide"
+)
+
+# Title
+st.title("📡 SpX-DAC Baseline Comparison Dashboard")
+
+# ============================================================================
+# Helper Functions
+# ============================================================================
+
+def load_iq_data(uploaded_file, is_int16_interleaved=False):
+    """
+    Load IQ data from .npy file with support for multiple formats.
+    
+    Supported formats:
+    - complex array shape (N,) dtype complex64/complex128
+    - float array shape (N,2) interpreted as [I,Q]
+    - int16 interleaved IQ (N*2,) when is_int16_interleaved=True
+    
+    Returns:
+        complex64 array of shape (N,)
+    """
+    try:
+        data = np.load(io.BytesIO(uploaded_file.read()), allow_pickle=False)
+        
+        # Reset file pointer for potential re-read
+        uploaded_file.seek(0)
+        
+        if is_int16_interleaved:
+            # int16 interleaved: [I0, Q0, I1, Q1, ...]
+            if data.dtype != np.int16:
+                st.warning(f"Expected int16 for interleaved format, got {data.dtype}")
+            if len(data.shape) != 1 or data.shape[0] % 2 != 0:
+                st.error("Interleaved IQ data must be 1D with even length")
+                return None
+            i = data[::2].astype(np.float32)
+            q = data[1::2].astype(np.float32)
+            iq_complex = i + 1j * q
+            return iq_complex.astype(np.complex64)
+        
+        # Check if already complex
+        if np.iscomplexobj(data):
+            if len(data.shape) == 1:
+                return data.astype(np.complex64)
+            else:
+                st.error(f"Complex data must be 1D, got shape {data.shape}")
+                return None
+        
+        # Check if float array with shape (N, 2)
+        if len(data.shape) == 2 and data.shape[1] == 2:
+            i = data[:, 0].astype(np.float32)
+            q = data[:, 1].astype(np.float32)
+            iq_complex = i + 1j * q
+            return iq_complex.astype(np.complex64)
+        
+        # Check if 1D float (try to interpret as I-only, warn)
+        if len(data.shape) == 1:
+            st.warning("1D float array detected. Assuming this is I component only (Q=0).")
+            return data.astype(np.complex64)
+        
+        st.error(f"Unsupported data shape: {data.shape}, dtype: {data.dtype}")
+        return None
+        
+    except Exception as e:
+        st.error(f"Error loading file: {str(e)}")
+        return None
+
+
+@st.cache_data
+def compute_psd(iq_data, sample_rate, nperseg=1024):
+    """Compute PSD using Welch's method."""
+    freqs, psd = signal.welch(iq_data, fs=sample_rate, nperseg=nperseg, 
+                              return_onesided=False, scaling='density')
+    return freqs, psd
+
+
+@st.cache_data
+def compute_spectrogram(iq_data, sample_rate, nperseg=256, noverlap=None):
+    """Compute spectrogram using STFT."""
+    if noverlap is None:
+        noverlap = nperseg // 2
+    freqs, times, Sxx = signal.spectrogram(
+        iq_data, fs=sample_rate, nperseg=nperseg, 
+        noverlap=noverlap, return_onesided=False, scaling='density'
+    )
+    return freqs, times, Sxx
+
+
+def energy_detector(iq_data, threshold):
+    """
+    Simple energy detector baseline.
+    
+    Args:
+        iq_data: complex64 array
+        threshold: power threshold
+        
+    Returns:
+        prediction (0/1), confidence (0-1)
+    """
+    power = np.mean(np.abs(iq_data) ** 2)
+    prediction = 1 if power > threshold else 0
+    # Confidence based on distance from threshold (normalized)
+    distance = abs(power - threshold) / (threshold + 1e-10)
+    confidence = min(1.0, distance)
+    return prediction, confidence, power
+
+
+def spectral_flatness_detector(iq_data, sample_rate, threshold):
+    """
+    Spectral flatness detector baseline.
+    
+    Spectral flatness = geometric_mean(PSD) / arithmetic_mean(PSD)
+    Lower flatness indicates more structured signal (less noise-like).
+    
+    Args:
+        iq_data: complex64 array
+        sample_rate: sample rate in Hz
+        threshold: flatness threshold
+        
+    Returns:
+        prediction (0/1), confidence (0-1)
+    """
+    freqs, psd = compute_psd(iq_data, sample_rate)
+    # Use magnitude of PSD (handle negative freqs)
+    psd_mag = np.abs(psd)
+    psd_mag = psd_mag[psd_mag > 0]  # Avoid log(0)
+    
+    if len(psd_mag) == 0:
+        return 0, 0.0, 0.0
+    
+    geometric_mean = np.exp(np.mean(np.log(psd_mag)))
+    arithmetic_mean = np.mean(psd_mag)
+    
+    if arithmetic_mean == 0:
+        flatness = 0.0
+    else:
+        flatness = geometric_mean / arithmetic_mean
+    
+    # Lower flatness = more signal-like (prediction=1)
+    # Higher flatness = more noise-like (prediction=0)
+    prediction = 1 if flatness < threshold else 0
+    distance = abs(flatness - threshold) / (threshold + 1e-10)
+    confidence = min(1.0, distance)
+    
+    return prediction, confidence, flatness
+
+
+def psd_logreg_detector(iq_data, sample_rate):
+    """
+    Placeholder for PSD+LogReg model.
+    Returns placeholder if model not available.
+    """
+    # TODO: Implement if model exists in src/
+    return None
+
+
+# ============================================================================
+# Sidebar
+# ============================================================================
+
+with st.sidebar:
+    st.header("⚙️ Configuration")
+    
+    # File uploader
+    uploaded_file = st.file_uploader(
+        "Upload .npy file",
+        type=['npy'],
+        help="Upload IQ data in .npy format"
+    )
+    
+    # Format options
+    is_int16_interleaved = st.checkbox(
+        "int16 interleaved format",
+        help="Check if data is int16 interleaved [I0, Q0, I1, Q1, ...]"
+    )
+    
+    # Model selection
+    model_option = st.selectbox(
+        "Model",
+        ["Energy Detector", "Spectral Flatness", "PSD+LogReg", "Coming soon"],
+        help="Select baseline model for prediction"
+    )
+    
+    # Plot toggles
+    st.header("📊 Visualizations")
+    show_time_iq = st.toggle("Time/IQ", value=True)
+    show_constellation = st.toggle("Constellation", value=True)
+    show_psd = st.toggle("PSD", value=True)
+    show_spectrogram = st.toggle("Spectrogram", value=True)
+    
+    # Sample rate input
+    st.header("🔧 Parameters")
+    sample_rate = st.number_input(
+        "Sample Rate (Hz)",
+        min_value=1.0,
+        value=1e6,
+        step=1e3,
+        format="%.0f",
+        help="Sample rate of the IQ data"
+    )
+
+# ============================================================================
+# Main Content
+# ============================================================================
+
+if uploaded_file is not None:
+    # Load data
+    iq_data = load_iq_data(uploaded_file, is_int16_interleaved)
+    
+    if iq_data is not None:
+        # Data info panel
+        with st.expander("📋 File Information", expanded=False):
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Shape", str(iq_data.shape))
+            with col2:
+                st.metric("Dtype", str(iq_data.dtype))
+            with col3:
+                st.metric("Length", f"{len(iq_data):,} samples")
+            
+            st.text(f"Format: {'int16 interleaved' if is_int16_interleaved else 'auto-detected'}")
+            st.text(f"Sample rate: {sample_rate:,.0f} Hz")
+            st.text(f"Duration: {len(iq_data) / sample_rate:.4f} seconds")
+        
+        # Model prediction panel
+        st.header("🎯 Prediction")
+        
+        prediction = None
+        confidence = None
+        model_output = {}
+        
+        if model_option == "Energy Detector":
+            threshold = st.slider(
+                "Energy Threshold",
+                min_value=0.0,
+                max_value=10.0,
+                value=1.0,
+                step=0.1,
+                help="Power threshold for energy detector"
+            )
+            prediction, confidence, power = energy_detector(iq_data, threshold)
+            model_output = {"mean_power": power, "threshold": threshold}
+            
+        elif model_option == "Spectral Flatness":
+            threshold = st.slider(
+                "Flatness Threshold",
+                min_value=0.0,
+                max_value=1.0,
+                value=0.5,
+                step=0.01,
+                help="Spectral flatness threshold (lower = more signal-like)"
+            )
+            prediction, confidence, flatness = spectral_flatness_detector(
+                iq_data, sample_rate, threshold
+            )
+            model_output = {"flatness": flatness, "threshold": threshold}
+            
+        elif model_option == "PSD+LogReg":
+            result = psd_logreg_detector(iq_data, sample_rate)
+            if result is None:
+                st.info("PSD+LogReg model not yet implemented. Check src/edge_ran_gary/models/ for model files.")
+                prediction, confidence = 0, 0.0
+            else:
+                prediction, confidence = result
+                
+        elif model_option == "Coming soon":
+            st.info("This model is coming soon.")
+            prediction, confidence = 0, 0.0
+        
+        # Display prediction
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Prediction", "Signal" if prediction == 1 else "Noise")
+        with col2:
+            st.metric("Confidence", f"{confidence:.3f}")
+        
+        if model_output:
+            with st.expander("Model Details", expanded=False):
+                for key, value in model_output.items():
+                    st.text(f"{key}: {value:.6f}")
+        
+        # Visualizations
+        st.header("📈 Visualizations")
+        
+        # Time domain plots
+        if show_time_iq:
+            st.subheader("Time Domain: I(t), Q(t), |x(t)|")
+            # Sample for performance (show first 10k points or decimate)
+            max_points = 10000
+            if len(iq_data) > max_points:
+                step = len(iq_data) // max_points
+                iq_plot = iq_data[::step]
+                t_plot = np.arange(len(iq_plot)) * step / sample_rate
+            else:
+                iq_plot = iq_data
+                t_plot = np.arange(len(iq_plot)) / sample_rate
+            
+            fig = make_subplots(
+                rows=3, cols=1,
+                subplot_titles=("I(t)", "Q(t)", "|x(t)|"),
+                vertical_spacing=0.1
+            )
+            
+            fig.add_trace(
+                go.Scatter(x=t_plot, y=np.real(iq_plot), mode='lines', name='I', line=dict(width=1)),
+                row=1, col=1
+            )
+            fig.add_trace(
+                go.Scatter(x=t_plot, y=np.imag(iq_plot), mode='lines', name='Q', line=dict(width=1)),
+                row=2, col=1
+            )
+            fig.add_trace(
+                go.Scatter(x=t_plot, y=np.abs(iq_plot), mode='lines', name='|x|', line=dict(width=1)),
+                row=3, col=1
+            )
+            
+            fig.update_xaxes(title_text="Time (s)", row=3, col=1)
+            fig.update_yaxes(title_text="Amplitude", row=1, col=1)
+            fig.update_yaxes(title_text="Amplitude", row=2, col=1)
+            fig.update_yaxes(title_text="Magnitude", row=3, col=1)
+            fig.update_layout(height=600, showlegend=False)
+            st.plotly_chart(fig, use_container_width=True)
+        
+        # Constellation plot
+        if show_constellation:
+            st.subheader("IQ Constellation")
+            # Sample for performance
+            max_points = 5000
+            if len(iq_data) > max_points:
+                step = len(iq_data) // max_points
+                iq_const = iq_data[::step]
+            else:
+                iq_const = iq_data
+            
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(
+                x=np.real(iq_const),
+                y=np.imag(iq_const),
+                mode='markers',
+                marker=dict(size=2, opacity=0.5, color=np.abs(iq_const)),
+                name='IQ samples'
+            ))
+            fig.update_layout(
+                xaxis_title="I (In-phase)",
+                yaxis_title="Q (Quadrature)",
+                height=500,
+                title="IQ Constellation Scatter Plot"
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        
+        # PSD plot
+        if show_psd:
+            st.subheader("Power Spectral Density (Welch)")
+            freqs, psd = compute_psd(iq_data, sample_rate)
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(
+                x=freqs,
+                y=10 * np.log10(np.abs(psd) + 1e-10),  # dB scale
+                mode='lines',
+                name='PSD'
+            ))
+            fig.update_layout(
+                xaxis_title="Frequency (Hz)",
+                yaxis_title="PSD (dB/Hz)",
+                height=400,
+                title="Power Spectral Density"
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        
+        # Spectrogram
+        if show_spectrogram:
+            st.subheader("Spectrogram")
+            freqs, times, Sxx = compute_spectrogram(iq_data, sample_rate)
+            fig = go.Figure()
+            fig.add_trace(go.Heatmap(
+                z=10 * np.log10(np.abs(Sxx) + 1e-10),  # dB scale
+                x=times,
+                y=freqs,
+                colorscale='Viridis',
+                colorbar=dict(title="Power (dB)")
+            ))
+            fig.update_layout(
+                xaxis_title="Time (s)",
+                yaxis_title="Frequency (Hz)",
+                height=500,
+                title="Spectrogram"
+            )
+            st.plotly_chart(fig, use_container_width=True)
+    
+    else:
+        st.error("Failed to load IQ data. Please check the file format.")
+else:
+    st.info("👈 Please upload a .npy file to begin analysis.")
+    st.markdown("""
+    ### Supported Formats:
+    - **Complex array**: shape `(N,)` with dtype `complex64` or `complex128`
+    - **Float array**: shape `(N, 2)` interpreted as `[I, Q]` pairs
+    - **int16 interleaved**: shape `(N*2,)` with checkbox enabled: `[I0, Q0, I1, Q1, ...]`
+    
+    ### Usage:
+    1. Upload your .npy file using the sidebar
+    2. Select a baseline model
+    3. Adjust parameters (thresholds, sample rate)
+    4. View visualizations and predictions
+    """)
