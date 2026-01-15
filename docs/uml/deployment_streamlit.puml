@@ -1,0 +1,75 @@
+@startuml deployment_streamlit
+!define DEVICE node
+
+title Streamlit Dashboard Deployment Architecture
+
+DEVICE "Developer Machine" as dev {
+    component "Local Development" as local_dev {
+        [Python 3.10+] as python
+        [Virtual Environment] as venv
+        [Git Repository] as git_repo
+        [Streamlit CLI] as streamlit_cli
+    }
+    python --> venv
+    venv --> streamlit_cli
+    git_repo --> streamlit_cli
+}
+
+DEVICE "Streamlit Community Cloud" as cloud {
+    component "Deployment Environment" as deploy_env {
+        [Streamlit Runtime] as runtime
+        [apps/streamlit_app.py] as app
+        [Dependencies] as deps
+        [User Upload Storage] as upload_storage
+    }
+    component "Configuration" as config {
+        [Environment Variables] as env_vars
+        note right of env_vars : No secrets committed\nAll tokens in .env or\nStreamlit Secrets
+    }
+    runtime --> app
+    app --> deps
+    app --> upload_storage
+    app --> env_vars
+}
+
+DEVICE "User Browser" as browser {
+    [Web Interface] as web_ui
+    [File Upload] as upload
+    [Visualizations] as viz
+    web_ui --> upload
+    web_ui --> viz
+}
+
+cloud --> browser : HTTPS
+dev --> cloud : git push origin main
+
+database "GitHub Repository" as github {
+    [gunnchOS3k/spectrumx-ai-ran-gary] as repo
+    [main branch] as main_branch
+    [apps/streamlit_app.py] as app_file
+    [requirements.txt] as reqs
+    repo --> main_branch
+    main_branch --> app_file
+    main_branch --> reqs
+}
+
+dev --> github : git push
+cloud --> github : git pull (auto)
+
+note right of cloud
+  Deployment Process:
+  1. Connect GitHub repo
+  2. Select branch: main
+  3. Main file: apps/streamlit_app.py
+  4. Auto-deploy on push
+end note
+
+note right of env_vars
+  Security:
+  - No API keys in code
+  - No dataset files committed
+  - Secrets via Streamlit Secrets
+  - .env files gitignored
+end note
+
+@enduml

@@ -1,0 +1,67 @@
+```mermaid
+flowchart TB
+    subgraph External["External Systems"]
+        SDS[SpectrumX SDS<br/>Dataset Provider]
+        Judges[Competition Judges<br/>Evaluation Panel]
+    end
+    
+    subgraph Team["Development Team"]
+        Edmund[Edmund Gunn, Jr.<br/>Team Lead<br/>6G/AI-RAN Design]
+        Ananya[Ananya Jha<br/>ML Modeling<br/>Optimization/MLOps]
+        Noah[Noah Newman<br/>Data Pipeline<br/>Visualization]
+    end
+    
+    subgraph Local["Local Development Environment"]
+        Compute[Local Compute<br/>Python 3.10+<br/>PyTorch/CUDA]
+        Notebooks[Jupyter Notebooks<br/>EDA, Baselines, RL]
+    end
+    
+    subgraph Repo["Repository: spectrumx-ai-ran-gary"]
+        DataPipeline[data_pipeline/<br/>Dataset Loading<br/>Preprocessing]
+        Detection[detection/<br/>Occupancy Detection<br/>Models & Inference]
+        Channels[channels/<br/>Sionna RT<br/>Channel Modeling]
+        Models[models/<br/>AI-RAN Controllers<br/>Bandit/RL]
+        Sim[sim/<br/>Environment<br/>Evaluation]
+        Viz[viz/<br/>Visualization<br/>Streamlit Integration]
+    end
+    
+    subgraph Cloud["Streamlit Community Cloud"]
+        Dashboard[Streamlit Dashboard<br/>apps/streamlit_app.py<br/>User Upload & Visualization]
+    end
+    
+    %% External interactions
+    SDS -->|Download Dataset| DataPipeline
+    Team -->|Develop & Commit| Repo
+    Judges -->|Evaluate| Repo
+    
+    %% Team member responsibilities
+    Edmund -.->|Designs| Channels
+    Edmund -.->|Designs| Models
+    Ananya -.->|Implements| Detection
+    Ananya -.->|Implements| Models
+    Noah -.->|Implements| DataPipeline
+    Noah -.->|Maintains| Dashboard
+    
+    %% Local development flow
+    Team -->|Develop| Local
+    Local -->|Run Experiments| Notebooks
+    Notebooks -->|Use| Repo
+    
+    %% Repository internal flow
+    DataPipeline -->|Preprocessed IQ| Detection
+    Detection -->|Occupancy Probabilities| Sim
+    Channels -->|CSI| Sim
+    Models -->|Resource Allocations| Sim
+    Sim -->|Metrics| Viz
+    Detection -->|Predictions| Viz
+    
+    %% Cloud deployment
+    Repo -->|Deployed| Cloud
+    Cloud -->|Serves| Dashboard
+    Dashboard -->|Visualizes| Detection
+    Dashboard -->|Displays| Viz
+    
+    %% External access
+    Judges -.->|Reviews| Dashboard
+    Team -.->|Maintains via PRs| Cloud
+```

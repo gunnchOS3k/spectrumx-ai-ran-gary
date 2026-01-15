@@ -5,6 +5,12 @@ We treat the competition dataset as a mini-testbed and design an **AI-native RAN
 
 ## Problem
 
+### Competition Core (Phase 1)
+
+Given a 1-second IQ sample (complex-valued time series), determine whether the spectrum is **occupied** (signal present) or **unoccupied** (noise only). This is a binary classification problem with real-time inference requirements.
+
+### Research Extension (Phase 2)
+
 How can we design AI-driven radio resource management that:
 
 - Respects spectral emission and coexistence constraints
@@ -14,6 +20,15 @@ How can we design AI-driven radio resource management that:
 - Explicitly accounts for equity in mid-sized, under-resourced cities
 
 ## Approach
+
+### Phase 1: Competition Core
+
+- **Detection Pipeline**: Feature extraction → SSL/ML models → Calibration → Ensemble fusion
+- **Baseline Methods**: Energy detector, spectral flatness detector
+- **Advanced Models**: Self-supervised learning encoders, anomaly detection
+- **Evaluation**: Accuracy, precision, recall, F1, AUC-ROC, calibration metrics
+
+### Phase 2: Research Extension
 
 - Build a lightweight **digital twin** of a Gary-like environment using open GIS data and ray-tracing style channels.
 
@@ -76,6 +91,124 @@ How can we design AI-driven radio resource management that:
 - `apps/`
 
   - `streamlit_app.py` — Streamlit dashboard for IQ data visualization and baseline model comparison.
+
+- `src/edge_ran_gary/detection/`
+
+  - `features.py` — Feature extraction from IQ samples (time, frequency, statistical).
+  - `baselines.py` — Classical detection baselines (energy, spectral flatness).
+  - `ssl.py` — Self-supervised learning encoders.
+  - `anomaly.py` — Anomaly detection models for unsupervised scenarios.
+  - `calibrate.py` — Confidence calibration.
+  - `predict.py` — End-to-end inference pipeline.
+
+- `src/edge_ran_gary/viz/`
+
+  - `app_streamlit.py` — Streamlit visualization integration.
+
+- `docs/architecture/`
+
+  - `00_system_overview.md` — System architecture overview.
+  - `10_dataflow.md` — Data flow and reproducibility documentation.
+
+- `docs/uml/`
+
+  - `system_context.mmd` — System context diagram (Mermaid).
+  - `class_diagram_detection.mmd` — Detection module class diagram (Mermaid).
+  - `sequence_inference.mmd` — Inference sequence diagram (Mermaid).
+  - `containers_components.puml` — Component diagram (PlantUML).
+  - `deployment_streamlit.puml` — Deployment diagram (PlantUML).
+
+## Architecture
+
+### Phase Separation
+
+This repository implements a **two-phase architecture**:
+
+1. **Competition Core (Phase 1)**: Real-time spectrum occupancy detection from 1-second IQ samples
+   - Binary classification: occupied (signal present) vs. unoccupied (noise only)
+   - Production-ready detection pipeline with baseline and ML models
+   - Streamlit dashboard for visualization and model comparison
+
+2. **Research Extension (Phase 2)**: Digital twin simulation with AI-RAN controller
+   - Resource allocation (beams, power, resource blocks) under constraints
+   - Fairness considerations for under-resourced communities
+   - Demonstrates research vision beyond competition scope
+
+This separation ensures competition judges can evaluate the core detection task independently, while Phase 2 showcases our broader research capabilities.
+
+### System Context
+
+```mermaid
+flowchart TB
+    subgraph External["External Systems"]
+        SDS[SpectrumX SDS<br/>Dataset Provider]
+        Judges[Competition Judges<br/>Evaluation Panel]
+    end
+    
+    subgraph Team["Development Team"]
+        Edmund[Edmund Gunn, Jr.<br/>Team Lead]
+        Ananya[Ananya Jha<br/>ML Modeling]
+        Noah[Noah Newman<br/>Data Pipeline]
+    end
+    
+    subgraph Repo["Repository"]
+        DataPipeline[data_pipeline/]
+        Detection[detection/<br/>Occupancy Detection]
+        Channels[channels/<br/>Digital Twin]
+        Models[models/<br/>AI-RAN Controllers]
+    end
+    
+    subgraph Cloud["Streamlit Cloud"]
+        Dashboard[Streamlit Dashboard]
+    end
+    
+    SDS --> DataPipeline
+    Team --> Repo
+    Repo --> Cloud
+    Cloud --> Dashboard
+    Judges --> Dashboard
+```
+
+### Detection Pipeline (Phase 1)
+
+The competition core implements a complete detection pipeline:
+
+```mermaid
+classDiagram
+    class DatasetLoader {
+        +download()
+        +load_labeled()
+    }
+    class FeatureExtractor {
+        +extract_time()
+        +extract_freq()
+        +extract_statistical()
+    }
+    class EncoderSSL {
+        +pretrain()
+        +encode()
+    }
+    class ClassifierHead {
+        +train()
+        +predict()
+    }
+    class Calibrator {
+        +calibrate()
+        +predict_proba()
+    }
+    
+    DatasetLoader --> FeatureExtractor
+    FeatureExtractor --> EncoderSSL
+    FeatureExtractor --> ClassifierHead
+    EncoderSSL --> ClassifierHead
+    ClassifierHead --> Calibrator
+```
+
+### Documentation
+
+- **[System Overview](docs/architecture/00_system_overview.md)**: Detailed architecture description
+- **[Data Flow](docs/architecture/10_dataflow.md)**: Pipeline details and reproducibility contract
+- **[UML Diagrams](docs/uml/)**: Complete UML documentation (Mermaid and PlantUML)
 
 ## Metrics
 

@@ -1,0 +1,91 @@
+@startuml containers_components
+!define RECTANGLE class
+
+package "edge_ran_gary" {
+    
+    package "data_pipeline" {
+        [DatasetLoader] as loader
+        [IQPreprocessor] as preproc
+        [DeepMIMO Scenarios] as deepmimo
+        note right of loader : Downloads SpectrumX SDS dataset\nManages labeled/unlabeled samples
+        note right of preproc : Normalizes, windows, standardizes IQ format
+    }
+    
+    package "detection" {
+        [FeatureExtractor] as features
+        [EncoderSSL] as ssl
+        [ClassifierHead] as classifier
+        [AnomalyModel] as anomaly
+        [Calibrator] as calibrate
+        [EnsembleFusion] as ensemble
+        note right of features : Time/freq/statistical features
+        note right of ssl : Self-supervised representation learning
+        note right of classifier : Supervised binary classification
+        note right of anomaly : Unsupervised detection
+    }
+    
+    package "viz" {
+        [Streamlit App] as streamlit_app
+        [Plotting Utils] as plotting
+        note right of streamlit_app : apps/streamlit_app.py\nUser upload & visualization
+    }
+    
+    package "channels" {
+        [Sionna Scenes] as sionna
+        note right of sionna : Ray-tracing channel modeling\nGIS integration
+    }
+    
+    package "models" {
+        [Bandit Policies] as bandit
+        [Actor-Critic RL] as rl
+        [Baselines] as baselines
+        note right of bandit : Contextual bandit for resource allocation
+        note right of rl : Policy gradient RL agent
+    }
+    
+    package "sim" {
+        [Environment] as env
+        [Evaluation] as eval
+        note right of env : Simulation loop\nConstraint enforcement
+        note right of eval : Metrics computation\nSubmission bundle
+    }
+    
+    package "utils" {
+        [Metrics] as metrics
+        [Plotting] as plot_utils
+    }
+}
+
+' Data flow: Competition Core
+loader --> preproc : raw IQ samples
+preproc --> features : preprocessed IQ
+features --> ssl : feature vectors
+features --> classifier : feature vectors
+features --> anomaly : feature vectors
+ssl --> classifier : encoder weights
+classifier --> calibrate : logits
+anomaly --> calibrate : anomaly scores
+calibrate --> ensemble : calibrated probabilities
+ensemble --> streamlit_app : final predictions
+
+' Data flow: Phase 2 Research Extension
+sionna --> env : channel state info
+bandit --> env : resource allocations
+rl --> env : resource allocations
+baselines --> env : resource allocations
+env --> metrics : performance data
+env --> eval : episode results
+
+' Visualization
+streamlit_app --> plotting : IQ data
+plotting --> streamlit_app : interactive charts
+plot_utils --> eval : metric visualizations
+
+' External dependencies
+cloud "Streamlit Community Cloud" as cloud
+streamlit_app --> cloud : deployed
+
+database "SpectrumX SDS" as sds
+loader --> sds : downloads dataset
+
+@enduml

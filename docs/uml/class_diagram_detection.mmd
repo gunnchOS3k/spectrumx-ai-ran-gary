@@ -1,0 +1,101 @@
+```mermaid
+classDiagram
+    class DatasetLoader {
+        -cfg: SpectrumXDatasetConfig
+        -root_dir: Path
+        -files_dir: Path
+        +download(overwrite: bool) None
+        +load_labeled() Tuple[List, np.ndarray, List]
+        +load_unlabeled() Tuple[List, List]
+        -_discover_paths() None
+    }
+    
+    class IQPreprocessor {
+        -cfg: PreprocessingConfig
+        +normalize(iq: np.ndarray) np.ndarray
+        +window(iq: np.ndarray) np.ndarray
+        +standardize_format(iq: np.ndarray) np.ndarray
+    }
+    
+    class FeatureExtractor {
+        -cfg: FeatureExtractorConfig
+        +extract_time(iq: np.ndarray) dict
+        +extract_freq(iq: np.ndarray, sample_rate: float) dict
+        +extract_statistical(iq: np.ndarray) dict
+        +extract_all(iq: np.ndarray) dict
+    }
+    
+    class EncoderSSL {
+        -encoder: torch.nn.Module
+        -cfg: ModelConfig
+        +pretrain(unlabeled_data: List) None
+        +encode(features: np.ndarray) np.ndarray
+        +save_checkpoint(path: Path) None
+        +load_checkpoint(path: Path) None
+    }
+    
+    class ClassifierHead {
+        -classifier: torch.nn.Module
+        -encoder: EncoderSSL
+        -cfg: ModelConfig
+        +train(X: np.ndarray, y: np.ndarray) None
+        +predict(X: np.ndarray) np.ndarray
+        +predict_proba(X: np.ndarray) np.ndarray
+    }
+    
+    class Calibrator {
+        -calibration_model: object
+        -cfg: CalibrationConfig
+        +calibrate(logits: np.ndarray, y_true: np.ndarray) None
+        +predict_proba(logits: np.ndarray) np.ndarray
+        +get_confidence(proba: np.ndarray) float
+    }
+    
+    class AnomalyModel {
+        -model: object
+        -cfg: AnomalyModelConfig
+        +fit(X: np.ndarray) None
+        +predict(X: np.ndarray) np.ndarray
+        +predict_proba(X: np.ndarray) np.ndarray
+        +score_samples(X: np.ndarray) np.ndarray
+    }
+    
+    class EnsembleFusion {
+        -models: List[object]
+        -weights: np.ndarray
+        -cfg: EnsembleConfig
+        +add_model(model: object, weight: float) None
+        +fuse(predictions: List[np.ndarray]) Tuple[int, float]
+        +fuse_proba(probabilities: List[np.ndarray]) np.ndarray
+    }
+    
+    class Evaluator {
+        -cfg: EvaluationConfig
+        +evaluate(y_true: np.ndarray, y_pred: np.ndarray) dict
+        +compute_metrics(y_true: np.ndarray, y_pred: np.ndarray, y_proba: np.ndarray) dict
+        +compute_calibration_metrics(y_true: np.ndarray, y_proba: np.ndarray) dict
+        +save_results(results: dict, output_dir: Path) None
+    }
+    
+    class ModelRegistry {
+        -checkpoint_dir: Path
+        +register_model(name: str, model: object, metadata: dict) None
+        +load_model(name: str) object
+        +export_submission(output_dir: Path) None
+    }
+    
+    %% Relationships
+    DatasetLoader --> IQPreprocessor : provides raw IQ
+    IQPreprocessor --> FeatureExtractor : provides preprocessed IQ
+    FeatureExtractor --> EncoderSSL : provides features
+    FeatureExtractor --> ClassifierHead : provides features
+    FeatureExtractor --> AnomalyModel : provides features
+    EncoderSSL --> ClassifierHead : provides encoder
+    ClassifierHead --> Calibrator : provides logits
+    AnomalyModel --> Calibrator : provides scores
+    Calibrator --> EnsembleFusion : provides calibrated proba
+    EnsembleFusion --> Evaluator : provides final predictions
+    ModelRegistry --> EncoderSSL : manages checkpoints
+    ModelRegistry --> ClassifierHead : manages checkpoints
+    ModelRegistry --> AnomalyModel : manages checkpoints
+```
