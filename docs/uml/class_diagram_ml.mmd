@@ -1,0 +1,138 @@
+```mermaid
+classDiagram
+    %% Core Interfaces
+    class IRepresentation {
+        <<interface>>
+        +transform(iq: np.ndarray) np.ndarray
+        +get_output_shape() Tuple
+        +get_config() dict
+    }
+    
+    class IModel {
+        <<interface>>
+        +fit(X: np.ndarray, y: Optional[np.ndarray]) None
+        +predict_proba(X: np.ndarray) np.ndarray
+        +predict(X: np.ndarray) np.ndarray
+        +save_checkpoint(path: Path) None
+        +load_checkpoint(path: Path) None
+    }
+    
+    %% Representation Implementations
+    class RawIQRepresentation {
+        -normalize: bool
+        +transform(iq: np.ndarray) np.ndarray
+        +get_output_shape() Tuple
+    }
+    
+    class SpectrogramRepresentation {
+        -n_fft: int
+        -hop_length: int
+        -window: str
+        +transform(iq: np.ndarray) np.ndarray
+        +get_output_shape() Tuple
+    }
+    
+    class PSDRepresentation {
+        -nperseg: int
+        -noverlap: int
+        +transform(iq: np.ndarray) np.ndarray
+        +get_output_shape() Tuple
+    }
+    
+    %% Model Implementations
+    class SupervisedBaseline {
+        -model: torch.nn.Module
+        -optimizer: torch.optim.Optimizer
+        -criterion: torch.nn.Module
+        +fit(X: np.ndarray, y: np.ndarray) None
+        +predict_proba(X: np.ndarray) np.ndarray
+    }
+    
+    class SSLModel {
+        -encoder: torch.nn.Module
+        -projector: torch.nn.Module
+        -classifier: torch.nn.Module
+        +pretrain(X_unlabeled: np.ndarray) None
+        +finetune(X: np.ndarray, y: np.ndarray) None
+        +predict_proba(X: np.ndarray) np.ndarray
+    }
+    
+    class SemiSupervisedModel {
+        -teacher_model: torch.nn.Module
+        -student_model: torch.nn.Module
+        -consistency_weight: float
+        +fit(X_labeled: np.ndarray, y: np.ndarray, X_unlabeled: np.ndarray) None
+        +predict_proba(X: np.ndarray) np.ndarray
+    }
+    
+    class AnomalyModel {
+        -model_type: str
+        -contamination: float
+        +fit(X: np.ndarray) None
+        +predict_proba(X: np.ndarray) np.ndarray
+        +score_samples(X: np.ndarray) np.ndarray
+    }
+    
+    %% Calibration
+    class Calibrator {
+        -method: str
+        -calibration_model: object
+        -is_fitted: bool
+        +fit(logits: np.ndarray, y_true: np.ndarray) None
+        +calibrate(logits: np.ndarray) np.ndarray
+        +get_confidence(proba: np.ndarray) float
+    }
+    
+    %% Evaluation
+    class Evaluator {
+        -metrics: List[str]
+        -output_dir: Path
+        +compute_roc(y_true: np.ndarray, y_proba: np.ndarray) Tuple[float, float, float]
+        +compute_pr(y_true: np.ndarray, y_proba: np.ndarray) Tuple[float, float]
+        +compute_ece(y_true: np.ndarray, y_proba: np.ndarray, n_bins: int) float
+        +compute_all_metrics(y_true: np.ndarray, y_pred: np.ndarray, y_proba: np.ndarray) dict
+        +save_results(results: dict) None
+    }
+    
+    %% Experiment Management
+    class ExperimentRunner {
+        -config: dict
+        -representation: IRepresentation
+        -model: IModel
+        -calibrator: Calibrator
+        -evaluator: Evaluator
+        +run_experiment() dict
+        +load_config(path: Path) None
+        +save_results(results: dict) None
+    }
+    
+    %% Ensemble
+    class EnsembleFusion {
+        -models: List[IModel]
+        -weights: np.ndarray
+        -fusion_method: str
+        +add_model(model: IModel, weight: float) None
+        +fuse(probabilities: List[np.ndarray]) np.ndarray
+        +predict(X: np.ndarray) Tuple[int, float]
+    }
+    
+    %% Relationships
+    IRepresentation <|.. RawIQRepresentation
+    IRepresentation <|.. SpectrogramRepresentation
+    IRepresentation <|.. PSDRepresentation
+    
+    IModel <|.. SupervisedBaseline
+    IModel <|.. SSLModel
+    IModel <|.. SemiSupervisedModel
+    IModel <|.. AnomalyModel
+    
+    IRepresentation --> IModel : provides input
+    IModel --> Calibrator : provides logits
+    Calibrator --> Evaluator : provides calibrated proba
+    EnsembleFusion --> IModel : aggregates predictions
+    
+    ExperimentRunner --> IRepresentation : uses
+    ExperimentRunner --> IModel : uses
+    ExperimentRunner --> Calibrator : uses
+    ExperimentRunner --> Evaluator : uses
+```

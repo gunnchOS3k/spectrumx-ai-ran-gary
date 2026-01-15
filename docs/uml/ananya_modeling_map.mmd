@@ -1,0 +1,75 @@
+```mermaid
+flowchart TD
+    Start[1-second IQ Sample<br/>complex64, shape=N] --> RepBlock{REPRESENTATION<br/>Decision Block A}
+    
+    %% Representation Options
+    RepBlock -->|Option A1| Raw1D[Raw IQ -> 1D<br/>Direct complex array<br/>or I/Q concatenated]
+    RepBlock -->|Option A2| STFT2D[STFT -> 2D Spectrogram<br/>Time-frequency matrix<br/>shape=time_bins, freq_bins]
+    RepBlock -->|Option A3| PSD[PSD Features<br/>Welch PSD + statistics<br/>shape=feature_dim]
+    
+    %% Representation Notes
+    Raw1D -.->|When: Simple baseline<br/>Fast inference<br/>Low memory| RepNote1[Note: Works well for<br/>energy-based detectors<br/>Minimal preprocessing]
+    STFT2D -.->|When: Need time-freq structure<br/>CNN/Transformer friendly<br/>Rich representation| RepNote2[Note: Captures temporal<br/>and spectral patterns<br/>Good for SSL/CNN]
+    PSD -.->|When: Classical features<br/>Interpretable<br/>Small model size| RepNote3[Note: Hand-crafted features<br/>Works with MLP/SVM<br/>Fast training]
+    
+    %% Learning Strategy Block
+    Raw1D --> LearnBlock{LEARNING STRATEGY<br/>Decision Block B}
+    STFT2D --> LearnBlock
+    PSD --> LearnBlock
+    
+    LearnBlock -->|Option B1| Supervised[Supervised Baseline<br/>Train on labeled set only<br/>Cross-entropy loss]
+    LearnBlock -->|Option B2| SSL[SSL Pretrain + Finetune<br/>Pretrain on unlabeled<br/>Finetune on labeled]
+    LearnBlock -->|Option B3| SemiSup[Mean Teacher / FixMatch<br/>Consistency regularization<br/>Pseudo-labeling]
+    
+    %% Learning Strategy Notes
+    Supervised -.->|When: Sufficient labeled data<br/>>1000 samples<br/>Baseline comparison| LearnNote1[Note: Simple and fast<br/>Good if labels are reliable<br/>No unlabeled data needed]
+    SSL -.->|When: Large unlabeled set<br/>Want transfer learning<br/>Limited labels <500| LearnNote2[Note: Leverages unlabeled data<br/>Better generalization<br/>Requires pretext task design]
+    SemiSup -.->|When: Medium labeled set<br/>500-2000 samples<br/>Want consistency| LearnNote3[Note: Uses both labeled<br/>and unlabeled effectively<br/>More complex training]
+    
+    %% Calibration Block
+    Supervised --> CalBlock{CALIBRATION<br/>Decision Block C}
+    SSL --> CalBlock
+    SemiSup --> CalBlock
+    
+    CalBlock -->|Option C1| Platt[Platt Scaling<br/>Logistic regression<br/>on logits]
+    CalBlock -->|Option C2| Isotonic[Isotonic Regression<br/>Non-parametric<br/>Piecewise constant]
+    CalBlock -->|Option C3| TempScale[Temperature Scaling<br/>Single parameter<br/>Neural net friendly]
+    
+    %% Calibration Notes
+    Platt -.->|When: Small validation set<br/>Simple calibration<br/>Fast inference| CalNote1[Note: 2 parameters<br/>Works well with<br/>limited data]
+    Isotonic -.->|When: Need strong calibration<br/>Larger validation set<br/>Non-linear needed| CalNote2[Note: More flexible<br/>Requires more data<br/>Better ECE typically]
+    TempScale -.->|When: Neural network models<br/>Single parameter<br/>Fast| CalNote3[Note: Simplest method<br/>Good for deep models<br/>Minimal overhead]
+    
+    %% Threshold Policy
+    Platt --> ThreshBlock{THRESHOLD POLICY<br/>Decision Block D}
+    Isotonic --> ThreshBlock
+    TempScale --> ThreshBlock
+    
+    ThreshBlock -->|Option D1| MaxF1[Maximize F1 Score<br/>Tune on validation<br/>Balanced precision/recall]
+    ThreshBlock -->|Option D2| FixedFPR[Fixed FPR<br/>e.g., FPR=0.01<br/>Control false alarms]
+    ThreshBlock -->|Option D3| ROC[ROC Optimal<br/>Youden's J statistic<br/>maximize TPR-FPR]
+    
+    %% Threshold Notes
+    MaxF1 -.->|When: Balanced dataset<br/>Care about both<br/>precision and recall| ThreshNote1[Note: Good default<br/>Works well when<br/>classes balanced]
+    FixedFPR -.->|When: False alarms costly<br/>Need low FPR<br/>Competition constraint| ThreshNote2[Note: Safety-critical<br/>Spectrum sensing<br/>Regulatory compliance]
+    ROC -.->|When: Want optimal<br/>ROC curve point<br/>General purpose| ThreshNote3[Note: Maximizes<br/>discrimination ability<br/>Good baseline]
+    
+    %% Final Output
+    MaxF1 --> Output[Final Prediction<br/>label: 0/1<br/>prob: calibrated<br/>confidence: threshold-based]
+    FixedFPR --> Output
+    ROC --> Output
+    
+    %% Optional Anomaly Path
+    LearnBlock -.->|Optional| Anomaly[Anomaly Detection<br/>Isolation Forest<br/>Autoencoder<br/>One-Class SVM]
+    Anomaly -.->|When: Unlabeled only<br/>or extreme imbalance<br/>Novelty detection| AnomalyNote[Note: Unsupervised<br/>No labels needed<br/>Good for fusion]
+    Anomaly --> Ensemble[Ensemble Fusion<br/>Combine multiple models<br/>Weighted voting]
+    Output --> Ensemble
+    Ensemble --> Final[Final Decision<br/>+ Metadata]
+    
+    style RepBlock fill:#e1f5ff
+    style LearnBlock fill:#fff4e1
+    style CalBlock fill:#e8f5e9
+    style ThreshBlock fill:#f3e5f5
+    style Output fill:#ffebee
+    style Final fill:#ffebee
+```
