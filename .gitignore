@@ -12,3 +12,8 @@ data/processed/
 results/
 logs/
 .DS_Store
+# Competition dataset and data files
+competition_dataset/
+*.npy
+# Streamlit secrets (if needed later)
+.streamlit/secrets.tomlSpX-DAC_gunnchOS3kMLV.csv
