@@ -208,10 +208,12 @@ with st.sidebar:
     
     # Sample rate input
     st.header("🔧 Parameters")
+    # Get sample rate from session state if demo data exists
+    default_sample_rate = st.session_state.get('demo_sample_rate', 1e6) if 'demo_iq' in st.session_state else 1e6
     sample_rate = st.number_input(
         "Sample Rate (Hz)",
         min_value=1.0,
-        value=1e6,
+        value=float(default_sample_rate),
         step=1e3,
         format="%.0f",
         help="Sample rate of the IQ data"
@@ -221,12 +223,29 @@ with st.sidebar:
 # Main Content
 # ============================================================================
 
+# Determine if we have data to process
+has_data = False
+iq_data = None
+
 if uploaded_file is not None:
-    # Load data
+    # Load from uploaded file
     iq_data = load_iq_data(uploaded_file, is_int16_interleaved)
-    
     if iq_data is not None:
-        # Data info panel
+        has_data = True
+        # Clear demo flag when file is uploaded
+        if 'use_demo' in st.session_state:
+            st.session_state['use_demo'] = False
+elif 'demo_iq' in st.session_state and st.session_state.get('use_demo', False):
+    # Use demo data
+    iq_data = st.session_state.get('demo_iq')
+    if iq_data is not None:
+        has_data = True
+        # Update sample rate from demo
+        if 'demo_sample_rate' in st.session_state:
+            sample_rate = st.session_state['demo_sample_rate']
+
+if has_data and iq_data is not None:
+    # Data info panel
         with st.expander("📋 File Information", expanded=False):
             col1, col2, col3 = st.columns(3)
             with col1:
@@ -404,11 +423,47 @@ if uploaded_file is not None:
                 title="Spectrogram"
             )
             st.plotly_chart(fig, use_container_width=True)
-    
-    else:
-        st.error("Failed to load IQ data. Please check the file format.")
-else:
+
+# No data loaded - show upload prompt
+if not has_data:
     st.info("👈 Please upload a .npy file to begin analysis.")
+    
+    # Demo data generation option
+    st.markdown("---")
+    st.subheader("🎲 Try Demo Data")
+    if st.button("Generate Demo IQ Sample (1 second, 1 MHz sample rate)"):
+        try:
+            # Generate a simple demo signal: QPSK-like burst with noise
+            sample_rate = 1e6
+            duration = 1.0
+            n_samples = int(sample_rate * duration)
+            t = np.arange(n_samples) / sample_rate
+            
+            # Generate QPSK-like signal (simplified)
+            signal_freq = 100e3  # 100 kHz carrier
+            signal_samples = int(0.3 * n_samples)  # 30% of window has signal
+            signal_start = n_samples // 2 - signal_samples // 2
+            
+            demo_iq = np.random.normal(0, 0.1, n_samples) + 1j * np.random.normal(0, 0.1, n_samples)
+            # Add structured signal in the middle
+            signal_phase = 2 * np.pi * signal_freq * t[signal_start:signal_start+signal_samples]
+            demo_iq[signal_start:signal_start+signal_samples] += 0.5 * np.exp(1j * signal_phase)
+            demo_iq = demo_iq.astype(np.complex64)
+            
+            # Store in session state and reload
+            st.session_state['demo_iq'] = demo_iq
+            st.session_state['demo_sample_rate'] = sample_rate
+            st.rerun()
+        except Exception as e:
+            st.error(f"Error generating demo data: {e}")
+    
+    # If demo data exists, use it
+    if 'demo_iq' in st.session_state:
+        st.success("Demo data loaded! Scroll up to see visualizations.")
+        # Set uploaded_file to trigger processing
+        # We'll handle this by setting a flag
+        st.session_state['use_demo'] = True
+    
     st.markdown("""
     ### Supported Formats:
     - **Complex array**: shape `(N,)` with dtype `complex64` or `complex128`
@@ -416,7 +471,7 @@ else:
     - **int16 interleaved**: shape `(N*2,)` with checkbox enabled: `[I0, Q0, I1, Q1, ...]`
     
     ### Usage:
-    1. Upload your .npy file using the sidebar
+    1. Upload your .npy file using the sidebar, or click "Generate Demo IQ Sample"
     2. Select a baseline model
     3. Adjust parameters (thresholds, sample rate)
     4. View visualizations and predictions

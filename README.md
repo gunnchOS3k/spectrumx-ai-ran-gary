@@ -42,6 +42,47 @@ How can we design AI-driven radio resource management that:
 
   - Energy-efficiency objectives
 
+## Quickstart
+
+### 1. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 2. Generate Synthetic Twin Data
+
+```bash
+# Generate synthetic IQ dataset (2000 samples)
+python -m edge_ran_gary.digital_twin.dataset_builder \
+    --out data/synth_gary_twin \
+    --n 2000 \
+    --seed 123 \
+    --config configs/digital_twin_gary.yaml
+```
+
+This creates:
+- `data/synth_gary_twin/*.npy` - IQ data files
+- `data/synth_gary_twin/metadata.csv` - Labels and metadata
+
+### 3. Run Streamlit App
+
+```bash
+# Run locally
+streamlit run streamlit_app.py
+```
+
+The app will open at `http://localhost:8501`. You can:
+- Upload `.npy` files (from synthetic data or your own)
+- Click "Generate Demo IQ Sample" to test without files
+- View visualizations and run baseline detectors
+
+### 4. Deploy to Streamlit Cloud
+
+See [docs/STREAMLIT_DEPLOY.md](docs/STREAMLIT_DEPLOY.md) for detailed deployment instructions.
+
+**Main file path:** `streamlit_app.py` (root level)
+
 ## Repository structure
 
 - `src/edge_ran_gary/data_pipeline/`
@@ -253,8 +294,10 @@ We will report:
 
 3. **Run the dashboard:**
    ```bash
-   streamlit run apps/streamlit_app.py
+   streamlit run streamlit_app.py
    ```
+   
+   **Note:** Use the root-level `streamlit_app.py` wrapper for Cloud deployment compatibility.
 
 The dashboard will open in your browser at `http://localhost:8501`.
 
@@ -272,8 +315,10 @@ To deploy on Streamlit Community Cloud:
    - Click "New app"
    - Select repository: `gunnchOS3k/spectrumx-ai-ran-gary`
    - Branch: `main`
-   - Main file path: `apps/streamlit_app.py`
+   - Main file path: `streamlit_app.py` (root level)
    - Click "Deploy"
+   
+   See [docs/STREAMLIT_DEPLOY.md](docs/STREAMLIT_DEPLOY.md) for troubleshooting.
 
 3. **Note on Dataset:**
    - The dashboard is designed to work with **user-uploaded .npy files**
@@ -300,6 +345,35 @@ To deploy on Streamlit Community Cloud:
   - Spectrogram (STFT)
 
 - **Prediction Panel**: Shows binary prediction (Signal/Noise) and confidence score
+
+## Digital Twin
+
+The **Gary Spectrum Digital Twin** generates synthetic 1-second IQ windows for ML pipeline testing and robustness evaluation.
+
+### Features
+
+- **Zone-based modeling:** 12 zones with equity-focused weights
+- **Reproducible generation:** Deterministic seeds and configs
+- **Signal types:** QPSK-like and OFDM-like with impairments (CFO, multipath, AWGN)
+- **Metadata tracking:** Labels, SNR, CFO, multipath taps per sample
+
+### Usage
+
+```python
+from edge_ran_gary.digital_twin import generate_iq_window, build_synth_dataset
+
+# Generate single window
+iq_data, metadata = generate_iq_window(seed=123, label=1)
+
+# Build full dataset
+build_synth_dataset(
+    output_dir="data/synth_gary_twin",
+    n_samples=2000,
+    seed=123
+)
+```
+
+See [docs/DIGITAL_TWIN.md](docs/DIGITAL_TWIN.md) for full documentation.
 
 ## Team
 
