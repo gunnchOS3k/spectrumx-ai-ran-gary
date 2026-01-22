@@ -137,6 +137,81 @@ python scripts/import_asana_csv_to_github_projects.py
 
 ---
 
+## How to Run (One-Click Migration)
+
+### Prerequisites
+1. **GitHub CLI installed and authenticated:**
+   ```bash
+   gh auth status  # Verify you're logged in
+   ```
+
+2. **Refresh auth with project scope:**
+   ```bash
+   gh auth refresh -s project,read:project -h github.com
+   ```
+   Follow the prompts to authorize project access.
+
+### Run Migration
+```bash
+# From repo root
+python scripts/import_asana_csv_to_github_projects.py
+```
+
+The script will:
+1. ✅ Create/verify 17 labels
+2. ✅ Create GitHub Project v2 (or use existing)
+3. ✅ Create 6 project fields (Status, Sprint, Owner, Effort, Deliverable, Due Date)
+4. ✅ Parse CSV (47 tasks)
+5. ✅ Audit repository to determine completion status
+6. ✅ Create GitHub Issues (with idempotency check)
+7. ✅ Add issues to Project automatically
+8. ✅ Set all field values automatically (Status, Sprint, Owner, Effort, Deliverable, Due Date)
+9. ✅ Print summary with project URL
+
+**No manual steps required!** The script is fully automated.
+
+### Expected Output
+```
+============================================================
+Asana to GitHub Projects Migration
+============================================================
+
+Creating labels...
+✓ Created/verified 17 labels
+
+Creating GitHub Project...
+  Created project 'SpX-DAC 2026 — spectrumx-ai-ran-gary (gunnchOS3kMLV)' (ID: ..., number: X)
+
+Creating project fields...
+✓ Project fields created
+
+Parsing CSV...
+  Found 47 tasks
+
+Auditing repository...
+  Streamlit app: True
+  Baselines: True
+  Dataset loader: True
+
+Creating issues and adding to project...
+  Created issue #X: Task name
+  ...
+
+✓ Created 40 issues, updated 0, skipped 7
+
+============================================================
+SUMMARY
+============================================================
+Project: SpX-DAC 2026 — spectrumx-ai-ran-gary (gunnchOS3kMLV)
+Project Number: X
+Project URL: https://github.com/users/gunnchOS3k/projects/X
+Issues created: 40
+Issues updated: 0
+Issues skipped: 7
+
+✅ Migration complete! All issues added to project with field values set.
+```
+
 ## Next Steps
 
 ### Immediate (This Week)

@@ -220,12 +220,29 @@ def create_project() -> Tuple[Optional[str], Optional[int]]:
     print("Creating GitHub Project...")
     
     # Check if project already exists
-    projects = run_gh_command(["project", "list", "--owner", "gunnchOS3k", "--json", "title,number,id"])
+    projects = run_gh_command(["project", "list", "--owner", "gunnchOS3k", "--format", "json"])
     if isinstance(projects, list):
         for proj in projects:
             if proj.get("title") == PROJECT_TITLE:
                 print(f"  Project '{PROJECT_TITLE}' already exists (number: {proj.get('number')})")
-                return proj.get("id"), proj.get("number")
+                # Get project ID via GraphQL
+                project_number = proj.get("number")
+                # Query for project ID
+                query = '''
+                {
+                  organization(login: "gunnchOS3k") {
+                    projectV2(number: %d) {
+                      id
+                    }
+                  }
+                }
+                ''' % project_number
+                result = run_gh_command(["api", "graphql", "-f", "query=" + query])
+                if isinstance(result, dict) and "data" in result:
+                    project_id = result["data"].get("organization", {}).get("projectV2", {}).get("id")
+                    if project_id:
+                        return project_id, project_number
+                return None, project_number
     
     # Create new project
     result = run_gh_command(
@@ -245,29 +262,29 @@ def create_project() -> Tuple[Optional[str], Optional[int]]:
 
 def get_project_fields(project_id: str) -> Dict[str, str]:
     """Get existing project fields and return mapping of name -> id."""
-    query = f'''
-    {{
-      node(id: "{project_id}") {{
-        ... on ProjectV2 {{
-          fields(first: 20) {{
-            nodes {{
+    query = '''
+    {
+      node(id: "%s") {
+        ... on ProjectV2 {
+          fields(first: 20) {
+            nodes {
               id
-              ... on ProjectV2Field {{
+              ... on ProjectV2Field {
                 name
-              }}
-              ... on ProjectV2SingleSelectField {{
+              }
+              ... on ProjectV2SingleSelectField {
                 name
-                options {{
+                options {
                   id
                   name
-                }}
+                }
               }
-            }}
-          }}
-        }}
-      }}
-    }}
-    '''
+            }
+          }
+        }
+      }
+    }
+    ''' % project_id
     
     result = run_gh_command(["api", "graphql", "-f", f"query={query}"])
     fields_map = {}
@@ -291,7 +308,8 @@ def create_project_fields(project_id: str) -> Dict[str, str]:
     """Create custom fields in the GitHub Project and return field ID mapping."""
     print("Creating project fields...")
     
-    existing_fields, existing_options = get_project_fields(project_id)
+    existing_fields_dict, existing_options = get_project_fields(project_id)
+    existing_fields = existing_fields_dict
     
     # Create missing fields
     for field_name, field_def in PROJECT_FIELDS.items():
@@ -302,22 +320,22 @@ def create_project_fields(project_id: str) -> Dict[str, str]:
         if field_def["type"] == "single_select":
             # Create single select field
             options_json = json.dumps([{"name": opt} for opt in field_def["options"]])
-            mutation = f'''
-            mutation {{
-              createProjectV2Field(input: {{
-                projectId: "{project_id}"
-                name: "{field_name}"
+            mutation = '''
+            mutation {
+              createProjectV2Field(input: {
+                projectId: "%s"
+                name: "%s"
                 dataType: SINGLE_SELECT
-                singleSelectOptions: {options_json}
-              }}) {{
-                projectV2Field {{
+                singleSelectOptions: %s
+              }) {
+                projectV2Field {
                   id
                   name
-                }}
-              }}
-            }}
-            '''
-            result = run_gh_command(["api", "graphql", "-f", f"query={mutation}"])
+                }
+              }
+            }
+            ''' % (project_id, field_name, options_json)
+            result = run_gh_command(["api", "graphql", "-f", "query=" + mutation])
             if result and isinstance(result, dict):
                 field_data = result.get("data", {}).get("createProjectV2Field", {}).get("projectV2Field")
                 if field_data:
@@ -325,21 +343,21 @@ def create_project_fields(project_id: str) -> Dict[str, str]:
                     print(f"  Created field '{field_name}'")
         elif field_def["type"] == "date":
             # Create date field
-            mutation = f'''
-            mutation {{
-              createProjectV2Field(input: {{
-                projectId: "{project_id}"
-                name: "{field_name}"
+            mutation = '''
+            mutation {
+              createProjectV2Field(input: {
+                projectId: "%s"
+                name: "%s"
                 dataType: DATE
-              }}) {{
-                projectV2Field {{
+              }) {
+                projectV2Field {
                   id
                   name
-                }}
-              }}
-            }}
-            '''
-            result = run_gh_command(["api", "graphql", "-f", f"query={mutation}"])
+                }
+              }
+            }
+            ''' % (project_id, field_name)
+            result = run_gh_command(["api", "graphql", "-f", "query=" + mutation])
             if result and isinstance(result, dict):
                 field_data = result.get("data", {}).get("createProjectV2Field", {}).get("projectV2Field")
                 if field_data:
@@ -648,24 +666,24 @@ def get_project_item_id(project_id: str, issue_url: str) -> Optional[str]:
         return None
     
     issue_num = match.group(1)
-    query = f'''
-    {{
-      repository(owner: "gunnchOS3k", name: "spectrumx-ai-ran-gary") {{
-        issue(number: {issue_num}) {{
-          projectItems(first: 10) {{
-            nodes {{
+    query = '''
+    {
+      repository(owner: "gunnchOS3k", name: "spectrumx-ai-ran-gary") {
+        issue(number: %s) {
+          projectItems(first: 10) {
+            nodes {
               id
-              project {{
+              project {
                 id
-              }}
-            }}
-          }}
-        }}
-      }}
-    }}
-    '''
+              }
+            }
+          }
+        }
+      }
+    }
+    ''' % issue_num
     
-    result = run_gh_command(["api", "graphql", "-f", f"query={query}"])
+    result = run_gh_command(["api", "graphql", "-f", "query=" + query])
     if isinstance(result, dict) and "data" in result:
         nodes = result["data"].get("repository", {}).get("issue", {}).get("projectItems", {}).get("nodes", [])
         for node in nodes:
@@ -679,19 +697,19 @@ def set_project_field_value(project_id: str, item_id: str, field_id: str, value:
     """Set a project field value using GraphQL."""
     if field_type == "single_select":
         # Get option ID first
-        query = f'''
-        {{
-          node(id: "{field_id}") {{
-            ... on ProjectV2SingleSelectField {{
-              options {{
+        query = '''
+        {
+          node(id: "%s") {
+            ... on ProjectV2SingleSelectField {
+              options {
                 id
                 name
-              }}
-            }}
-          }}
-        }}
-        '''
-        result = run_gh_command(["api", "graphql", "-f", f"query={query}"])
+              }
+            }
+          }
+        }
+        ''' % field_id
+        result = run_gh_command(["api", "graphql", "-f", "query=" + query])
         if isinstance(result, dict) and "data" in result:
             options = result["data"].get("node", {}).get("options", [])
             option_id = None
@@ -703,46 +721,46 @@ def set_project_field_value(project_id: str, item_id: str, field_id: str, value:
             if not option_id:
                 return False
             
-            mutation = f'''
-            mutation {{
-              updateProjectV2ItemFieldValue(input: {{
-                projectId: "{project_id}"
-                itemId: "{item_id}"
-                fieldId: "{field_id}"
-                value: {{
-                  singleSelectOptionId: "{option_id}"
-                }}
-              }}) {{
-                projectV2Item {{
+            mutation = '''
+            mutation {
+              updateProjectV2ItemFieldValue(input: {
+                projectId: "%s"
+                itemId: "%s"
+                fieldId: "%s"
+                value: {
+                  singleSelectOptionId: "%s"
+                }
+              }) {
+                projectV2Item {
                   id
-                }}
-              }}
-            }}
-            '''
+                }
+              }
+            }
+            ''' % (project_id, item_id, field_id, option_id)
         else:
             return False
     elif field_type == "date":
         # Format date as ISO 8601
-        mutation = f'''
-        mutation {{
-          updateProjectV2ItemFieldValue(input: {{
-            projectId: "{project_id}"
-            itemId: "{item_id}"
-            fieldId: "{field_id}"
-            value: {{
-              date: "{value}"
-            }}
-          }}) {{
-            projectV2Item {{
+        mutation = '''
+        mutation {
+          updateProjectV2ItemFieldValue(input: {
+            projectId: "%s"
+            itemId: "%s"
+            fieldId: "%s"
+            value: {
+              date: "%s"
+            }
+          }) {
+            projectV2Item {
               id
-            }}
-          }}
-        }}
-        '''
+            }
+          }
+        }
+        ''' % (project_id, item_id, field_id, value)
     else:
         return False
     
-    result = run_gh_command(["api", "graphql", "-f", f"query={mutation}"])
+    result = run_gh_command(["api", "graphql", "-f", "query=" + mutation])
     return isinstance(result, dict) and "data" in result and "updateProjectV2ItemFieldValue" in result.get("data", {})
 
 
