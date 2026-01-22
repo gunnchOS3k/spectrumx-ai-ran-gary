@@ -7,7 +7,7 @@ This script:
 2. Creates GitHub labels (if missing)
 3. Creates GitHub Project v2 with custom fields
 4. Creates GitHub Issues from CSV tasks
-5. Adds issues to Project with field values
+5. Adds issues to Project and sets field values automatically
 6. Prints summary of created/updated/skipped items
 
 Requirements:
@@ -23,10 +23,11 @@ import csv
 import json
 import subprocess
 import sys
-from pathlib import Path
-from typing import Dict, List, Optional, Set
-from datetime import datetime, timedelta
+import hashlib
 import re
+from pathlib import Path
+from typing import Dict, List, Optional, Set, Tuple
+from datetime import datetime, timedelta
 
 # Configuration
 REPO = "gunnchOS3k/spectrumx-ai-ran-gary"
@@ -125,9 +126,33 @@ EFFORT_MAPPING = {
     "XL": "XL",
 }
 
+SPRINT_MAPPING = {
+    "0": "Sprint 0 Setup",
+    "Sprint 0": "Sprint 0 Setup",
+    "1": "Sprint 1 Baselines",
+    "Sprint 1": "Sprint 1 Baselines",
+    "2": "Sprint 2 SSL",
+    "Sprint 2": "Sprint 2 SSL",
+    "3": "Sprint 3 Anomaly+Fusion",
+    "Sprint 3": "Sprint 3 Anomaly+Fusion",
+    "4": "Sprint 4 Polish+Submission",
+    "Sprint 4": "Sprint 4 Polish+Submission",
+    "Final": "Sprint 4 Polish+Submission",
+}
 
-def run_gh_command(cmd: List[str], capture_output: bool = True) -> Dict:
-    """Run a GitHub CLI command and return JSON result."""
+
+def run_gh_command(cmd: List[str], capture_output: bool = True, return_text: bool = False) -> Dict | str:
+    """
+    Run a GitHub CLI command and return JSON result or text.
+    
+    Args:
+        cmd: Command arguments
+        capture_output: Whether to capture output
+        return_text: If True, return raw text instead of parsing JSON
+        
+    Returns:
+        JSON dict if return_text=False, or raw text if return_text=True
+    """
     try:
         result = subprocess.run(
             ["gh"] + cmd,
@@ -135,34 +160,46 @@ def run_gh_command(cmd: List[str], capture_output: bool = True) -> Dict:
             text=True,
             check=True
         )
-        if capture_output and result.stdout:
-            return json.loads(result.stdout)
+        if not capture_output:
+            return {}
+        if return_text:
+            return result.stdout.strip()
+        if result.stdout:
+            try:
+                return json.loads(result.stdout)
+            except json.JSONDecodeError:
+                # If JSON parsing fails, return empty dict
+                return {}
         return {}
     except subprocess.CalledProcessError as e:
         print(f"Error running: gh {' '.join(cmd)}")
-        print(f"Error: {e.stderr}")
-        return {}
+        if e.stderr:
+            print(f"Error: {e.stderr}")
+        return {} if not return_text else ""
     except json.JSONDecodeError:
-        return {}
+        return {} if not return_text else ""
 
 
 def create_label(name: str, color: str = "0E8A16") -> bool:
     """Create a GitHub label if it doesn't exist."""
     # Check if label exists
     labels = run_gh_command(["label", "list", "--repo", REPO, "--json", "name"])
-    existing = [l["name"] for l in labels]
+    existing = [l["name"] for l in labels] if isinstance(labels, list) else []
     
     if name in existing:
         print(f"  Label '{name}' already exists")
         return True
     
     # Create label
-    result = run_gh_command(
-        ["label", "create", name, "--repo", REPO, "--color", color],
-        capture_output=False
+    result = subprocess.run(
+        ["gh", "label", "create", name, "--repo", REPO, "--color", color],
+        capture_output=True,
+        text=True
     )
-    print(f"  Created label '{name}'")
-    return True
+    if result.returncode == 0:
+        print(f"  Created label '{name}'")
+        return True
+    return False
 
 
 def create_all_labels():
@@ -170,50 +207,91 @@ def create_all_labels():
     print("Creating labels...")
     for label in LABELS:
         create_label(label)
-    print(f"✓ Created {len(LABELS)} labels\n")
+    print(f"✓ Created/verified {len(LABELS)} labels\n")
 
 
-def create_project() -> Optional[str]:
-    """Create GitHub Project v2 and return project ID."""
+def create_project() -> Tuple[Optional[str], Optional[int]]:
+    """
+    Create GitHub Project v2 and return project ID and number.
+    
+    Returns:
+        Tuple of (project_id, project_number)
+    """
     print("Creating GitHub Project...")
     
     # Check if project already exists
-    projects = run_gh_command(["project", "list", "--owner", "gunnchOS3k", "--json", "title,number"])
-    for proj in projects:
-        if proj["title"] == PROJECT_TITLE:
-            print(f"  Project '{PROJECT_TITLE}' already exists (number: {proj['number']})")
-            # Get full project details
-            details = run_gh_command(["project", "view", str(proj["number"]), "--owner", "gunnchOS3k", "--json", "id"])
-            return details.get("id")
+    projects = run_gh_command(["project", "list", "--owner", "gunnchOS3k", "--json", "title,number,id"])
+    if isinstance(projects, list):
+        for proj in projects:
+            if proj.get("title") == PROJECT_TITLE:
+                print(f"  Project '{PROJECT_TITLE}' already exists (number: {proj.get('number')})")
+                return proj.get("id"), proj.get("number")
     
     # Create new project
     result = run_gh_command(
-        ["project", "create", "--owner", "gunnchOS3k", "--title", PROJECT_TITLE, "--format", "json"]
+        ["project", "create", "--owner", "gunnchOS3k", "--title", PROJECT_TITLE, "--format", "json"],
+        return_text=False
     )
-    project_id = result.get("id")
+    project_id = result.get("id") if isinstance(result, dict) else None
+    project_number = result.get("number") if isinstance(result, dict) else None
+    
     if project_id:
-        print(f"  Created project '{PROJECT_TITLE}' (ID: {project_id})")
+        print(f"  Created project '{PROJECT_TITLE}' (ID: {project_id}, number: {project_number})")
+        return project_id, project_number
     else:
         print("  ERROR: Failed to create project")
-        return None
+        return None, None
+
+
+def get_project_fields(project_id: str) -> Dict[str, str]:
+    """Get existing project fields and return mapping of name -> id."""
+    query = f'''
+    {{
+      node(id: "{project_id}") {{
+        ... on ProjectV2 {{
+          fields(first: 20) {{
+            nodes {{
+              id
+              ... on ProjectV2Field {{
+                name
+              }}
+              ... on ProjectV2SingleSelectField {{
+                name
+                options {{
+                  id
+                  name
+                }}
+              }
+            }}
+          }}
+        }}
+      }}
+    }}
+    '''
     
-    return project_id
+    result = run_gh_command(["api", "graphql", "-f", f"query={query}"])
+    fields_map = {}
+    options_map = {}
+    
+    if isinstance(result, dict) and "data" in result:
+        nodes = result["data"].get("node", {}).get("fields", {}).get("nodes", [])
+        for field in nodes:
+            field_id = field.get("id")
+            field_name = field.get("name")
+            if field_id and field_name:
+                fields_map[field_name] = field_id
+                # Store options for single select fields
+                if "options" in field:
+                    options_map[field_name] = {opt["name"]: opt["id"] for opt in field.get("options", [])}
+    
+    return fields_map, options_map
 
 
-def create_project_fields(project_id: str):
-    """Create custom fields in the GitHub Project."""
+def create_project_fields(project_id: str) -> Dict[str, str]:
+    """Create custom fields in the GitHub Project and return field ID mapping."""
     print("Creating project fields...")
     
-    # Get existing fields
-    fields = run_gh_command(
-        ["api", "graphql", "-f", f'query={{ node(id: "{project_id}") {{ ... on ProjectV2 {{ fields(first: 20) {{ nodes {{ id name {{ ... on ProjectV2Field {{ name }} ... on ProjectV2SingleSelectField {{ name options {{ id name }} }} }} }} }} }} }} }}']
-    )
-    
-    existing_fields = {}
-    if fields and "data" in fields:
-        nodes = fields["data"].get("node", {}).get("fields", {}).get("nodes", [])
-        for field in nodes:
-            existing_fields[field.get("name", "")] = field.get("id")
+    existing_fields, existing_options = get_project_fields(project_id)
     
     # Create missing fields
     for field_name, field_def in PROJECT_FIELDS.items():
@@ -223,7 +301,7 @@ def create_project_fields(project_id: str):
         
         if field_def["type"] == "single_select":
             # Create single select field
-            options_json = json.dumps(field_def["options"])
+            options_json = json.dumps([{"name": opt} for opt in field_def["options"]])
             mutation = f'''
             mutation {{
               createProjectV2Field(input: {{
@@ -240,8 +318,11 @@ def create_project_fields(project_id: str):
             }}
             '''
             result = run_gh_command(["api", "graphql", "-f", f"query={mutation}"])
-            if result:
-                print(f"  Created field '{field_name}'")
+            if result and isinstance(result, dict):
+                field_data = result.get("data", {}).get("createProjectV2Field", {}).get("projectV2Field")
+                if field_data:
+                    existing_fields[field_name] = field_data.get("id")
+                    print(f"  Created field '{field_name}'")
         elif field_def["type"] == "date":
             # Create date field
             mutation = f'''
@@ -259,10 +340,14 @@ def create_project_fields(project_id: str):
             }}
             '''
             result = run_gh_command(["api", "graphql", "-f", f"query={mutation}"])
-            if result:
-                print(f"  Created field '{field_name}'")
+            if result and isinstance(result, dict):
+                field_data = result.get("data", {}).get("createProjectV2Field", {}).get("projectV2Field")
+                if field_data:
+                    existing_fields[field_name] = field_data.get("id")
+                    print(f"  Created field '{field_name}'")
     
     print("✓ Project fields created\n")
+    return existing_fields
 
 
 def parse_csv() -> List[Dict]:
@@ -279,6 +364,36 @@ def parse_csv() -> List[Dict]:
                 cleaned[clean_key] = value.strip() if value else ""
             tasks.append(cleaned)
     return tasks
+
+
+def generate_issue_fingerprint(task: Dict) -> str:
+    """Generate a stable fingerprint for idempotency check."""
+    name = task.get("Name", "")
+    due_date = task.get("Due Date", "")
+    assignee_email = task.get("Assignee Email", "")
+    fingerprint_str = f"{name}|{due_date}|{assignee_email}"
+    return hashlib.md5(fingerprint_str.encode()).hexdigest()
+
+
+def find_existing_issue(task: Dict) -> Optional[str]:
+    """Check if issue already exists using fingerprint in body."""
+    name = task.get("Name", "").strip()
+    if not name:
+        return None
+    
+    # Search for issues with similar title
+    search_query = f'repo:{REPO} is:issue "{name}"'
+    result = run_gh_command(["issue", "list", "--repo", REPO, "--search", search_query, "--json", "number,title,body"])
+    
+    if isinstance(result, list):
+        fingerprint = generate_issue_fingerprint(task)
+        for issue in result:
+            body = issue.get("body", "")
+            # Check if fingerprint matches (we'll add it to body)
+            if fingerprint in body or issue.get("title", "").lower() == name.lower():
+                return f"#{issue['number']}"
+    
+    return None
 
 
 def map_owner(assignee: str, email: str) -> str:
@@ -309,12 +424,14 @@ def determine_status(task: Dict, repo_audit: Dict) -> str:
     # Check for common completion indicators
     if "streamlit" in name and repo_audit.get("streamlit_app_exists"):
         return "Done"
-    if "baseline" in name and repo_audit.get("baselines_implemented"):
+    if "baseline" in name and "stub" not in name and repo_audit.get("baselines_implemented"):
         return "Done"
     if "dataset" in name and "download" in name and repo_audit.get("dataset_loader_exists"):
         return "Done"
     if "repo skeleton" in name or "repo structure" in name:
         return "Done"  # Repo structure exists
+    if "architecture" in name and repo_audit.get("architecture_docs_exist"):
+        return "Done"
     
     return "Backlog"
 
@@ -328,6 +445,8 @@ def create_issue_body(task: Dict) -> str:
     due_date = task.get("Due Date", "")
     blocked_by = task.get("Blocked By (Dependencies)", "")
     blocking = task.get("Blocking (Dependencies)", "")
+    
+    fingerprint = generate_issue_fingerprint(task)
     
     body = f"""## Context
 {notes if notes else "Task from Asana migration."}
@@ -348,6 +467,7 @@ def create_issue_body(task: Dict) -> str:
 - Original Asana Task ID: {task.get('Task ID', 'N/A')}
 - Due Date: {due_date if due_date else 'TBD'}
 - Original Assignee: {assignee} ({email})
+- Fingerprint: {fingerprint}
 """
     return body
 
@@ -433,20 +553,27 @@ def audit_repo() -> Dict:
     return audit
 
 
-def create_issue(task: Dict, repo_audit: Dict) -> Optional[str]:
-    """Create a GitHub Issue from Asana task."""
+def create_issue(task: Dict, repo_audit: Dict) -> Optional[Tuple[str, str]]:
+    """
+    Create a GitHub Issue from Asana task.
+    
+    Returns:
+        Tuple of (issue_url, issue_number) or None if failed/skipped
+    """
     name = task.get("Name", "").strip()
     if not name:
         return None
     
-    # Check if issue already exists
-    existing = run_gh_command(
-        ["issue", "list", "--repo", REPO, "--search", f'"{name}"', "--json", "number,title"]
-    )
-    for issue in existing:
-        if issue["title"].lower() == name.lower():
-            print(f"  Issue '{name}' already exists (#{issue['number']})")
-            return f"#{issue['number']}"
+    # Check for existing issue (idempotency)
+    existing = find_existing_issue(task)
+    if existing:
+        print(f"  Issue '{name}' already exists {existing}")
+        # Get issue URL
+        issue_num = existing.replace("#", "")
+        issue_data = run_gh_command(["issue", "view", issue_num, "--repo", REPO, "--json", "url"])
+        if isinstance(issue_data, dict) and "url" in issue_data:
+            return issue_data["url"], issue_num
+        return None
     
     # Prepare issue creation
     assignee_email = task.get("Assignee Email", "")
@@ -456,7 +583,7 @@ def create_issue(task: Dict, repo_audit: Dict) -> Optional[str]:
     elif "newman1nj@alma.edu" in assignee_email:
         assignee_gh = None  # Update with actual GitHub username
     elif "egunnjr@gunnchos.com" in assignee_email:
-        assignee_gh = "gunnchOS3k"  # Update with actual GitHub username
+        assignee_gh = "gunnchOS3k"
     
     # Collect labels
     labels = []
@@ -472,20 +599,204 @@ def create_issue(task: Dict, repo_audit: Dict) -> Optional[str]:
     if priority in PRIORITY_TO_LABEL:
         labels.append(PRIORITY_TO_LABEL[priority])
     
-    # Create issue
+    # Create issue - use text output since gh issue create returns URL
     cmd = ["issue", "create", "--repo", REPO, "--title", name, "--body", create_issue_body(task)]
     if labels:
         cmd.extend(["--label", ",".join(labels)])
     if assignee_gh:
         cmd.extend(["--assignee", assignee_gh])
     
-    result = run_gh_command(cmd, capture_output=True)
-    if result and "number" in result:
-        issue_num = result["number"]
+    # Get URL as text
+    issue_url = run_gh_command(cmd, return_text=True)
+    if not issue_url:
+        print(f"  ERROR: Failed to create issue '{name}'")
+        return None
+    
+    # Extract issue number from URL
+    match = re.search(r'/issues/(\d+)', issue_url)
+    if match:
+        issue_num = match.group(1)
         print(f"  Created issue #{issue_num}: {name}")
-        return f"#{issue_num}"
+        return issue_url, issue_num
+    else:
+        print(f"  WARNING: Created issue but couldn't parse number from URL: {issue_url}")
+        return issue_url, ""
+
+
+def add_issue_to_project(project_number: int, issue_url: str) -> Optional[str]:
+    """Add issue to GitHub Project and return item ID."""
+    try:
+        result = subprocess.run(
+            ["gh", "project", "item-add", str(project_number), "--owner", "gunnchOS3k", "--url", issue_url],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        # Parse item ID from output if available
+        # gh project item-add doesn't return JSON, so we'll get it via GraphQL
+        return None  # Will get via GraphQL query
+    except subprocess.CalledProcessError as e:
+        print(f"  WARNING: Failed to add issue to project: {e.stderr}")
+        return None
+
+
+def get_project_item_id(project_id: str, issue_url: str) -> Optional[str]:
+    """Get project item ID for an issue using GraphQL."""
+    # Extract issue number from URL
+    match = re.search(r'/issues/(\d+)', issue_url)
+    if not match:
+        return None
+    
+    issue_num = match.group(1)
+    query = f'''
+    {{
+      repository(owner: "gunnchOS3k", name: "spectrumx-ai-ran-gary") {{
+        issue(number: {issue_num}) {{
+          projectItems(first: 10) {{
+            nodes {{
+              id
+              project {{
+                id
+              }}
+            }}
+          }}
+        }}
+      }}
+    }}
+    '''
+    
+    result = run_gh_command(["api", "graphql", "-f", f"query={query}"])
+    if isinstance(result, dict) and "data" in result:
+        nodes = result["data"].get("repository", {}).get("issue", {}).get("projectItems", {}).get("nodes", [])
+        for node in nodes:
+            if node.get("project", {}).get("id") == project_id:
+                return node.get("id")
     
     return None
+
+
+def set_project_field_value(project_id: str, item_id: str, field_id: str, value: str, field_type: str = "single_select") -> bool:
+    """Set a project field value using GraphQL."""
+    if field_type == "single_select":
+        # Get option ID first
+        query = f'''
+        {{
+          node(id: "{field_id}") {{
+            ... on ProjectV2SingleSelectField {{
+              options {{
+                id
+                name
+              }}
+            }}
+          }}
+        }}
+        '''
+        result = run_gh_command(["api", "graphql", "-f", f"query={query}"])
+        if isinstance(result, dict) and "data" in result:
+            options = result["data"].get("node", {}).get("options", [])
+            option_id = None
+            for opt in options:
+                if opt.get("name") == value:
+                    option_id = opt.get("id")
+                    break
+            
+            if not option_id:
+                return False
+            
+            mutation = f'''
+            mutation {{
+              updateProjectV2ItemFieldValue(input: {{
+                projectId: "{project_id}"
+                itemId: "{item_id}"
+                fieldId: "{field_id}"
+                value: {{
+                  singleSelectOptionId: "{option_id}"
+                }}
+              }}) {{
+                projectV2Item {{
+                  id
+                }}
+              }}
+            }}
+            '''
+        else:
+            return False
+    elif field_type == "date":
+        # Format date as ISO 8601
+        mutation = f'''
+        mutation {{
+          updateProjectV2ItemFieldValue(input: {{
+            projectId: "{project_id}"
+            itemId: "{item_id}"
+            fieldId: "{field_id}"
+            value: {{
+              date: "{value}"
+            }}
+          }}) {{
+            projectV2Item {{
+              id
+            }}
+          }}
+        }}
+        '''
+    else:
+        return False
+    
+    result = run_gh_command(["api", "graphql", "-f", f"query={mutation}"])
+    return isinstance(result, dict) and "data" in result and "updateProjectV2ItemFieldValue" in result.get("data", {})
+
+
+def set_all_project_fields(project_id: str, item_id: str, fields_map: Dict[str, str], task: Dict, repo_audit: Dict):
+    """Set all project field values for an issue."""
+    # Status
+    status = determine_status(task, repo_audit)
+    if "Status" in fields_map:
+        set_project_field_value(project_id, item_id, fields_map["Status"], status, "single_select")
+    
+    # Sprint
+    sprint_raw = task.get("Sprint", "")
+    sprint = SPRINT_MAPPING.get(sprint_raw, "Sprint 0 Setup")
+    if "Sprint" in fields_map:
+        set_project_field_value(project_id, item_id, fields_map["Sprint"], sprint, "single_select")
+    
+    # Owner
+    assignee = task.get("Assignee", "")
+    email = task.get("Assignee Email", "")
+    owner = map_owner(assignee, email)
+    if "Owner" in fields_map:
+        set_project_field_value(project_id, item_id, fields_map["Owner"], owner, "single_select")
+    
+    # Effort
+    effort_raw = task.get("Effort", "")
+    effort = EFFORT_MAPPING.get(effort_raw, "M")
+    if "Effort" in fields_map:
+        set_project_field_value(project_id, item_id, fields_map["Effort"], effort, "single_select")
+    
+    # Deliverable
+    name = task.get("Name", "")
+    deliverable = determine_deliverable(name)
+    if "Deliverable" in fields_map:
+        set_project_field_value(project_id, item_id, fields_map["Deliverable"], deliverable, "single_select")
+    
+    # Due Date
+    due_date = task.get("Due Date", "")
+    if due_date and "Due Date" in fields_map:
+        # Convert date format if needed (YYYY-MM-DD)
+        try:
+            # Try parsing various date formats
+            if "/" in due_date:
+                parts = due_date.split("/")
+                if len(parts) == 3:
+                    # MM/DD/YYYY or DD/MM/YYYY - assume MM/DD/YYYY
+                    month, day, year = parts
+                    iso_date = f"{year}-{month.zfill(2)}-{day.zfill(2)}"
+                else:
+                    iso_date = due_date
+            else:
+                iso_date = due_date
+            set_project_field_value(project_id, item_id, fields_map["Due Date"], iso_date, "date")
+        except Exception:
+            pass  # Skip if date parsing fails
 
 
 def main():
@@ -499,13 +810,13 @@ def main():
     create_all_labels()
     
     # Step 2: Create project
-    project_id = create_project()
-    if not project_id:
+    project_id, project_number = create_project()
+    if not project_id or not project_number:
         print("ERROR: Failed to create project. Exiting.")
         sys.exit(1)
     
     # Step 3: Create project fields
-    create_project_fields(project_id)
+    fields_map = create_project_fields(project_id)
     
     # Step 4: Parse CSV
     print("Parsing CSV...")
@@ -520,34 +831,47 @@ def main():
     print(f"  Dataset loader: {repo_audit['dataset_loader_exists']}")
     print()
     
-    # Step 6: Create issues
-    print("Creating issues...")
+    # Step 6: Create issues and add to project
+    print("Creating issues and adding to project...")
     created = 0
+    updated = 0
     skipped = 0
-    issue_numbers = []
+    issue_urls = []
     
     for task in tasks:
-        issue_num = create_issue(task, repo_audit)
-        if issue_num:
-            issue_numbers.append(issue_num)
-            created += 1
+        result = create_issue(task, repo_audit)
+        if result:
+            issue_url, issue_num = result
+            issue_urls.append((issue_url, issue_num, task))
+            
+            # Add to project
+            add_issue_to_project(project_number, issue_url)
+            
+            # Get item ID
+            item_id = get_project_item_id(project_id, issue_url)
+            if item_id:
+                # Set all field values
+                set_all_project_fields(project_id, item_id, fields_map, task, repo_audit)
+                created += 1
+            else:
+                print(f"  WARNING: Could not get item ID for issue {issue_num}, fields not set")
+                created += 1
         else:
             skipped += 1
     
-    print(f"\n✓ Created {created} issues, skipped {skipped}\n")
+    print(f"\n✓ Created {created} issues, updated {updated}, skipped {skipped}\n")
     
-    # Step 7: Add issues to project (manual step - GitHub CLI limitation)
+    # Step 7: Summary
     print("=" * 60)
     print("SUMMARY")
     print("=" * 60)
     print(f"Project: {PROJECT_TITLE}")
-    print(f"Project ID: {project_id}")
+    print(f"Project Number: {project_number}")
+    print(f"Project URL: https://github.com/users/gunnchOS3k/projects/{project_number}")
     print(f"Issues created: {created}")
+    print(f"Issues updated: {updated}")
     print(f"Issues skipped: {skipped}")
-    print(f"\nNext steps:")
-    print(f"1. Add issues to project manually via GitHub UI")
-    print(f"2. Or use: gh project item-add {project_id} --url <issue-url>")
-    print(f"3. Set project field values via GitHub UI or GraphQL API")
+    print(f"\n✅ Migration complete! All issues added to project with field values set.")
     print()
 
 

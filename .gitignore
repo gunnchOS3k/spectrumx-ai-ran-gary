@@ -16,4 +16,6 @@ logs/
 competition_dataset/
 *.npy
 # Streamlit secrets (if needed later)
-.streamlit/secrets.tomlSpX-DAC_gunnchOS3kMLV.csv
+.streamlit/secrets.toml
+# Asana export CSV
+SpX-DAC_gunnchOS3kMLV.csv
