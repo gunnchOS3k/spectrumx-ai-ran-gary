@@ -98,6 +98,42 @@ This project implements a spectrum occupancy detection system for the SpectrumX 
 
 For any task to be considered "Done":
 
+### Reproducibility Checklist
+- [ ] **Seeds documented:** All random seeds specified in configs or code comments
+- [ ] **Configs versioned:** All hyperparameters in `configs/` directory
+- [ ] **Environment documented:** Python version, package versions in `requirements.txt`
+- [ ] **Artifact paths:** Output paths clearly specified (e.g., `data/`, `results/`)
+- [ ] **One-command run:** Can reproduce results with single command
+
+### No Data Leakage Checklist
+- [ ] **Split policy:** Train/val/test splits defined before any model training
+- [ ] **No target leakage:** Features don't include future information
+- [ ] **No test set peeking:** Test set only used for final evaluation
+- [ ] **Cross-validation:** Used for hyperparameter tuning (not test set)
+- [ ] **Documented splits:** Split strategy documented in `docs/EVAL_PROTOCOL.md`
+
+### Calibration Checklist
+- [ ] **Calibration method:** Platt/Isotonic/Temperature scaling chosen and documented
+- [ ] **ECE computed:** Expected Calibration Error reported
+- [ ] **Calibration curve:** Plot shows predicted vs. actual probabilities
+- [ ] **Threshold policy:** Threshold selection method documented (max F1, fixed FPR, etc.)
+
+### Demo/Submission Checklist
+- [ ] **Streamlit app works:** `streamlit run streamlit_app.py` runs without errors
+- [ ] **No dataset required:** App works with uploaded files or demo data
+- [ ] **Cloud deployment:** Streamlit Cloud deployment successful (see `docs/STREAMLIT_DEPLOY.md`)
+- [ ] **Fresh machine test:** Submission bundle works on clean clone
+- [ ] **Documentation complete:** README, docs/, and code comments up to date
+
+### Code Quality Checklist
+- [ ] **No secrets committed:** All API keys/tokens in `.env` or Streamlit Secrets
+- [ ] **Gitignore correct:** `.gitignore` includes data files, secrets, cache
+- [ ] **Error handling:** Graceful error messages (no crashes)
+- [ ] **Type hints:** Functions have type annotations where appropriate
+- [ ] **Docstrings:** Public functions have docstrings
+
+For any task to be considered "Done":
+
 1. **Code:**
    - [ ] Code implemented and tested
    - [ ] Code reviewed by at least one team member

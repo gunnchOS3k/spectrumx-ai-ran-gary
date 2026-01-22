@@ -1,0 +1,111 @@
+# Gary Spectrum Digital Twin Configuration
+# 
+# Zone-based model for generating synthetic IQ data with equity considerations.
+# Zones represent abstract neighborhoods (not real PII) with different
+# occupancy characteristics and equity weights.
+
+# Global settings
+sample_rate: 1000000  # 1 MHz
+duration: 1.0  # 1 second windows
+num_zones: 12
+
+# Equity weights: higher weight = more emphasis in sampling
+# This allows us to generate more samples from under-resourced zones
+# for fairness evaluation and robustness testing
+
+zones:
+  zone_01:
+    weight: 1.5  # Higher weight = under-resourced zone
+    occupancy_prior: 0.3  # Lower occupancy rate
+    noise_floor_prior: -95.0  # Higher noise floor (dBm)
+    snr_range: [0, 15]  # Lower SNR range
+    cfo_range: [-2000, 2000]  # Larger CFO range
+    multipath_taps_range: [3, 8]  # More multipath
+    
+  zone_02:
+    weight: 1.5
+    occupancy_prior: 0.35
+    noise_floor_prior: -92.0
+    snr_range: [2, 18]
+    cfo_range: [-1500, 1500]
+    multipath_taps_range: [2, 6]
+    
+  zone_03:
+    weight: 1.2
+    occupancy_prior: 0.4
+    noise_floor_prior: -90.0
+    snr_range: [5, 20]
+    cfo_range: [-1000, 1000]
+    multipath_taps_range: [1, 5]
+    
+  zone_04:
+    weight: 1.0
+    occupancy_prior: 0.45
+    noise_floor_prior: -88.0
+    snr_range: [8, 22]
+    cfo_range: [-800, 800]
+    multipath_taps_range: [1, 4]
+    
+  zone_05:
+    weight: 1.0
+    occupancy_prior: 0.5
+    noise_floor_prior: -85.0
+    snr_range: [10, 25]
+    cfo_range: [-500, 500]
+    multipath_taps_range: [1, 3]
+    
+  zone_06:
+    weight: 0.9
+    occupancy_prior: 0.55
+    noise_floor_prior: -83.0
+    snr_range: [12, 28]
+    cfo_range: [-400, 400]
+    multipath_taps_range: [1, 3]
+    
+  zone_07:
+    weight: 0.8
+    occupancy_prior: 0.6
+    noise_floor_prior: -80.0
+    snr_range: [15, 30]
+    cfo_range: [-300, 300]
+    multipath_taps_range: [1, 2]
+    
+  zone_08:
+    weight: 0.8
+    occupancy_prior: 0.65
+    noise_floor_prior: -78.0
+    snr_range: [18, 32]
+    cfo_range: [-200, 200]
+    multipath_taps_range: [1, 2]
+    
+  zone_09:
+    weight: 0.7
+    occupancy_prior: 0.7
+    noise_floor_prior: -75.0
+    snr_range: [20, 35]
+    cfo_range: [-150, 150]
+    multipath_taps_range: [1, 2]
+    
+  zone_10:
+    weight: 0.6
+    occupancy_prior: 0.75
+    noise_floor_prior: -72.0
+    snr_range: [22, 38]
+    cfo_range: [-100, 100]
+    multipath_taps_range: [1, 2]
+    
+  zone_11:
+    weight: 0.5
+    occupancy_prior: 0.8
+    noise_floor_prior: -70.0
+    snr_range: [25, 40]
+    cfo_range: [-50, 50]
+    multipath_taps_range: [1, 2]
+    
+  zone_12:
+    weight: 0.4
+    occupancy_prior: 0.85
+    noise_floor_prior: -68.0
+    snr_range: [28, 42]
+    cfo_range: [-25, 25]
+    multipath_taps_range: [1, 2]
