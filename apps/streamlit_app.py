@@ -431,7 +431,9 @@ if not has_data:
     # Demo data generation option
     st.markdown("---")
     st.subheader("🎲 Try Demo Data")
-    if st.button("Generate Demo IQ Sample (1 second, 1 MHz sample rate)"):
+    
+    def generate_demo():
+        """Generate demo IQ data and set session state flags."""
         try:
             # Generate a simple demo signal: QPSK-like burst with noise
             sample_rate = 1e6
@@ -450,19 +452,24 @@ if not has_data:
             demo_iq[signal_start:signal_start+signal_samples] += 0.5 * np.exp(1j * signal_phase)
             demo_iq = demo_iq.astype(np.complex64)
             
-            # Store in session state and reload
+            # Store in session state with all required flags
             st.session_state['demo_iq'] = demo_iq
             st.session_state['demo_sample_rate'] = sample_rate
-            st.rerun()
+            st.session_state['use_demo'] = True
+            # Clear uploaded file to use demo path
+            if 'uploaded_file' in st.session_state:
+                st.session_state['uploaded_file'] = None
         except Exception as e:
             st.error(f"Error generating demo data: {e}")
+            st.session_state['use_demo'] = False
     
-    # If demo data exists, use it
-    if 'demo_iq' in st.session_state:
-        st.success("Demo data loaded! Scroll up to see visualizations.")
-        # Set uploaded_file to trigger processing
-        # We'll handle this by setting a flag
-        st.session_state['use_demo'] = True
+    if st.button("Generate Demo IQ Sample (1 second, 1 MHz sample rate)"):
+        generate_demo()
+        st.rerun()
+    
+    # Show message if demo data is loaded
+    if st.session_state.get('use_demo', False) and 'demo_iq' in st.session_state:
+        st.success("📡 Demo data loaded! Visualizations shown above.")
     
     st.markdown("""
     ### Supported Formats:

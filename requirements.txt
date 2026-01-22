@@ -17,6 +17,7 @@ ipykernel
 # Optional: RL / experiment management
 gymnasium
 tensorboard
+# Streamlit dashboard
 streamlit
 plotly
 scikit-learn

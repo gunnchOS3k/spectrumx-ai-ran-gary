@@ -68,7 +68,7 @@ class SignalGenerator:
         
         Args:
             seed: Random seed
-            zone: Zone to use (optional, samples if None)
+            zone: Zone to use (required - caller must provide selected zone)
             
         Returns:
             complex64 array of shape (N,)
@@ -76,12 +76,15 @@ class SignalGenerator:
         rng = np.random.default_rng(seed)
         
         if zone is None:
+            # Fallback: sample a zone if not provided
             zone = self.zone_model.sample_zone(rng)
         
         # Generate AWGN with noise floor
+        # noise_floor_prior is in dB (relative to 1.0 linear power)
         noise_power_db = zone.noise_floor_prior
-        noise_power_linear = 10 ** (noise_power_db / 10) * 1e-3  # Convert dBm to linear
+        noise_power_linear = 10 ** (noise_power_db / 10)  # Convert dB to linear
         
+        # Generate complex AWGN
         noise = np.sqrt(noise_power_linear / 2) * (
             rng.normal(0, 1, self.n_samples) + 1j * rng.normal(0, 1, self.n_samples)
         )
@@ -147,8 +150,13 @@ class SignalGenerator:
         samples_per_symbol = int(self.sample_rate / symbol_rate)
         n_symbols = self.n_samples // samples_per_symbol
         
-        # Generate QPSK symbols
-        symbols = (rng.integers(0, 4, n_symbols) * 2 - 3) / np.sqrt(2)  # ±1±j normalized
+        # Generate QPSK symbols (proper complex constellation: ±1±j)
+        # Generate I and Q bits separately
+        bi = rng.integers(0, 2, n_symbols)  # I bit: 0 or 1
+        bq = rng.integers(0, 2, n_symbols)  # Q bit: 0 or 1
+        I = 2 * bi - 1  # Convert to ±1
+        Q = 2 * bq - 1  # Convert to ±1
+        symbols = (I + 1j * Q) / np.sqrt(2)  # Normalized complex QPSK
         symbols = symbols.astype(np.complex64)
         
         # Upsample
@@ -178,10 +186,15 @@ class SignalGenerator:
         n_subcarriers = 64
         n_symbols = self.n_samples // (n_subcarriers + 16)  # +16 for CP
         
-        # Generate random QPSK symbols per subcarrier
+        # Generate random QPSK symbols per subcarrier (proper complex constellation)
         ofdm_symbols = []
         for _ in range(n_symbols):
-            symbols = (rng.integers(0, 4, n_subcarriers) * 2 - 3) / np.sqrt(2)
+            # Generate proper complex QPSK symbols
+            bi = rng.integers(0, 2, n_subcarriers)  # I bit: 0 or 1
+            bq = rng.integers(0, 2, n_subcarriers)  # Q bit: 0 or 1
+            I = 2 * bi - 1  # Convert to ±1
+            Q = 2 * bq - 1  # Convert to ±1
+            symbols = (I + 1j * Q) / np.sqrt(2)  # Normalized complex QPSK
             # IFFT
             time_domain = np.fft.ifft(symbols, n=n_subcarriers)
             # Add cyclic prefix
@@ -220,15 +233,41 @@ class SignalGenerator:
         self,
         iq: np.ndarray,
         snr_db: float,
-        noise_floor_db: float,
+        noise_floor_db: Optional[float],
         rng: np.random.Generator
     ) -> np.ndarray:
-        """Apply AWGN to achieve target SNR."""
-        signal_power = np.mean(np.abs(iq) ** 2)
-        noise_power_db = 10 * np.log10(signal_power) - snr_db
-        noise_power_linear = 10 ** (noise_power_db / 10) * 1e-3
+        """
+        Apply AWGN to achieve target SNR.
         
-        noise = np.sqrt(noise_power_linear / 2) * (
+        Args:
+            iq: Input signal (complex array)
+            snr_db: Target signal-to-noise ratio in dB
+            noise_floor_db: Minimum noise floor in dB (relative to 1.0 linear power).
+                           If provided, noise power will be at least this level.
+            rng: Random number generator
+            
+        Returns:
+            Signal with AWGN added
+        """
+        # Compute signal power (linear)
+        signal_power = np.mean(np.abs(iq) ** 2)
+        
+        # Compute target noise power from SNR
+        snr_linear = 10 ** (snr_db / 10)
+        target_noise_power = signal_power / snr_linear
+        
+        # Apply noise floor if provided
+        if noise_floor_db is not None:
+            # Convert noise_floor_db to linear power (relative to 1.0)
+            noise_floor_linear = 10 ** (noise_floor_db / 10)
+            # Use maximum of target and floor
+            final_noise_power = max(target_noise_power, noise_floor_linear)
+        else:
+            final_noise_power = target_noise_power
+        
+        # Generate complex AWGN
+        # Each component (I and Q) has variance = final_noise_power/2
+        noise = np.sqrt(final_noise_power / 2) * (
             rng.normal(0, 1, len(iq)) + 1j * rng.normal(0, 1, len(iq))
         )
         
@@ -252,12 +291,15 @@ def generate_iq_window(
         config_path: Path to config file (optional)
         sample_rate: Sample rate in Hz
         duration: Duration in seconds
-        zone_id: Specific zone to use (optional)
+        zone_id: Specific zone to use (optional). If provided and invalid, raises ValueError.
         
     Returns:
         Tuple of (iq_data, metadata):
         - iq_data: complex64 array
         - metadata: dict with label, seed, zone_id, snr_db, etc.
+        
+    Raises:
+        ValueError: If zone_id is provided but not found in zone model.
     """
     generator = SignalGenerator(
         sample_rate=sample_rate,
@@ -265,19 +307,31 @@ def generate_iq_window(
         config_path=config_path
     )
     
-    zone = None
+    rng = np.random.default_rng(seed)
+    selected_zone = None
+    
     if zone_id:
+        # Validate zone_id
         zone = generator.zone_model.get_zone(zone_id)
+        if zone is None:
+            valid_zones = ", ".join(generator.zone_model.zone_ids)
+            raise ValueError(
+                f"Invalid zone_id '{zone_id}'. Valid zone IDs are: {valid_zones}"
+            )
+        selected_zone = zone
+    else:
+        # Sample a zone randomly
+        selected_zone = generator.zone_model.sample_zone(rng)
     
     if label == 0:
-        iq_data = generator.generate_noise_only(seed, zone)
+        iq_data = generator.generate_noise_only(seed, selected_zone)
         metadata = {
             "label": 0,
             "seed": seed,
-            "zone_id": zone.zone_id if zone else "default"
+            "zone_id": selected_zone.zone_id  # Always use actual selected zone
         }
     else:
-        iq_data, signal_metadata = generator.generate_structured_signal(seed, zone)
+        iq_data, signal_metadata = generator.generate_structured_signal(seed, selected_zone)
         metadata = {
             "label": 1,
             "seed": seed,
