@@ -268,11 +268,12 @@ def get_project_fields(project_id: str) -> Dict[str, str]:
         ... on ProjectV2 {
           fields(first: 20) {
             nodes {
-              id
               ... on ProjectV2Field {
+                id
                 name
               }
               ... on ProjectV2SingleSelectField {
+                id
                 name
                 options {
                   id
@@ -286,7 +287,7 @@ def get_project_fields(project_id: str) -> Dict[str, str]:
     }
     ''' % project_id
     
-    result = run_gh_command(["api", "graphql", "-f", f"query={query}"])
+    result = run_gh_command(["api", "graphql", "-f", "query=" + query])
     fields_map = {}
     options_map = {}
     
@@ -319,22 +320,25 @@ def create_project_fields(project_id: str) -> Dict[str, str]:
         
         if field_def["type"] == "single_select":
             # Create single select field
-            options_json = json.dumps([{"name": opt} for opt in field_def["options"]])
+            # Format options as GraphQL input: [{name: "Option1"}, {name: "Option2"}]
+            options_list = ", ".join([f'{{name: "{opt}"}}' for opt in field_def["options"]])
             mutation = '''
             mutation {
               createProjectV2Field(input: {
                 projectId: "%s"
                 name: "%s"
                 dataType: SINGLE_SELECT
-                singleSelectOptions: %s
+                singleSelectOptions: [%s]
               }) {
                 projectV2Field {
-                  id
-                  name
+                  ... on ProjectV2SingleSelectField {
+                    id
+                    name
+                  }
                 }
               }
             }
-            ''' % (project_id, field_name, options_json)
+            ''' % (project_id, field_name, options_list)
             result = run_gh_command(["api", "graphql", "-f", "query=" + mutation])
             if result and isinstance(result, dict):
                 field_data = result.get("data", {}).get("createProjectV2Field", {}).get("projectV2Field")
@@ -351,8 +355,10 @@ def create_project_fields(project_id: str) -> Dict[str, str]:
                 dataType: DATE
               }) {
                 projectV2Field {
-                  id
-                  name
+                  ... on ProjectV2Field {
+                    id
+                    name
+                  }
                 }
               }
             }
