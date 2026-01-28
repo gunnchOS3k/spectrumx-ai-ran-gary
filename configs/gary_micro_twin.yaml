@@ -1,0 +1,59 @@
+# Gary Micro-Twin Configuration
+# 
+# Focused 3-zone model for controlled ML testing:
+# - Gary City Hall (civic center, moderate traffic)
+# - West Side Leadership Academy (high school, variable occupancy)
+# - Gary Public Library & Cultural Center (community hub, steady baseline)
+#
+# This micro-twin produces zone-aware synthetic IQ and metadata for ML testing.
+# It does NOT replace SpectrumX competition data - it's a controlled extension.
+
+# Global settings
+sample_rate: 1000000  # 1 MHz
+duration: 1.0  # 1 second windows
+
+zones:
+  gary_city_hall:
+    name: "Gary City Hall"
+    lat: 41.6026  # Approximate coordinates for Gary, IN
+    lon: -87.3372
+    radius_m: 500  # 500m radius around location
+    weight: 1.0
+    occupancy_prior: 0.5  # Moderate occupancy (business hours)
+    noise_floor_prior: -85.0  # Moderate noise floor (dB relative to 1.0)
+    snr_range: [5, 20]  # Moderate SNR range
+    cfo_range: [-500, 500]  # Moderate CFO (Hz)
+    multipath_taps_range: [2, 5]  # Urban multipath
+    signal_type_prior:  # Distribution of signal types
+      qpsk: 0.6
+      ofdm: 0.4
+    
+  west_side_leadership_academy:
+    name: "West Side Leadership Academy"
+    lat: 41.5889
+    lon: -87.3656
+    radius_m: 300  # School campus radius
+    weight: 1.2  # Higher weight for equity focus (under-resourced area)
+    occupancy_prior: 0.35  # Lower baseline occupancy
+    noise_floor_prior: -90.0  # Higher noise floor (worse conditions)
+    snr_range: [0, 15]  # Lower SNR range (challenging)
+    cfo_range: [-1000, 1000]  # Larger CFO range (less stable)
+    multipath_taps_range: [3, 7]  # More multipath (urban, dense)
+    signal_type_prior:
+      qpsk: 0.7
+      ofdm: 0.3
+    
+  gary_public_library:
+    name: "Gary Public Library & Cultural Center"
+    lat: 41.5950
+    lon: -87.3389
+    radius_m: 200  # Library building radius
+    weight: 0.9
+    occupancy_prior: 0.6  # Higher occupancy (community hub)
+    noise_floor_prior: -82.0  # Lower noise floor (better conditions)
+    snr_range: [8, 25]  # Higher SNR range
+    cfo_range: [-300, 300]  # Smaller CFO range (more stable)
+    multipath_taps_range: [1, 4]  # Less multipath
+    signal_type_prior:
+      qpsk: 0.5
+      ofdm: 0.5
