@@ -239,10 +239,15 @@ def create_project() -> Optional[str]:
     # Check if project exists
     projects = run_gh_command(["project", "list", "--owner", "gunnchOS3k", "--format", "json"], return_json=True)
     if projects:
-        for project in projects:
-            if project.get("title") == PROJECT_TITLE:
-                print(f"  ✅ Project exists: {project['number']}")
-                return str(project["number"])
+        # Handle both list and single dict formats
+        if isinstance(projects, list):
+            for project in projects:
+                if isinstance(project, dict) and project.get("title") == PROJECT_TITLE:
+                    print(f"  ✅ Project exists: {project['number']}")
+                    return str(project["number"])
+        elif isinstance(projects, dict) and projects.get("title") == PROJECT_TITLE:
+            print(f"  ✅ Project exists: {projects['number']}")
+            return str(projects["number"])
     
     # Create project
     result = run_gh_command([
@@ -253,9 +258,18 @@ def create_project() -> Optional[str]:
     ], return_json=True)
     
     if result:
-        project_number = str(result.get("number", ""))
-        print(f"  ✅ Created project: {project_number}")
-        return project_number
+        # Handle both dict and string formats
+        if isinstance(result, dict):
+            project_number = str(result.get("number", ""))
+        else:
+            # If result is a string, try to extract number
+            import re
+            match = re.search(r'#(\d+)', str(result))
+            project_number = match.group(1) if match else ""
+        
+        if project_number:
+            print(f"  ✅ Created project: {project_number}")
+            return project_number
     
     return None
 
@@ -277,15 +291,19 @@ def create_epic_issue(epic: Dict) -> Optional[str]:
     """Create GitHub issue for EPIC and return issue URL."""
     labels_str = ",".join(epic["labels"])
     
-    # Create issue
-    result = run_gh_command([
+    # Create issue (without assignee - will be set manually or via project fields)
+    cmd = [
         "issue", "create",
         "--title", epic["title"],
         "--body", epic["body"],
         "--label", labels_str,
-        "--assignee", epic["owner"].lower(),
         "--repo", REPO
-    ])
+    ]
+    
+    # Note: Assignees will be set via project fields or manually
+    # GitHub usernames may differ from display names
+    
+    result = run_gh_command(cmd)
     
     if result:
         # Extract issue number from URL
