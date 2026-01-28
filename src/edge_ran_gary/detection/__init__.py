@@ -14,7 +14,11 @@ Components:
 """
 
 from src.edge_ran_gary.detection.features import FeatureExtractor
-from src.edge_ran_gary.detection.baselines import EnergyDetector, SpectralFlatnessDetector
+from src.edge_ran_gary.detection.baselines import (
+    EnergyDetector,
+    PSDLogRegDetector,
+    SpectralFlatnessDetector,
+)
 from src.edge_ran_gary.detection.ssl import EncoderSSL
 from src.edge_ran_gary.detection.anomaly import AnomalyModel
 from src.edge_ran_gary.detection.calibrate import Calibrator
@@ -23,6 +27,7 @@ from src.edge_ran_gary.detection.predict import DetectionPipeline
 __all__ = [
     "FeatureExtractor",
     "EnergyDetector",
+    "PSDLogRegDetector",
     "SpectralFlatnessDetector",
     "EncoderSSL",
     "AnomalyModel",
