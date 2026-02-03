@@ -75,15 +75,11 @@ class SpectrumXDataset:
             raise RuntimeError("No user directory found in dataset")
 
         self.user_dir = user_dirs[0]
-        self.unlabeled_dir = self.user_dir / "training data"
-        labeled_candidates = [
-            self.user_dir / "VLABrutal",
-            self.user_dir / "VLA_brutal",
-        ]
-        self.labeled_dir = next((p for p in labeled_candidates if p.exists()), None)
-        if self.labeled_dir is None:
+        self.unlabeled_dir = self.user_dir / "trainingData"
+        self.labeled_dir = self.user_dir / "VLA_brutal"
+        if not self.labeled_dir.exists():
             raise RuntimeError(
-                "Labeled dataset directory not found. Expected VLABrutal or VLA_brutal."
+                "Labeled dataset directory not found. Expected VLA_brutal."
             )
         self.gt_path = self.labeled_dir / "groundtruth.csv"
 
