@@ -5,9 +5,10 @@ Classical signal processing approaches that serve as baselines
 and are also used in the Streamlit dashboard.
 """
 
-from typing import Tuple
+from typing import Iterable, Tuple
 import numpy as np
 from scipy import signal
+from sklearn.linear_model import LogisticRegression
 
 from src.edge_ran_gary.config import BaselineConfig
 
@@ -46,6 +47,12 @@ class EnergyDetector:
         distance = abs(power - self.threshold) / (self.threshold + 1e-10)
         confidence = min(1.0, distance)
         return prediction, confidence, power
+
+    def predict(self, iq: np.ndarray) -> Tuple[int, float, float]:
+        """
+        Alias for detect() to match guide examples.
+        """
+        return self.detect(iq)
 
 
 class SpectralFlatnessDetector:
@@ -110,3 +117,66 @@ class SpectralFlatnessDetector:
         confidence = min(1.0, distance)
         
         return prediction, confidence, flatness
+
+    def predict(self, iq: np.ndarray, sample_rate: float | None = None) -> Tuple[int, float, float]:
+        """
+        Alias for detect() to match guide examples.
+        """
+        if sample_rate is not None:
+            self.sample_rate = sample_rate
+        return self.detect(iq)
+
+
+class PSDLogRegDetector:
+    """
+    PSD + Logistic Regression baseline.
+
+    Extracts simple PSD statistics and trains a logistic regression classifier.
+    """
+
+    def __init__(self, nperseg: int = 1024):
+        self.model = LogisticRegression(max_iter=1000)
+        self.fitted = False
+        self.nperseg = nperseg
+
+    def extract_psd_features(self, iq_data: np.ndarray, sample_rate: float) -> np.ndarray:
+        """Extract PSD features for logistic regression."""
+        _, psd = signal.welch(
+            iq_data,
+            fs=sample_rate,
+            nperseg=self.nperseg,
+            return_onesided=False,
+            scaling="density",
+        )
+        psd_mag = np.abs(psd)
+        if psd_mag.size == 0:
+            return np.zeros(6, dtype=float)
+        return np.array(
+            [
+                np.mean(psd_mag),
+                np.std(psd_mag),
+                np.max(psd_mag),
+                np.min(psd_mag),
+                np.percentile(psd_mag, 25),
+                np.percentile(psd_mag, 75),
+            ],
+            dtype=float,
+        )
+
+    def fit(self, X_iq: Iterable[np.ndarray], y: Iterable[int], sample_rate: float) -> None:
+        """Fit on labeled data."""
+        X_features = np.array(
+            [self.extract_psd_features(iq, sample_rate) for iq in X_iq],
+            dtype=float,
+        )
+        self.model.fit(X_features, np.array(list(y)))
+        self.fitted = True
+
+    def predict(self, iq_data: np.ndarray, sample_rate: float) -> Tuple[int, float]:
+        """Predict on a single sample."""
+        if not self.fitted:
+            raise ValueError("Model not fitted. Call fit() first.")
+        features = self.extract_psd_features(iq_data, sample_rate)
+        prob = float(self.model.predict_proba([features])[0, 1])
+        pred = 1 if prob >= 0.5 else 0
+        return pred, prob
