@@ -100,9 +100,27 @@ def test_valid_zone_id():
     print("  ✓ Valid zone_id works correctly")
 
 
+def test_reproducibility():
+    """Same seed + zone_id + label must produce identical IQ and metadata."""
+    print("Test 7: Reproducibility (same seed -> same output)...")
+    repo = Path(__file__).parent.parent
+    cfg_micro = repo / "configs" / "gary_micro_twin.yaml"
+    cfg_legacy = repo / "configs" / "digital_twin_gary.yaml"
+    if cfg_micro.exists():
+        cfg, zone_id = str(cfg_micro), "gary_city_hall"
+    else:
+        cfg, zone_id = str(cfg_legacy), "zone_01"
+    iq1, meta1 = generate_iq_window(seed=777, label=1, config_path=cfg, zone_id=zone_id)
+    iq2, meta2 = generate_iq_window(seed=777, label=1, config_path=cfg, zone_id=zone_id)
+    assert np.allclose(iq1, iq2), "Same seed+zone+label must yield identical IQ"
+    assert meta1.get("zone_id") == meta2.get("zone_id")
+    assert meta1.get("seed") == meta2.get("seed") == 777
+    print("  ✓ Same seed + zone_id + label -> identical IQ and metadata")
+
+
 def test_zone_metadata_consistency():
     """Test that zone_id in metadata matches actual zone used."""
-    print("Test 7: Zone metadata consistency...")
+    print("Test 8: Zone metadata consistency...")
     # Test label=0
     iq_data, metadata = generate_iq_window(seed=333, label=0)
     assert "zone_id" in metadata
@@ -131,6 +149,8 @@ if __name__ == "__main__":
         test_invalid_zone_id()
         print()
         test_valid_zone_id()
+        print()
+        test_reproducibility()
         print()
         test_zone_metadata_consistency()
         print()

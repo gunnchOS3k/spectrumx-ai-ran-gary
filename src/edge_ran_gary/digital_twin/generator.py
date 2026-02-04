@@ -120,11 +120,14 @@ class SignalGenerator:
         cfo_hz = rng.uniform(*zone.cfo_range)
         num_taps = rng.integers(*zone.multipath_taps_range)
         
-        # Generate base signal
-        if signal_type == "qpsk":
+        # Generate base signal (qpsk_burst / ofdm_burst use same as qpsk / ofdm)
+        st = signal_type.replace("_burst", "") if isinstance(signal_type, str) else signal_type
+        if st == "qpsk":
             iq_signal = self._generate_qpsk_signal(rng, zone)
-        elif signal_type == "ofdm":
+        elif st == "ofdm":
             iq_signal = self._generate_ofdm_signal(rng, zone)
+        elif st == "chirp":
+            iq_signal = self._generate_chirp_signal(rng, zone)
         else:
             raise ValueError(f"Unknown signal_type: {signal_type}")
         
@@ -212,7 +215,18 @@ class SignalGenerator:
             signal_full = np.pad(signal_full, (0, self.n_samples - len(signal_full)), mode='constant')
         
         return signal_full
-    
+
+    def _generate_chirp_signal(self, rng: np.random.Generator, zone: Zone) -> np.ndarray:
+        """Generate linear chirp (complex-valued) over the window."""
+        t = np.arange(self.n_samples, dtype=np.float64) / self.sample_rate
+        f0 = rng.uniform(-0.2, 0.2) * self.sample_rate  # start freq
+        f1 = f0 + rng.uniform(-0.1, 0.1) * self.sample_rate  # end freq
+        phase = 2 * np.pi * (f0 * t + 0.5 * (f1 - f0) * t ** 2 / self.duration)
+        chirp = np.exp(1j * phase).astype(np.complex64)
+        # Normalize power
+        chirp = chirp / np.sqrt(np.mean(np.abs(chirp) ** 2))
+        return chirp
+
     def _apply_cfo(self, iq: np.ndarray, cfo_hz: float, rng: np.random.Generator) -> np.ndarray:
         """Apply carrier frequency offset."""
         t = np.arange(len(iq)) / self.sample_rate
