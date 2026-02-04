@@ -68,8 +68,10 @@ This creates:
 ### 3. Run Streamlit App
 
 ```bash
-# Run locally
+# Run locally (from repo root)
 streamlit run streamlit_app.py
+# or run the app file directly
+streamlit run apps/streamlit_app.py
 ```
 
 The app will open at `http://localhost:8501`. You can:

@@ -17,7 +17,8 @@ ipykernel
 # Optional: RL / experiment management
 gymnasium
 tensorboard
-# Streamlit dashboard
-streamlit
+# Streamlit dashboard (pin for Cloud: avoid protobuf 6 + old streamlit crash)
+streamlit>=1.40.0,<1.45.0
+protobuf>=5.28.0,<6
 plotly
 scikit-learn

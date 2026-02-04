@@ -6,11 +6,20 @@ Supports user-uploaded .npy files with various IQ formats.
 """
 
 import streamlit as st
-import numpy as np
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-from scipy import signal
 import io
+from pathlib import Path
+
+# Smoke check: optional heavy deps — show friendly message instead of crash
+try:
+    import numpy as np
+    from scipy import signal
+    import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
+except ImportError as e:
+    st.error("Missing dependencies for visualizations.")
+    st.code(str(e))
+    st.info("Run: `pip install -r requirements.txt`")
+    st.stop()
 
 # Page config
 st.set_page_config(
@@ -218,6 +227,17 @@ with st.sidebar:
         format="%.0f",
         help="Sample rate of the IQ data"
     )
+    
+    # Micro-Twin sample picker (when available)
+    if st.session_state.get("micro_twin_list"):
+        mt_list = st.session_state["micro_twin_list"]
+        mt_labels = [f"{m[1].get('zone_id', '?')} | L{m[1].get('label', '?')} | SNR:{m[1].get('snr_db', 'N/A')}" for m in mt_list]
+        st.selectbox(
+            "Micro-Twin sample",
+            range(len(mt_list)),
+            format_func=lambda i: mt_labels[i],
+            key="micro_twin_select",
+        )
 
 # ============================================================================
 # Main Content
@@ -240,193 +260,196 @@ elif 'demo_iq' in st.session_state and st.session_state.get('use_demo', False):
     iq_data = st.session_state.get('demo_iq')
     if iq_data is not None:
         has_data = True
-        # Update sample rate from demo
         if 'demo_sample_rate' in st.session_state:
             sample_rate = st.session_state['demo_sample_rate']
+elif st.session_state.get("use_micro_twin") and st.session_state.get("micro_twin_list"):
+    # Use selected Micro-Twin sample
+    mt_list = st.session_state["micro_twin_list"]
+    sel = st.session_state.get("micro_twin_select", 0)
+    if 0 <= sel < len(mt_list):
+        iq_data = mt_list[sel][0]
+        sample_rate = mt_list[sel][2]
+        has_data = True
 
 if has_data and iq_data is not None:
+    # Demo mode banner when using in-app demo data
+    if st.session_state.get("use_demo") and "demo_iq" in st.session_state:
+        st.info("📡 **Demo mode active** — using in-app generated IQ sample.")
     # Data info panel
-        with st.expander("📋 File Information", expanded=False):
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("Shape", str(iq_data.shape))
-            with col2:
-                st.metric("Dtype", str(iq_data.dtype))
-            with col3:
-                st.metric("Length", f"{len(iq_data):,} samples")
-            
-            st.text(f"Format: {'int16 interleaved' if is_int16_interleaved else 'auto-detected'}")
-            st.text(f"Sample rate: {sample_rate:,.0f} Hz")
-            st.text(f"Duration: {len(iq_data) / sample_rate:.4f} seconds")
-        
-        # Model prediction panel
-        st.header("🎯 Prediction")
-        
-        prediction = None
-        confidence = None
-        model_output = {}
-        
-        if model_option == "Energy Detector":
-            threshold = st.slider(
-                "Energy Threshold",
-                min_value=0.0,
-                max_value=10.0,
-                value=1.0,
-                step=0.1,
-                help="Power threshold for energy detector"
-            )
-            prediction, confidence, power = energy_detector(iq_data, threshold)
-            model_output = {"mean_power": power, "threshold": threshold}
-            
-        elif model_option == "Spectral Flatness":
-            threshold = st.slider(
-                "Flatness Threshold",
-                min_value=0.0,
-                max_value=1.0,
-                value=0.5,
-                step=0.01,
-                help="Spectral flatness threshold (lower = more signal-like)"
-            )
-            prediction, confidence, flatness = spectral_flatness_detector(
-                iq_data, sample_rate, threshold
-            )
-            model_output = {"flatness": flatness, "threshold": threshold}
-            
-        elif model_option == "PSD+LogReg":
-            result = psd_logreg_detector(iq_data, sample_rate)
-            if result is None:
-                st.info("PSD+LogReg model not yet implemented. Check src/edge_ran_gary/models/ for model files.")
-                prediction, confidence = 0, 0.0
-            else:
-                prediction, confidence = result
-                
-        elif model_option == "Coming soon":
-            st.info("This model is coming soon.")
-            prediction, confidence = 0, 0.0
-        
-        # Display prediction
-        col1, col2 = st.columns(2)
+    with st.expander("📋 File Information", expanded=False):
+        col1, col2, col3 = st.columns(3)
         with col1:
-            st.metric("Prediction", "Signal" if prediction == 1 else "Noise")
+            st.metric("Shape", str(iq_data.shape))
         with col2:
-            st.metric("Confidence", f"{confidence:.3f}")
-        
-        if model_output:
-            with st.expander("Model Details", expanded=False):
-                for key, value in model_output.items():
-                    st.text(f"{key}: {value:.6f}")
-        
-        # Visualizations
-        st.header("📈 Visualizations")
-        
-        # Time domain plots
-        if show_time_iq:
-            st.subheader("Time Domain: I(t), Q(t), |x(t)|")
-            # Sample for performance (show first 10k points or decimate)
-            max_points = 10000
-            if len(iq_data) > max_points:
-                step = len(iq_data) // max_points
-                iq_plot = iq_data[::step]
-                t_plot = np.arange(len(iq_plot)) * step / sample_rate
-            else:
-                iq_plot = iq_data
-                t_plot = np.arange(len(iq_plot)) / sample_rate
-            
-            fig = make_subplots(
-                rows=3, cols=1,
-                subplot_titles=("I(t)", "Q(t)", "|x(t)|"),
-                vertical_spacing=0.1
-            )
-            
-            fig.add_trace(
-                go.Scatter(x=t_plot, y=np.real(iq_plot), mode='lines', name='I', line=dict(width=1)),
-                row=1, col=1
-            )
-            fig.add_trace(
-                go.Scatter(x=t_plot, y=np.imag(iq_plot), mode='lines', name='Q', line=dict(width=1)),
-                row=2, col=1
-            )
-            fig.add_trace(
-                go.Scatter(x=t_plot, y=np.abs(iq_plot), mode='lines', name='|x|', line=dict(width=1)),
-                row=3, col=1
-            )
-            
-            fig.update_xaxes(title_text="Time (s)", row=3, col=1)
-            fig.update_yaxes(title_text="Amplitude", row=1, col=1)
-            fig.update_yaxes(title_text="Amplitude", row=2, col=1)
-            fig.update_yaxes(title_text="Magnitude", row=3, col=1)
-            fig.update_layout(height=600, showlegend=False)
-            st.plotly_chart(fig, use_container_width=True)
-        
-        # Constellation plot
-        if show_constellation:
-            st.subheader("IQ Constellation")
-            # Sample for performance
-            max_points = 5000
-            if len(iq_data) > max_points:
-                step = len(iq_data) // max_points
-                iq_const = iq_data[::step]
-            else:
-                iq_const = iq_data
-            
-            fig = go.Figure()
-            fig.add_trace(go.Scatter(
-                x=np.real(iq_const),
-                y=np.imag(iq_const),
-                mode='markers',
-                marker=dict(size=2, opacity=0.5, color=np.abs(iq_const)),
-                name='IQ samples'
-            ))
-            fig.update_layout(
-                xaxis_title="I (In-phase)",
-                yaxis_title="Q (Quadrature)",
-                height=500,
-                title="IQ Constellation Scatter Plot"
-            )
-            st.plotly_chart(fig, use_container_width=True)
-        
-        # PSD plot
-        if show_psd:
-            st.subheader("Power Spectral Density (Welch)")
-            freqs, psd = compute_psd(iq_data, sample_rate)
-            fig = go.Figure()
-            fig.add_trace(go.Scatter(
-                x=freqs,
-                y=10 * np.log10(np.abs(psd) + 1e-10),  # dB scale
-                mode='lines',
-                name='PSD'
-            ))
-            fig.update_layout(
-                xaxis_title="Frequency (Hz)",
-                yaxis_title="PSD (dB/Hz)",
-                height=400,
-                title="Power Spectral Density"
-            )
-            st.plotly_chart(fig, use_container_width=True)
-        
-        # Spectrogram
-        if show_spectrogram:
-            st.subheader("Spectrogram")
-            freqs, times, Sxx = compute_spectrogram(iq_data, sample_rate)
-            fig = go.Figure()
-            fig.add_trace(go.Heatmap(
-                z=10 * np.log10(np.abs(Sxx) + 1e-10),  # dB scale
-                x=times,
-                y=freqs,
-                colorscale='Viridis',
-                colorbar=dict(title="Power (dB)")
-            ))
-            fig.update_layout(
-                xaxis_title="Time (s)",
-                yaxis_title="Frequency (Hz)",
-                height=500,
-                title="Spectrogram"
-            )
-            st.plotly_chart(fig, use_container_width=True)
+            st.metric("Dtype", str(iq_data.dtype))
+        with col3:
+            st.metric("Length", f"{len(iq_data):,} samples")
+        st.text(f"Format: {'int16 interleaved' if is_int16_interleaved else 'auto-detected'}")
+        st.text(f"Sample rate: {sample_rate:,.0f} Hz")
+        st.text(f"Duration: {len(iq_data) / sample_rate:.4f} seconds")
+    
+    # Model prediction panel
+    st.header("🎯 Prediction")
+    
+    prediction = None
+    confidence = None
+    model_output = {}
+    
+    if model_option == "Energy Detector":
+        threshold = st.slider(
+            "Energy Threshold",
+            min_value=0.0,
+            max_value=10.0,
+            value=1.0,
+            step=0.1,
+            help="Power threshold for energy detector"
+        )
+        prediction, confidence, power = energy_detector(iq_data, threshold)
+        model_output = {"mean_power": power, "threshold": threshold}
+    elif model_option == "Spectral Flatness":
+        threshold = st.slider(
+            "Flatness Threshold",
+            min_value=0.0,
+            max_value=1.0,
+            value=0.5,
+            step=0.01,
+            help="Spectral flatness threshold (lower = more signal-like)"
+        )
+        prediction, confidence, flatness = spectral_flatness_detector(
+            iq_data, sample_rate, threshold
+        )
+        model_output = {"flatness": flatness, "threshold": threshold}
+    elif model_option == "PSD+LogReg":
+        result = psd_logreg_detector(iq_data, sample_rate)
+        if result is None:
+            st.info("PSD+LogReg model not yet implemented. Check src/edge_ran_gary/models/ for model files.")
+            prediction, confidence = 0, 0.0
+        else:
+            prediction, confidence = result
+    elif model_option == "Coming soon":
+        st.info("This model is coming soon.")
+        prediction, confidence = 0, 0.0
+    
+    # Display prediction
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("Prediction", "Signal" if prediction == 1 else "Noise")
+    with col2:
+        st.metric("Confidence", f"{confidence:.3f}")
+    
+    if model_output:
+        with st.expander("Model Details", expanded=False):
+            for key, value in model_output.items():
+                st.text(f"{key}: {value:.6f}")
+    
+    # Visualizations
+    st.header("📈 Visualizations")
+    
+    if show_time_iq:
+        st.subheader("Time Domain: I(t), Q(t), |x(t)|")
+        max_points = 10000
+        if len(iq_data) > max_points:
+            step = len(iq_data) // max_points
+            iq_plot = iq_data[::step]
+            t_plot = np.arange(len(iq_plot)) * step / sample_rate
+        else:
+            iq_plot = iq_data
+            t_plot = np.arange(len(iq_plot)) / sample_rate
+        fig = make_subplots(
+            rows=3, cols=1,
+            subplot_titles=("I(t)", "Q(t)", "|x(t)|"),
+            vertical_spacing=0.1
+        )
+        fig.add_trace(
+            go.Scatter(x=t_plot, y=np.real(iq_plot), mode='lines', name='I', line=dict(width=1)),
+            row=1, col=1
+        )
+        fig.add_trace(
+            go.Scatter(x=t_plot, y=np.imag(iq_plot), mode='lines', name='Q', line=dict(width=1)),
+            row=2, col=1
+        )
+        fig.add_trace(
+            go.Scatter(x=t_plot, y=np.abs(iq_plot), mode='lines', name='|x|', line=dict(width=1)),
+            row=3, col=1
+        )
+        fig.update_xaxes(title_text="Time (s)", row=3, col=1)
+        fig.update_yaxes(title_text="Amplitude", row=1, col=1)
+        fig.update_yaxes(title_text="Amplitude", row=2, col=1)
+        fig.update_yaxes(title_text="Magnitude", row=3, col=1)
+        fig.update_layout(height=600, showlegend=False)
+        st.plotly_chart(fig, use_container_width=True)
+    
+    if show_constellation:
+        st.subheader("IQ Constellation")
+        max_points = 5000
+        if len(iq_data) > max_points:
+            step = len(iq_data) // max_points
+            iq_const = iq_data[::step]
+        else:
+            iq_const = iq_data
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(
+            x=np.real(iq_const),
+            y=np.imag(iq_const),
+            mode='markers',
+            marker=dict(size=2, opacity=0.5, color=np.abs(iq_const)),
+            name='IQ samples'
+        ))
+        fig.update_layout(
+            xaxis_title="I (In-phase)",
+            yaxis_title="Q (Quadrature)",
+            height=500,
+            title="IQ Constellation Scatter Plot"
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    
+    if show_psd:
+        st.subheader("Power Spectral Density (Welch)")
+        freqs, psd = compute_psd(iq_data, sample_rate)
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(
+            x=freqs,
+            y=10 * np.log10(np.abs(psd) + 1e-10),
+            mode='lines',
+            name='PSD'
+        ))
+        fig.update_layout(
+            xaxis_title="Frequency (Hz)",
+            yaxis_title="PSD (dB/Hz)",
+            height=400,
+            title="Power Spectral Density"
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    
+    if show_spectrogram:
+        st.subheader("Spectrogram")
+        freqs, times, Sxx = compute_spectrogram(iq_data, sample_rate)
+        fig = go.Figure()
+        fig.add_trace(go.Heatmap(
+            z=10 * np.log10(np.abs(Sxx) + 1e-10),
+            x=times,
+            y=freqs,
+            colorscale='Viridis',
+            colorbar=dict(title="Power (dB)")
+        ))
+        fig.update_layout(
+            xaxis_title="Time (s)",
+            yaxis_title="Frequency (Hz)",
+            height=500,
+            title="Spectrogram"
+        )
+        st.plotly_chart(fig, use_container_width=True)
 
 # No data loaded - show upload prompt
 if not has_data:
-    st.info("👈 Please upload a .npy file to begin analysis.")
+    st.info("👈 Please upload a .npy file, use demo data, or generate Micro-Twin demo data below.")
+    
+    # Optional dataset folder message (if someone expects a path that doesn't exist)
+    default_data_path = Path("data/synthetic/gary_micro_twin")
+    if default_data_path.exists() and list(default_data_path.glob("*.npy")):
+        st.caption(f"Found generated data in `{default_data_path}`. You can upload a file from there.")
+    elif default_data_path.exists() is False:
+        st.caption("No dataset folder found. Generate Micro-Twin demo data below to create synthetic samples.")
     
     # Demo data generation option
     st.markdown("---")
@@ -470,6 +493,35 @@ if not has_data:
     # Show message if demo data is loaded
     if st.session_state.get('use_demo', False) and 'demo_iq' in st.session_state:
         st.success("📡 Demo data loaded! Visualizations shown above.")
+    
+    st.markdown("---")
+    st.subheader("🏛️ Generate Micro-Twin Demo Data")
+    if st.button("Generate Micro-Twin Demo Data (9–15 samples)"):
+        try:
+            import sys
+            from pathlib import Path
+            repo_root = Path(__file__).resolve().parent.parent
+            if str(repo_root) not in sys.path:
+                sys.path.insert(0, str(repo_root))
+            from src.edge_ran_gary.digital_twin.gary_micro_twin import GaryMicroTwin
+            config_path = repo_root / "configs" / "gary_micro_twin.yaml"
+            if not config_path.exists():
+                st.error("Config not found: configs/gary_micro_twin.yaml")
+            else:
+                mt = GaryMicroTwin(config_path=str(config_path))
+                n_per_zone = 4  # 3 zones -> 12 samples
+                samples, meta_df = mt.generate_samples_per_zone(n_per_zone=n_per_zone, label_balance=0.5, seed=42)
+                sample_rate = mt.config.get("sample_rate", 1e6)
+                micro_twin_list = [(s, meta_df.iloc[i].to_dict(), float(sample_rate)) for i, s in enumerate(samples)]
+                st.session_state["micro_twin_list"] = micro_twin_list
+                st.session_state["use_micro_twin"] = True
+                st.session_state["micro_twin_select"] = 0
+                st.session_state["use_demo"] = False
+                st.rerun()
+        except Exception as e:
+            st.error(f"Micro-Twin generation failed: {e}")
+    if st.session_state.get("use_micro_twin") and st.session_state.get("micro_twin_list"):
+        st.caption("Select a sample from the sidebar to view IQ, PSD, and spectrogram. Prediction: (model not loaded) if no model is selected.")
     
     st.markdown("""
     ### Supported Formats:

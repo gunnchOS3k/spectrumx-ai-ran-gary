@@ -9,6 +9,7 @@ env/
 .ipynb_checkpoints/
 data/raw/
 data/processed/
+data/synthetic/
 results/
 logs/
 .DS_Store
