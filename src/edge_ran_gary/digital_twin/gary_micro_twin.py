@@ -45,13 +45,13 @@ class GaryMicroTwin:
             zone_model=self.zone_model
         )
         
-        # Zone metadata (lat/lon/radius from config)
+        # Zone metadata (landmark_name, center_lat, center_lon from config)
         self.zone_metadata = {}
         for zone_id, zone_data in self.config.get('zones', {}).items():
             self.zone_metadata[zone_id] = {
-                'name': zone_data.get('name', zone_id),
-                'lat': zone_data.get('lat'),
-                'lon': zone_data.get('lon'),
+                'name': zone_data.get('landmark_name') or zone_data.get('name', zone_id),
+                'lat': zone_data.get('center_lat') or zone_data.get('lat'),
+                'lon': zone_data.get('center_lon') or zone_data.get('lon'),
                 'radius_m': zone_data.get('radius_m', 500)
             }
     

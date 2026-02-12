@@ -26,11 +26,16 @@ Usage:
 from .generator import generate_iq_window, SignalGenerator
 from .zones import ZoneModel, load_zones_from_config
 from .dataset_builder import build_synth_dataset
+from .contracts import DigitalTwinSample, GENERATOR_VERSION
+from .samples import generate_sample
 
 __all__ = [
     "generate_iq_window",
+    "generate_sample",
     "SignalGenerator",
     "ZoneModel",
     "load_zones_from_config",
     "build_synth_dataset",
+    "DigitalTwinSample",
+    "GENERATOR_VERSION",
 ]
