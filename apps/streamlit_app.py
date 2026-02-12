@@ -31,6 +31,12 @@ st.set_page_config(
 # Title
 st.title("📡 SpX-DAC Baseline Comparison Dashboard")
 
+# Safety banner: do not upload competition data to Cloud
+st.warning(
+    "**Do NOT upload official competition IQ data to Streamlit Cloud.** "
+    "Use synthetic micro-twin data or run locally for real datasets."
+)
+
 # ============================================================================
 # Helper Functions
 # ============================================================================

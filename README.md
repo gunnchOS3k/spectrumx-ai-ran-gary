@@ -81,9 +81,9 @@ The app will open at `http://localhost:8501`. You can:
 
 ### 4. Deploy to Streamlit Cloud
 
-See [docs/STREAMLIT_DEPLOY.md](docs/STREAMLIT_DEPLOY.md) for detailed deployment instructions.
+See [docs/STREAMLIT_DEPLOY.md](docs/STREAMLIT_DEPLOY.md) and [docs/STREAMLIT_CLOUD_DEPLOY.md](docs/STREAMLIT_CLOUD_DEPLOY.md) for deployment.
 
-**Main file path:** `streamlit_app.py` (root level)
+**Main file path (Cloud):** Use `streamlit_app.py` (repo root) or `apps/streamlit_app.py`. Both work; root wrapper imports `apps.streamlit_app`.
 
 ## Repository structure
 
