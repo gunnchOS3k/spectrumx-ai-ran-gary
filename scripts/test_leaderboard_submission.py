@@ -8,6 +8,7 @@ Usage (from repo root):
 from __future__ import annotations
 
 import sys
+import tempfile
 from pathlib import Path
 from typing import List
 
@@ -58,6 +59,26 @@ def _create_temp_sample() -> Path:
     return tmp_path
 
 
+def _create_1s_complex64_sample(out_dir: Path) -> Path:
+    """Create a 1-second synthetic IQ sample, complex64 shape (N,)."""
+    path = out_dir / "tmp_leaderboard_1s_complex64.npy"
+    n_samples = 1_000_000  # 1 s at 1 MHz
+    rng = np.random.default_rng(42)
+    iq = rng.normal(0, 0.1, n_samples) + 1j * rng.normal(0, 0.1, n_samples)
+    np.save(path, iq.astype(np.complex64))
+    return path
+
+
+def _create_float_n2_sample(out_dir: Path) -> Path:
+    """Create a synthetic IQ sample as (N, 2) float I/Q."""
+    path = out_dir / "tmp_leaderboard_float_n2.npy"
+    n_samples = 1_000_000
+    rng = np.random.default_rng(99)
+    iq_float = np.stack([rng.normal(0, 0.1, n_samples), rng.normal(0, 0.1, n_samples)], axis=1)
+    np.save(path, iq_float.astype(np.float32))
+    return path
+
+
 def main() -> int:
     # Import evaluate from the submission package
     try:
@@ -68,17 +89,21 @@ def main() -> int:
         return 1
 
     repo_root = Path(__file__).resolve().parents[1]
-    npy_files = _find_candidate_npy_files()
-
-    if not npy_files:
-        tmp = _create_temp_sample()
-        npy_files = [tmp]
-        print(f"No synthetic .npy files found; created temp sample: {tmp.relative_to(repo_root)}")
+    # Always create and test 1-second complex64 and (N,2) float samples (use temp dir)
+    tmp_dir = Path(tempfile.mkdtemp(prefix="leaderboard_test_"))
+    p_1s = _create_1s_complex64_sample(tmp_dir)
+    created_paths.append(p_1s)
+    p_n2 = _create_float_n2_sample(tmp_dir)
+    created_paths.append(p_n2)
+    npy_files = [p_1s, p_n2] + _find_candidate_npy_files()[:1]
 
     passed = True
 
-    for path in npy_files[:3]:  # limit to a few files
-        rel = path.relative_to(repo_root)
+    for path in npy_files[:5]:  # our 2 required + up to 1 from disk
+        try:
+            rel = path.relative_to(repo_root)
+        except ValueError:
+            rel = Path(path.name)
         try:
             result = evaluate(str(path))
         except Exception as e:
@@ -95,6 +120,12 @@ def main() -> int:
         else:
             print(f"PASS: evaluate({rel}) -> {result}")
 
+    # Remove temp files and temp dir
+    for p in [p_1s, p_n2]:
+        if p.exists():
+            p.unlink()
+    if tmp_dir.exists():
+        tmp_dir.rmdir()
     if passed:
         print("OVERALL RESULT: PASS")
         return 0
