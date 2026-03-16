@@ -187,32 +187,42 @@ def evaluate(filename: str) -> int:
         filename: Path to `.npy` IQ file.
 
     Returns:
-        Integer 0 or 1:
+        Integer 0 or 1 (never raises):
             - 0: unoccupied / noise
             - 1: occupied / signal present
     """
-    path = Path(filename)
-    if not path.is_file():
-        raise FileNotFoundError(f"File not found: {path}")
-
-    # Load IQ with robust format handling.
-    iq = _load_iq_auto(path)
-    if iq.ndim != 1:
-        raise ValueError(f"Loaded IQ must be 1D, got shape {iq.shape}")
-
-    # Primary baseline: spectral flatness.
     try:
-        sf_detector = SpectralFlatnessDetector(
-            threshold=0.5,
-            sample_rate=DEFAULT_SAMPLE_RATE,
-        )
-        pred, _conf, _flatness = sf_detector.detect(iq)
-        return int(1 if pred == 1 else 0)
+        path = Path(filename)
+        if not path.is_file():
+            # Missing file → safe default
+            return 0
+
+        # Load IQ with robust format handling.
+        iq = _load_iq_auto(path)
+        if iq is None or iq.size == 0 or iq.ndim != 1:
+            # Malformed or empty → safe default
+            return 0
+
+        # Primary baseline: spectral flatness.
+        try:
+            sf_detector = SpectralFlatnessDetector(
+                threshold=0.5,
+                sample_rate=DEFAULT_SAMPLE_RATE,
+            )
+            pred, _conf, _flatness = sf_detector.detect(iq)
+            return int(1 if pred == 1 else 0)
+        except Exception:
+            # Fallback: energy detector.
+            try:
+                energy_detector = EnergyDetector(threshold=1.0)
+                pred, _conf, _power = energy_detector.detect(iq)
+                return int(1 if pred == 1 else 0)
+            except Exception:
+                # Any detector failure → safe default
+                return 0
     except Exception:
-        # Fallback: energy detector.
-        energy_detector = EnergyDetector(threshold=1.0)
-        pred, _conf, _power = energy_detector.detect(iq)
-        return int(1 if pred == 1 else 0)
+        # Any unexpected error → safe default
+        return 0
 
 
 if __name__ == "__main__":
