@@ -14,7 +14,7 @@ try:
     TORCH_AVAILABLE = True
 except ImportError:
     TORCH_AVAILABLE = False
-    # Create dummy classes for type hints when torch is not available
+    # Create dummy classes for type hints when torch is not availablec
     class nn:
         class Module:
             pass
