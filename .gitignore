@@ -13,8 +13,10 @@ data/synthetic/
 results/
 logs/
 .DS_Store
-# Competition dataset and data files
+# Competition dataset and data files (LOCAL ONLY, NEVER COMMIT)
 competition_dataset/
+data/competition_dataset/
+data/competition_subset/
 *.npy
 # Streamlit secrets (if needed later)
 .streamlit/secrets.toml

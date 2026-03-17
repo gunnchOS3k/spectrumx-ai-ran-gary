@@ -1,17 +1,12 @@
 """
-Leaderboard baseline v1 submission entrypoint.
+Shared feature and IQ loading utilities for baseline detectors.
 
-Defines `evaluate(filename)` as required by the competition:
-    - loads a `.npy` IQ file robustly
-    - runs a simple baseline detector
-    - returns an integer 0 or 1
+These functions are used both by:
+    - local training scripts (e.g., train_feature_detector.py)
+    - leaderboard submission wrapper (evaluate(filename))
 
-Design choices for v1:
-    - Primary baseline: spectral flatness
-    - Fallback baseline: energy detector
-
-This file is intentionally self-contained so it can be zipped together
-with `user_reqs.txt` without depending on the rest of the repository.
+They deliberately depend only on numpy/scipy so they can be reused in
+lightweight environments.
 """
 
 from __future__ import annotations
@@ -22,12 +17,10 @@ from typing import Dict, Tuple
 import numpy as np
 from scipy import signal
 
+DEFAULT_SAMPLE_RATE: float = 1e6  # Hz; aligned with 1-second windows at 1 MHz
 
-# ---------------------------------------------------------------------------
-# IQ loader (adapted from apps/streamlit_app.py, without Streamlit dependency)
-# ---------------------------------------------------------------------------
 
-def _load_iq_from_npy(path: Path, is_int16_interleaved: bool = False) -> np.ndarray:
+def load_iq_from_npy(path: Path, is_int16_interleaved: bool = False) -> np.ndarray:
     """
     Load IQ data from a .npy file with support for multiple formats.
 
@@ -39,9 +32,6 @@ def _load_iq_from_npy(path: Path, is_int16_interleaved: bool = False) -> np.ndar
 
     Returns:
         complex64 array of shape (N,)
-
-    Raises:
-        ValueError on unsupported shapes/dtypes.
     """
     data = np.load(str(path), allow_pickle=False)
 
@@ -78,7 +68,7 @@ def _load_iq_from_npy(path: Path, is_int16_interleaved: bool = False) -> np.ndar
     raise ValueError(f"Unsupported data shape {data.shape}, dtype {data.dtype}")
 
 
-def _load_iq_auto(path: Path) -> np.ndarray:
+def load_iq_auto(path: Path) -> np.ndarray:
     """
     Load IQ data from path, attempting standard formats.
 
@@ -86,15 +76,13 @@ def _load_iq_auto(path: Path) -> np.ndarray:
         1) Try complex/(N,2)/1D-float interpretation.
         2) If that fails, try int16 interleaved.
     """
-    # First attempt: non-interleaved formats
     try:
-        return _load_iq_from_npy(path, is_int16_interleaved=False)
+        return load_iq_from_npy(path, is_int16_interleaved=False)
     except Exception:
-        # Second attempt: int16 interleaved
-        return _load_iq_from_npy(path, is_int16_interleaved=True)
+        return load_iq_from_npy(path, is_int16_interleaved=True)
 
 
-def _compute_psd(iq: np.ndarray, sample_rate: float, nperseg: int = 1024) -> Tuple[np.ndarray, np.ndarray]:
+def compute_psd(iq: np.ndarray, sample_rate: float, nperseg: int = 1024) -> Tuple[np.ndarray, np.ndarray]:
     """Compute two-sided PSD using Welch's method."""
     freqs, psd = signal.welch(
         iq,
@@ -106,7 +94,7 @@ def _compute_psd(iq: np.ndarray, sample_rate: float, nperseg: int = 1024) -> Tup
     return freqs, psd
 
 
-def _extract_features(iq: np.ndarray, sample_rate: float) -> Dict[str, float]:
+def extract_features(iq: np.ndarray, sample_rate: float) -> Dict[str, float]:
     """
     Handcrafted feature extractor for 1-second IQ windows.
 
@@ -154,7 +142,7 @@ def _extract_features(iq: np.ndarray, sample_rate: float) -> Dict[str, float]:
     feats["kurtosis"] = kurt
 
     # Frequency-domain features
-    freqs, psd = _compute_psd(iq, sample_rate)
+    freqs, psd = compute_psd(iq, sample_rate)
     psd_mag = np.abs(psd)
     total_power = float(np.sum(psd_mag))
 
@@ -179,7 +167,6 @@ def _extract_features(iq: np.ndarray, sample_rate: float) -> Dict[str, float]:
             feats[f"topk_psd_peak_{idx}"] = float(val)
 
         # Band energy ratios (low/mid/high split)
-        # Use absolute frequencies for bands.
         abs_freqs = np.abs(freqs)
         low_band = abs_freqs < 0.2 * sample_rate
         mid_band = (abs_freqs >= 0.2 * sample_rate) & (abs_freqs < 0.4 * sample_rate)
@@ -215,7 +202,6 @@ def _extract_features(iq: np.ndarray, sample_rate: float) -> Dict[str, float]:
     # Short-lag autocorrelation stats on magnitude
     max_lag = min(32, mag.size - 1) if mag.size > 1 else 0
     if max_lag > 0:
-        # Unbiased autocorrelation for lags 1..max_lag
         acf_vals = []
         for lag in range(1, max_lag + 1):
             x1 = mag[:-lag]
@@ -240,57 +226,11 @@ def _extract_features(iq: np.ndarray, sample_rate: float) -> Dict[str, float]:
     return feats
 
 
-# ---------------------------------------------------------------------------
-# Public API: evaluate(filename) -> int
-# ---------------------------------------------------------------------------
-
-DEFAULT_SAMPLE_RATE = 1e6  # Hz; aligned with synthetic/micro-twin config
-
-
-def evaluate(filename: str) -> int:
-    """
-    Competition entrypoint.
-
-    Args:
-        filename: Path to `.npy` IQ file.
-
-    Returns:
-        Integer 0 or 1 (never raises):
-            - 0: unoccupied / noise
-            - 1: occupied / signal present
-    """
-    try:
-        path = Path(filename)
-        if not path.is_file():
-            # Missing file → safe default
-            return 0
-
-        # Load IQ with robust format handling.
-        iq = _load_iq_auto(path)
-        if iq is None or iq.size == 0 or iq.ndim != 1:
-            # Malformed or empty → safe default
-            return 0
-
-        # For now, use a handcrafted decision based on spectral flatness as
-        # a placeholder for a future trained feature-based model.
-        feats = _extract_features(iq, sample_rate=DEFAULT_SAMPLE_RATE)
-        sf = feats.get("spectral_flatness", 0.5)
-        # Simple rule: lower flatness => more signal-like
-        pred = 1 if sf < 0.5 else 0
-        return int(pred)
-    except Exception:
-        # Any unexpected error → safe default
-        return 0
-
-
-if __name__ == "__main__":
-    # Simple manual smoke test, not used by the competition harness.
-    import sys
-
-    if len(sys.argv) != 2:
-        print("Usage: python main.py path/to/sample.npy")
-        raise SystemExit(1)
-
-    result = evaluate(sys.argv[1])
-    print(int(result))
+__all__ = [
+    "DEFAULT_SAMPLE_RATE",
+    "load_iq_auto",
+    "load_iq_from_npy",
+    "compute_psd",
+    "extract_features",
+]
 
