@@ -22,3 +22,5 @@ data/competition_subset/
 .streamlit/secrets.toml
 # Asana export CSV
 SpX-DAC_gunnchOS3kMLV.csv
+# Local-only report metrics (template: submissions/submission_metrics.example.csv)
+submissions/submission_metrics.csv
