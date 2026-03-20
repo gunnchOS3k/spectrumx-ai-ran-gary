@@ -1,9 +1,10 @@
 ## Streamlit Figure Mode / Report Mode
 
-This repo’s Streamlit dashboard (`apps/streamlit_app.py`) supports two UI modes:
+This repo’s Streamlit dashboard (`apps/streamlit_app.py`) supports three UI modes:
 
 - **Standard Mode**: the original baseline-comparison dashboard (upload/demo + prediction + plots).
 - **Figure Mode**: a **report-figure generator** that reorganizes content into report-oriented tabs and adds screenshot-friendly polish (titles, spacing, captions, and editable “report notes”).
+- **Judge Mode**: a polished, read-only judge tour that clearly separates the Core Judged Submission (authoritative local metrics) from Future Work / Micro-Twin (non-scoring).
 
 ### Safety (must-read)
 
@@ -20,6 +21,19 @@ streamlit run apps/streamlit_app.py
 ```
 
 (The root wrapper `streamlit_app.py` also works if you prefer.)
+
+### Judge Mode (judge-facing)
+
+1. In the sidebar, enable **Judge Mode**.
+2. The app renders a 6-tab **Judge Tour**: **Problem**, **Core Submission**, **Results**, **Efficiency**, **Future Work / Micro-Twin**, **Why It Matters for Gary**.
+3. **Core metrics** are loaded from local `submissions/submission_metrics.csv` (authoritative when present). No official competition IQ data is accessed.
+4. **Future Work / Micro-Twin** is shown as a clearly-labeled, synthetic, screenshot-friendly **3D building scene** (pydeck-based).
+
+Recommended screenshot sequence for the final report:
+- Figure 1 + Figure 2: **Problem**
+- Figure 4: **Core Submission**
+- Figure 3 + Figure 5: **Results**
+- Figure 6: **Future Work / Micro-Twin**
 
 ### How Figure Mode works
 

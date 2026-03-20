@@ -25,6 +25,12 @@ except ImportError as e:
     st.info("Run: `pip install -r requirements.txt`")
     st.stop()
 
+# Optional: pydeck for interactive 3D scenes (Future Work / Micro-Twin)
+try:
+    import pydeck as pdk  # type: ignore
+except Exception:
+    pdk = None  # type: ignore
+
 # Page config
 st.set_page_config(
     page_title="SpX-DAC Baseline Comparison Dashboard",
@@ -328,98 +334,472 @@ def load_submission_metrics(repo_root_str: str):
         return None
 
 
+@st.cache_data
+def load_leaderboard_summary(repo_root_str: str):
+    """Load optional leaderboard summary if present."""
+    path = Path(repo_root_str) / "submissions" / "leaderboard_summary.csv"
+    if not path.is_file():
+        return None
+    if pd is None:
+        return None
+    try:
+        return pd.read_csv(path)
+    except Exception:
+        return None
+
+
+def _interpret_bool(val) -> bool | None:
+    if val is None:
+        return None
+    if isinstance(val, bool):
+        return val
+    s = str(val).strip().lower()
+    if s in {"1", "true", "yes", "y"}:
+        return True
+    if s in {"0", "false", "no", "n"}:
+        return False
+    return None
+
+
+def _safe_read_text(path: Path, max_chars: int = 80000) -> str:
+    try:
+        return path.read_text(encoding="utf-8", errors="ignore")[:max_chars]
+    except Exception:
+        return ""
+
+
+def _pick_core_submission_row(metrics_df, summary_df, inventory_rows: list[dict]) -> dict | None:
+    """
+    Pick the "core judged submission" row from local structured metrics.
+    Heuristics are strictly local; no official competition data is loaded.
+    """
+    # Helper: try to choose the best-looking DAC/SpectrumX row by name first.
+    def _pick_from_df(df):
+        if df is None:
+            return None
+        cols = set(df.columns)
+        name_col = "submission" if "submission" in cols else None
+        rank_col = "leaderboard_rank" if "leaderboard_rank" in cols else None
+        acc_col = "leaderboard_accuracy" if "leaderboard_accuracy" in cols else None
+
+        if name_col is not None:
+            nl = df[name_col].astype(str).str.lower()
+            for needle in ("spectrumx", "spectrum", "dac", "core"):
+                mask = nl.str.contains(needle, na=False)
+                if mask.any():
+                    cand = df.loc[mask].copy()
+                    if rank_col is not None:
+                        cand = cand.sort_values(rank_col, na_position="last")
+                        return cand.iloc[0].to_dict()
+                    if acc_col is not None:
+                        cand = cand.sort_values(acc_col, ascending=False)
+                        return cand.iloc[0].to_dict()
+                    return cand.iloc[0].to_dict()
+
+        # Fallback ordering: best rank if present, else best accuracy.
+        if rank_col is not None:
+            try:
+                return df.sort_values(rank_col, na_position="last").iloc[0].to_dict()
+            except Exception:
+                pass
+        if acc_col is not None:
+            try:
+                return df.sort_values(acc_col, ascending=False).iloc[0].to_dict()
+            except Exception:
+                pass
+        # Last resort: first row.
+        try:
+            return df.iloc[0].to_dict()
+        except Exception:
+            return None
+
+    core = _pick_from_df(metrics_df)
+    if core is not None:
+        return core
+
+    core = _pick_from_df(summary_df)
+    if core is not None:
+        return core
+
+    # If we can't load structured metrics, attempt to select a plausible "core" by inventory name.
+    for inv in inventory_rows:
+        fn = (inv.get("folder") or "").lower()
+        if any(k in fn for k in ("dac", "spectrumx", "spectrum", "core")):
+            return {"submission": inv.get("folder"), "artifact_present": inv.get("artifact_present")}
+
+    return None
+
+
+def _compute_submission_artifact_footprint(repo_root: Path, submission_folder_name: str) -> tuple[float, str]:
+    """Sum local learned artifact sizes for a submission folder (read-only)."""
+    sub_root = repo_root / "submissions" / submission_folder_name
+    if not sub_root.is_dir():
+        return 0.0, "0 KB"
+    total_bytes = 0
+    matches: list[str] = []
+    for pat in ("*.npz", "*.pkl", "*.joblib", "*.pth", "*.pt", "*.ckpt"):
+        try:
+            for fp in sub_root.glob(pat):
+                if fp.is_file():
+                    total_bytes += fp.stat().st_size
+                    matches.append(fp.name)
+        except Exception:
+            pass
+    if total_bytes <= 0:
+        return 0.0, "0 KB"
+    mb = total_bytes / (1024 * 1024)
+    uniq = ", ".join(sorted({m for m in matches}))[:200]
+    return mb, uniq
+
+
+def _infer_inference_path(repo_root: Path, submission_folder_name: str) -> str:
+    """Lightweight heuristic: trained artifact loads vs fallback baseline."""
+    main_path = repo_root / "submissions" / submission_folder_name / "main.py"
+    if not main_path.is_file():
+        return "inference path unknown (missing main.py)"
+    txt = _safe_read_text(main_path).lower()
+
+    # Trained artifact indicators.
+    if any(k in txt for k in ("joblib.load", "pickle.load", "torch.load", "load_model", ".npz", ".pkl", ".joblib")):
+        if any(k in txt for k in ("spectral flatness", "energy_detector", "energy detector", "fallback")):
+            return "hybrid: trained-artifact primary with baseline fallback"
+        return "trained-artifact primary (loads a persisted model/weights)"
+
+    # Baseline indicators.
+    if "energy" in txt or "flatness" in txt:
+        return "baseline fallback (energy/flatness-style detector)"
+
+    return "inference path unknown (no clear artifact/baseline markers found)"
+
+
+def _generate_synthetic_demo_iq(sample_rate: float = 1e6, duration: float = 1.0, seed: int = 42):
+    """Generate demo/synthetic IQ for visualization only (never used as judged official input)."""
+    rng = np.random.default_rng(seed)
+    n_samples = int(sample_rate * duration)
+    t = np.arange(n_samples) / sample_rate
+    # Simple QPSK-ish burst with controlled carrier to make visuals stable.
+    signal_freq = 100e3
+    signal_samples = int(0.3 * n_samples)
+    signal_start = n_samples // 2 - signal_samples // 2
+    noise = rng.normal(0, 0.1, n_samples) + 1j * rng.normal(0, 0.1, n_samples)
+    signal_phase = 2 * np.pi * signal_freq * t[signal_start : signal_start + signal_samples]
+    burst = 0.5 * np.exp(1j * signal_phase)
+    demo_iq = noise.astype(np.complex64)
+    demo_iq[signal_start : signal_start + signal_samples] = (
+        demo_iq[signal_start : signal_start + signal_samples] + burst.astype(np.complex64)
+    )
+    return demo_iq
+
+
+def _render_judge_gary_micro_twin_3d():
+    if pdk is None:
+        st.warning(
+            "pydeck is not available in this runtime. Install `pydeck` locally to render the 3D Gary Micro-Twin building scene."
+        )
+        return
+
+    st.subheader("Figure 6: Gary Micro-Twin (Future Work) 3D Building Scene")
+    st.caption("Interactive visualization for future impact storytelling. It is NOT used as the basis of the official leaderboard evaluation.")
+
+    st.markdown("**Select site & scenario overlay**")
+    b_demand = st.selectbox(
+        "Demand level (scenario overlay)",
+        options=["Low", "Medium", "High"],
+        index=1,
+        key="judge_mt_demand",
+    )
+    b_occupancy = st.selectbox(
+        "Occupancy prior (scenario overlay)",
+        options=["Low", "Medium", "High"],
+        index=1,
+        key="judge_mt_occupancy_prior",
+    )
+    b_signal_env = st.selectbox(
+        "Signal environment assumption",
+        options=["Quieter / low interference", "Moderate interference", "Noisier / high interference"],
+        index=1,
+        key="judge_mt_signal_env",
+    )
+
+    # Approximate footprint polygons for screenshot-friendly 3D extrusion.
+    # Coordinates are intentionally approximate (demo-only), defined manually.
+    buildings = [
+        {
+            "id": "city_hall",
+            "name": "Gary City Hall",
+            "role": "Civic command center",
+            "impact": "Digital-divide hotspot: resilient sensing supports public safety workflows.",
+            "height_m": 60,
+            "polygon": [
+                [-87.3379, 41.5841],
+                [-87.3374, 41.5841],
+                [-87.3374, 41.5837],
+                [-87.3379, 41.5837],
+            ],
+            "risk_bias": 0.55,
+        },
+        {
+            "id": "public_library",
+            "name": "Gary Public Library & Cultural Center",
+            "role": "Learning & inclusion hub",
+            "impact": "Better connectivity & sensing improve equitable access to information and services.",
+            "height_m": 45,
+            "polygon": [
+                [-87.3338, 41.5846],
+                [-87.3333, 41.5846],
+                [-87.3333, 41.5842],
+                [-87.3338, 41.5842],
+            ],
+            "risk_bias": 0.40,
+        },
+        {
+            "id": "west_side_leadership",
+            "name": "West Side Leadership Academy",
+            "role": "Education & workforce pipeline",
+            "impact": "Sensing + AI-RAN can reduce coverage gaps for students and community partners.",
+            "height_m": 35,
+            "polygon": [
+                [-87.3482, 41.5852],
+                [-87.3477, 41.5852],
+                [-87.3477, 41.5848],
+                [-87.3482, 41.5848],
+            ],
+            "risk_bias": 0.65,
+        },
+    ]
+
+    # Map scenario selections to numeric risk drivers.
+    demand_w = {"Low": 0.25, "Medium": 0.55, "High": 0.85}[b_demand]
+    occ_w = {"Low": 0.25, "Medium": 0.55, "High": 0.80}[b_occupancy]
+    env_w = {
+        "Quieter / low interference": 0.25,
+        "Moderate interference": 0.55,
+        "Noisier / high interference": 0.85,
+    }[b_signal_env]
+
+    for b in buildings:
+        risk = 0.34 * demand_w + 0.33 * occ_w + 0.33 * env_w + 0.18 * b["risk_bias"]
+        b["risk_score"] = float(risk)
+        if risk < 0.50:
+            b["risk_label"] = "Lower risk scenario"
+            b["fill_color"] = [40, 180, 80, 200]  # green
+        elif risk < 0.70:
+            b["risk_label"] = "Moderate risk scenario"
+            b["fill_color"] = [240, 200, 60, 200]  # yellow
+        else:
+            b["risk_label"] = "Higher risk scenario"
+            b["fill_color"] = [235, 80, 60, 200]  # red
+
+        # Approximate centroid for labels.
+        lons = [p[0] for p in b["polygon"]]
+        lats = [p[1] for p in b["polygon"]]
+        b["centroid"] = [sum(lons) / len(lons), sum(lats) / len(lats)]
+
+    site_ids = [b["id"] for b in buildings]
+    site_id_default = site_ids[0]
+    prev_selected = st.session_state.get("judge_mt_selected_site_id", site_id_default)
+    selected_site_id = st.selectbox(
+        "Site selector",
+        options=site_ids,
+        format_func=lambda s: next(b["name"] for b in buildings if b["id"] == s),
+        index=site_ids.index(prev_selected) if prev_selected in site_ids else 0,
+        key="judge_mt_selected_site_id_select",
+    )
+
+    # Keep a single canonical selection id in session state.
+    st.session_state["judge_mt_selected_site_id"] = selected_site_id
+
+    selected_building = next((b for b in buildings if b["id"] == selected_site_id), buildings[0])
+    st.info(
+        f"**{selected_building['name']}** ({selected_building['role']})\n\n"
+        f"{selected_building['impact']}\n\n"
+        f"Scenario overlay: {b_demand} demand, {b_occupancy} occupancy prior, {b_signal_env}.\n"
+        f"Risk indicator: {selected_building['risk_label']}."
+    )
+
+    # 3D Deck.gl layers
+    try:
+        poly_layer = pdk.Layer(
+            "PolygonLayer",
+            data=buildings,
+            get_polygon="polygon",
+            get_fill_color="fill_color",
+            get_line_color=[0, 0, 0, 110],
+            get_line_width=1,
+            extruded=True,
+            get_elevation="height_m",
+            pickable=True,
+            auto_highlight=True,
+            opacity=0.95,
+        )
+        text_layer = pdk.Layer(
+            "TextLayer",
+            data=buildings,
+            get_position="centroid",
+            get_text="name",
+            get_color=[10, 10, 10, 255],
+            get_size=14,
+            pickable=False,
+        )
+        deck = pdk.Deck(
+            layers=[poly_layer, text_layer],
+            initial_view_state=pdk.ViewState(
+                latitude=41.5842,
+                longitude=-87.3400,
+                zoom=12.2,
+                pitch=50,
+                bearing=-20,
+            ),
+            # Avoid requiring a Mapbox token in judge/screenshot environments.
+            map_style="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
+            tooltip={
+                "html": "<b>{name}</b><br/>{role}<br/><br/>"
+                "Scenario risk: {risk_label}<br/>"
+                "{impact}"
+            },
+        )
+
+        # Some Streamlit versions return interaction events; others return None.
+        try:
+            events = st.pydeck_chart(deck, use_container_width=True)
+            _ = events  # not relied on; dropdown provides a deterministic selection
+        except Exception:
+            st.caption("3D scene rendered, but interaction events may be limited in this runtime.")
+    except Exception as e:
+        st.error(f"3D Micro-Twin scene failed to render: {e}")
+
+    st.markdown("**Legend (screenshot-friendly)**")
+    st.markdown(
+        """
+Green = lower risk, Yellow = moderate risk, Red = higher risk.
+The overlay is for future impact communication only.
+        """.strip()
+    )
+
+    st.caption("Tip for screenshots: zoom/pan your view, then capture the rendered scene from the Future Work tab.")
+
+
 # ============================================================================
 # Sidebar
 # ============================================================================
 
 with st.sidebar:
     _ensure_session_defaults()
-    st.header("🧾 Report / Figure Mode")
-    ui_mode = st.radio(
-        "Mode",
-        ["Standard Mode", "Figure Mode"],
-        key="ui_mode",
-        help="Figure Mode reorganizes the app into report-oriented tabs for screenshot-ready figures.",
+    judge_mode = st.toggle(
+        "Judge Mode",
+        value=bool(st.session_state.get("judge_mode_toggle", False)),
+        key="judge_mode_toggle",
+        help="Polished, read-only judge-facing dashboard (no dev controls, no raw debug).",
     )
-    if ui_mode == "Figure Mode":
-        st.toggle(
-            "Screenshot Preset",
-            key="figure_screenshot_preset",
-            help="Standardize spacing, emphasize titles, and use taller plots for screenshots.",
-        )
-        st.toggle(
-            "Show captions under charts",
-            key="figure_show_captions",
-            help="Captions help screenshots stand alone in the final report.",
-        )
-        with st.expander("Report Notes (for screenshots)", expanded=True):
-            st.text_input("Report section title", key="report_section_title")
-            st.text_input("Suggested figure number", key="report_figure_number")
-            st.text_area("Caption text", key="report_caption_text", height=80)
 
-    st.header("⚙️ Configuration")
-    
-    # File uploader
-    uploaded_file = st.file_uploader(
-        "Upload .npy file",
-        type=['npy'],
-        help="Upload IQ data in .npy format",
-        key="sidebar_file_uploader_npy",
-    )
-    
-    # Format options
-    is_int16_interleaved = st.checkbox(
-        "int16 interleaved format",
-        help="Check if data is int16 interleaved [I0, Q0, I1, Q1, ...]",
-        key="sidebar_checkbox_int16_interleaved",
-    )
-    
-    # Model selection
-    model_option = st.selectbox(
-        "Model",
-        ["Energy Detector", "Spectral Flatness", "PSD+LogReg", "Coming soon"],
-        help="Select baseline model for prediction",
-        key="sidebar_select_model",
-    )
-    
-    # Plot toggles
-    st.header("📊 Visualizations")
-    show_time_iq = st.toggle("Time/IQ", value=True, key="sidebar_toggle_time_iq")
-    show_constellation = st.toggle("Constellation", value=True, key="sidebar_toggle_constellation")
-    show_psd = st.toggle("PSD", value=True, key="sidebar_toggle_psd")
-    show_spectrogram = st.toggle("Spectrogram", value=True, key="sidebar_toggle_spectrogram")
-    
-    # Sample rate input
-    st.header("🔧 Parameters")
-    # Get sample rate from session state if demo data exists
-    default_sample_rate = st.session_state.get('demo_sample_rate', 1e6) if 'demo_iq' in st.session_state else 1e6
-    sample_rate = st.number_input(
-        "Sample Rate (Hz)",
-        min_value=1.0,
-        value=float(default_sample_rate),
-        step=1e3,
-        format="%.0f",
-        help="Sample rate of the IQ data",
-        key="sidebar_sample_rate_hz",
-    )
-    
-    # Micro-Twin sample picker (when available)
-    if st.session_state.get("micro_twin_list"):
-        mt_list = st.session_state["micro_twin_list"]
-        mt_labels = [f"{m[1].get('zone_id', '?')} | L{m[1].get('label', '?')} | SNR:{m[1].get('snr_db', 'N/A')}" for m in mt_list]
-        st.selectbox(
-            "Micro-Twin sample",
-            range(len(mt_list)),
-            format_func=lambda i: mt_labels[i],
-            key="micro_twin_select",
+    if judge_mode:
+        # Judge view: keep UI minimal and polished. Core metrics come from local submissions/ CSVs.
+        st.header("🏆 Judge Mode")
+        st.caption(
+            "Core judged submission metrics are loaded from `submissions/submission_metrics.csv` (if present). "
+            "Official competition IQ data is not included in this app."
         )
 
-    if ui_mode == "Figure Mode":
-        st.header("🏁 Results (headline numbers)")
-        st.text_input("Baseline name", key="results_baseline_name")
-        st.text_input("Baseline metric", key="results_baseline_metric")
-        st.text_input("Improved name", key="results_improved_name")
-        st.text_input("Improved metric", key="results_improved_metric")
+        uploaded_file = None
+        is_int16_interleaved = False
+        model_option = "Spectral Flatness"
+        show_time_iq = True
+        show_constellation = True
+        show_psd = True
+        show_spectrogram = True
+        sample_rate = 1e6
+
+        # Keep ui_mode stable in session state for existing helpers that check session_state.
+        ui_mode = st.session_state.get("ui_mode", "Standard Mode")
+    else:
+        st.header("🧾 Report / Figure Mode")
+        ui_mode = st.radio(
+            "Mode",
+            ["Standard Mode", "Figure Mode"],
+            key="ui_mode",
+            help="Figure Mode reorganizes the app into report-oriented tabs for screenshot-ready figures.",
+        )
+        if ui_mode == "Figure Mode":
+            st.toggle(
+                "Screenshot Preset",
+                key="figure_screenshot_preset",
+                help="Standardize spacing, emphasize titles, and use taller plots for screenshots.",
+            )
+            st.toggle(
+                "Show captions under charts",
+                key="figure_show_captions",
+                help="Captions help screenshots stand alone in the final report.",
+            )
+            with st.expander("Report Notes (for screenshots)", expanded=True):
+                st.text_input("Report section title", key="report_section_title")
+                st.text_input("Suggested figure number", key="report_figure_number")
+                st.text_area("Caption text", key="report_caption_text", height=80)
+
+        st.header("⚙️ Configuration")
+
+        # File uploader
+        uploaded_file = st.file_uploader(
+            "Upload .npy file",
+            type=["npy"],
+            help="Upload IQ data in .npy format",
+            key="sidebar_file_uploader_npy",
+        )
+
+        # Format options
+        is_int16_interleaved = st.checkbox(
+            "int16 interleaved format",
+            help="Check if data is int16 interleaved [I0, Q0, I1, Q1, ...]",
+            key="sidebar_checkbox_int16_interleaved",
+        )
+
+        # Model selection
+        model_option = st.selectbox(
+            "Model",
+            ["Energy Detector", "Spectral Flatness", "PSD+LogReg", "Coming soon"],
+            help="Select baseline model for prediction",
+            key="sidebar_select_model",
+        )
+
+        # Plot toggles
+        st.header("📊 Visualizations")
+        show_time_iq = st.toggle("Time/IQ", value=True, key="sidebar_toggle_time_iq")
+        show_constellation = st.toggle("Constellation", value=True, key="sidebar_toggle_constellation")
+        show_psd = st.toggle("PSD", value=True, key="sidebar_toggle_psd")
+        show_spectrogram = st.toggle("Spectrogram", value=True, key="sidebar_toggle_spectrogram")
+
+        # Sample rate input
+        st.header("🔧 Parameters")
+        default_sample_rate = st.session_state.get("demo_sample_rate", 1e6) if "demo_iq" in st.session_state else 1e6
+        sample_rate = st.number_input(
+            "Sample Rate (Hz)",
+            min_value=1.0,
+            value=float(default_sample_rate),
+            step=1e3,
+            format="%.0f",
+            help="Sample rate of the IQ data",
+            key="sidebar_sample_rate_hz",
+        )
+
+        # Micro-Twin sample picker (when available)
+        if st.session_state.get("micro_twin_list"):
+            mt_list = st.session_state["micro_twin_list"]
+            mt_labels = [
+                f"{m[1].get('zone_id', '?')} | L{m[1].get('label', '?')} | SNR:{m[1].get('snr_db', 'N/A')}"
+                for m in mt_list
+            ]
+            st.selectbox(
+                "Micro-Twin sample",
+                range(len(mt_list)),
+                format_func=lambda i: mt_labels[i],
+                key="micro_twin_select",
+            )
+
+        if ui_mode == "Figure Mode":
+            st.header("🏁 Results (headline numbers)")
+            st.text_input("Baseline name", key="results_baseline_name")
+            st.text_input("Baseline metric", key="results_baseline_metric")
+            st.text_input("Improved name", key="results_improved_name")
+            st.text_input("Improved metric", key="results_improved_metric")
 
 # ============================================================================
 # Main Content
@@ -453,10 +833,322 @@ elif st.session_state.get("use_micro_twin") and st.session_state.get("micro_twin
         sample_rate = mt_list[sel][2]
         has_data = True
 
+# Judge Mode: override input with synthetic demo for visualization only.
+judge_mode_enabled = bool(st.session_state.get("judge_mode_toggle", False))
+if judge_mode_enabled:
+    try:
+        if "judge_demo_iq" not in st.session_state:
+            judge_sr = float(sample_rate) if "sample_rate" in locals() else 1e6
+            st.session_state["judge_demo_iq"] = _generate_synthetic_demo_iq(sample_rate=judge_sr, duration=1.0, seed=42)
+            st.session_state["judge_demo_sample_rate"] = judge_sr
+        iq_data = st.session_state["judge_demo_iq"]
+        sample_rate = st.session_state.get("judge_demo_sample_rate", 1e6)
+        has_data = True
+        # Do not use Micro-Twin samples as the basis of judge-mode visuals/claims.
+        st.session_state["use_micro_twin"] = False
+    except Exception:
+        # Fail gracefully: keep has_data=False so user sees an informative message.
+        has_data = False
+
 # ---------------------------------------------------------------------------
 # Standard Mode (preserve existing behavior)
 # ---------------------------------------------------------------------------
-if st.session_state.get("ui_mode") != "Figure Mode":
+if judge_mode_enabled:
+    # Judge-facing, read-only dashboard.
+    st.header("🏆 Judge Tour")
+    st.caption(
+        "This view is designed for judges: polished, authoritative tables from local `submissions/` CSVs, "
+        "and clearly separated Future Work / Micro-Twin (not the basis of official evaluation)."
+    )
+
+    # Load structured metrics (authoritative when present).
+    repo_root = _repo_root()
+    inv_rows = scan_submissions_inventory(str(repo_root))
+    mdf = load_submission_metrics(str(repo_root))
+    ldf = load_leaderboard_summary(str(repo_root))
+    core_row = _pick_core_submission_row(mdf, ldf, inv_rows) if (mdf is not None or ldf is not None) else _pick_core_submission_row(None, None, inv_rows)
+
+    # Pick a submission folder name for efficiency scans (only if we have a core row).
+    core_submission_name = str(core_row.get("submission")) if core_row and core_row.get("submission") is not None else None
+
+    # Judge-tour tabs
+    tabs = st.tabs(
+        [
+            "Problem",
+            "Core Submission",
+            "Results",
+            "Efficiency",
+            "Future Work / Micro-Twin",
+            "Why It Matters for Gary",
+        ]
+    )
+
+    with tabs[0]:
+        st.subheader("Figure 1: Problem / Task Overview")
+        st.markdown(
+            """
+SpectrumX DAC judging focuses on: **detection accuracy**, **implementation efficiency**, **algorithmic novelty**, and **visualization quality**.
+
+This dashboard presents:
+- **Core judged submission** (official SpectrumX DAC detector metrics) from local structured files.
+- **Future work** (Gary Micro-Twin / AI-RAN visualization / simulation concepts) clearly labeled as non-scoring.
+            """.strip()
+        )
+        st.caption("Cloud safety: official competition IQ data is not included in this app.")
+
+        st.subheader("Figure 2: IQ + PSD + Spectrogram (Visualization Only)")
+        st.caption("Synthetic demo IQ is shown for screenshot clarity. It does not drive judge-scoring metrics in this UI.")
+        if has_data and iq_data is not None:
+            # Time-domain IQ
+            c1, c2 = st.columns(2)
+            with c1:
+                max_points = 8000
+                if len(iq_data) > max_points:
+                    step = len(iq_data) // max_points
+                    iq_plot = iq_data[::step]
+                    t_plot = np.arange(len(iq_plot)) * step / sample_rate
+                else:
+                    iq_plot = iq_data
+                    t_plot = np.arange(len(iq_plot)) / sample_rate
+                fig_iq = make_subplots(rows=2, cols=1, subplot_titles=("I(t)", "Q(t)"), vertical_spacing=0.15)
+                fig_iq.add_trace(go.Scatter(x=t_plot, y=np.real(iq_plot), mode="lines", name="I", line=dict(width=1)), row=1, col=1)
+                fig_iq.add_trace(go.Scatter(x=t_plot, y=np.imag(iq_plot), mode="lines", name="Q", line=dict(width=1)), row=2, col=1)
+                fig_iq.update_layout(height=360, showlegend=False, margin=dict(t=40, b=10))
+                st.plotly_chart(fig_iq, use_container_width=True)
+                st.caption("Time-domain view to communicate signal bursts vs noise-only windows.")
+
+            with c2:
+                freqs, psd = compute_psd(iq_data, sample_rate)
+                fig_psd = go.Figure()
+                fig_psd.add_trace(go.Scatter(x=freqs, y=10 * np.log10(np.abs(psd) + 1e-10), mode="lines"))
+                fig_psd.update_layout(height=360, xaxis_title="Frequency (Hz)", yaxis_title="PSD (dB/Hz)", margin=dict(t=40, b=10))
+                st.plotly_chart(fig_psd, use_container_width=True)
+                st.caption("Welch PSD communicates spectral structure relative to noise.")
+
+            # Spectrogram (single figure)
+            freqs, times, Sxx = compute_spectrogram(iq_data, sample_rate)
+            fig_spec = go.Figure()
+            fig_spec.add_trace(
+                go.Heatmap(
+                    z=10 * np.log10(np.abs(Sxx) + 1e-10),
+                    x=times,
+                    y=freqs,
+                    colorscale="Viridis",
+                )
+            )
+            fig_spec.update_layout(
+                height=420,
+                xaxis_title="Time (s)",
+                yaxis_title="Frequency (Hz)",
+                margin=dict(t=50, b=10),
+            )
+            st.plotly_chart(fig_spec, use_container_width=True)
+            st.caption("Spectrogram provides a time-frequency screenshot panel.")
+        else:
+            st.info("No demo input available for Figure 2. Reload the app; Judge Mode should auto-generate a synthetic IQ window.")
+
+    with tabs[1]:
+        st.subheader("Figure 4: Final Submission (Core Judged)")
+        st.caption("Read-only, judge-facing summary populated from local structured metrics CSVs.")
+        if core_row is None:
+            st.warning(
+                "Structured metrics not found. Add `submissions/submission_metrics.csv` so the core submission card can be populated."
+            )
+            core_row = {}
+        artifact_present = _interpret_bool(core_row.get("artifact_present"))
+        if artifact_present is None:
+            artifact_present = bool(core_row.get("artifact_present", False))
+
+        trained_primary = bool(artifact_present)  # conservative: infer trained-artifact when we have an artifact.
+
+        submitted_name = core_row.get("submission", "Not provided")
+        model_family = core_row.get("model_family", "Not provided")
+        leaderboard_rank = core_row.get("leaderboard_rank", "Not provided")
+        leaderboard_accuracy = core_row.get("leaderboard_accuracy", "Not provided")
+        threshold = core_row.get("threshold", "Not provided")
+
+        # Optional runtimes (if you extend your metrics CSV)
+        runtime_val = core_row.get("runtime", core_row.get("runtime_per_sample", core_row.get("runtime_sec", None)))
+
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Submission", str(submitted_name))
+        c2.metric("Model family", str(model_family))
+        c3.metric("Leaderboard rank", "N/A" if leaderboard_rank is None else str(leaderboard_rank))
+
+        c4, c5, c6 = st.columns(3)
+        c4.metric("Leaderboard accuracy", "N/A" if leaderboard_accuracy is None else str(leaderboard_accuracy))
+        c5.metric("Threshold", "N/A" if threshold is None else str(threshold))
+        c6.metric("Runtime (per sample)", "N/A" if runtime_val is None else str(runtime_val))
+
+        st.markdown("---")
+        c7, c8, c9 = st.columns(3)
+        c7.metric("Artifact used?", "Yes" if artifact_present else "No")
+        c8.metric("Trained-model primary?", "Yes" if trained_primary else "No")
+
+        # Inference path (code-text heuristic from submission folder)
+        if core_submission_name and repo_root.is_dir():
+            inf_path = _infer_inference_path(repo_root, core_submission_name)
+            size_mb, size_hint = _compute_submission_artifact_footprint(repo_root, core_submission_name)
+            c9.metric("Inference path", inf_path)
+            st.caption(f"Learned artifact footprint: ~{size_mb:.2f} MB ({size_hint})")
+        else:
+            c9.metric("Inference path", "Unknown (missing submission folder)")
+
+        st.caption("Metrics are loaded from local structured CSVs only. No official competition IQ data is accessed here.")
+
+    with tabs[2]:
+        st.subheader("Figure 5: Results (CV + Leaderboard Progress)")
+        st.markdown(
+            "Authoritative CV / leaderboard tables come from `submissions/submission_metrics.csv` when present."
+        )
+
+        st.subheader("Figure 3: Feature Extraction (Visualization Only)")
+        st.caption("Feature table/chart shown for interpretability screenshots. Judge-scoring metrics in this view come only from structured CSVs.")
+        if has_data and iq_data is not None:
+            df = _features_dataframe(iq_data, sample_rate)
+            if df is not None:
+                if pd is not None:
+                    st.dataframe(pd.DataFrame(df), use_container_width=True, hide_index=True)
+                else:
+                    st.caption("pandas not available in this runtime; showing feature rows as JSON.")
+                    st.json(df[:50])
+                # Screenshot-friendly emphasis: top magnitude features.
+                try:
+                    top = sorted(df, key=lambda r: abs(r["value"]), reverse=True)[:10]
+                    fig_feat = go.Figure()
+                    fig_feat.add_trace(
+                        go.Bar(
+                            x=[r["value"] for r in top],
+                            y=[r["feature"] for r in top],
+                            orientation="h",
+                        )
+                    )
+                    fig_feat.update_layout(height=360, margin=dict(t=40, b=10), title="Top Feature Magnitudes (demo)")
+                    st.plotly_chart(fig_feat, use_container_width=True)
+                except Exception:
+                    st.caption("Top-feature chart not rendered in this runtime.")
+            else:
+                st.info("Feature extractor not available in this runtime. (Shared `extract_features` import failed.)")
+        else:
+            st.info("No demo input available for Figure 3. Reload the app; Judge Mode should auto-generate synthetic IQ.")
+        st.markdown("---")
+
+        if mdf is not None:
+            st.dataframe(mdf, use_container_width=True, hide_index=True)
+            st.caption("If your CSV has a large number of columns, use the table view to focus on key metrics.")
+        else:
+            st.warning(
+                "Structured metrics file not found. Add `submissions/submission_metrics.csv` for report-ready judge tables."
+            )
+            expected_cols = [
+                "submission",
+                "model_family",
+                "artifact_present",
+                "cv_accuracy",
+                "cv_precision",
+                "cv_recall",
+                "cv_f1",
+                "threshold",
+                "leaderboard_rank",
+                "leaderboard_accuracy",
+                "notes",
+            ]
+            if pd is not None:
+                st.dataframe(pd.DataFrame(columns=expected_cols), use_container_width=True, hide_index=True)
+            else:
+                st.info("Install `pandas` locally to view the placeholder schema table.")
+
+        # Highlight core row if possible.
+        if core_row is not None and mdf is not None and "submission" in mdf.columns and core_row.get("submission") in set(mdf["submission"].astype(str)):
+            core_name = str(core_row.get("submission"))
+            try:
+                st.info(f"Core submission row: `{core_name}`")
+            except Exception:
+                pass
+
+    with tabs[3]:
+        st.subheader("Figure: Efficiency & Implementation Fit")
+        if core_submission_name:
+            runtime_val = core_row.get("runtime", core_row.get("runtime_per_sample", core_row.get("runtime_sec", None)))
+            st.markdown(
+                "Efficiency is communicated using *local, evidence-backed* signals: learned artifact footprint and inference-path heuristics from `submissions/<core>/main.py`."
+            )
+            if runtime_val is not None:
+                st.metric("Runtime per sample (from CSV)", str(runtime_val))
+            else:
+                st.info("Runtime per sample not found in CSV. Add a `runtime` column in `submissions/submission_metrics.csv` for best judge readability.")
+
+            size_mb, size_hint = _compute_submission_artifact_footprint(repo_root, core_submission_name)
+            st.metric("Learned artifact footprint (approx)", f"~{size_mb:.2f} MB")
+            if size_hint:
+                st.caption(f"Artifacts: {size_hint}")
+
+            inf_path = _infer_inference_path(repo_root, core_submission_name)
+            st.metric("Inference path", inf_path)
+            st.caption(
+                "Complexity summary: checks whether the submission mentions feature extraction, linear models (logistic/SVM), and whether it loads persisted weights."
+            )
+
+            # Code-text heuristics (read-only inspection).
+            main_txt = _safe_read_text(repo_root / "submissions" / core_submission_name / "main.py")
+            nl = main_txt.lower()
+            has_feats = "extract_features" in nl or "extract features" in nl
+            mentions_lin = any(k in nl for k in ("logistic", "linearsvc", "svm", "sklearn"))
+            c_fx, c_lin, c_notes = st.columns(3)
+            c_fx.metric("Feature markers", "Yes" if has_feats else "No")
+            c_lin.metric("Linear model markers", "Yes" if mentions_lin else "No")
+            notes_txt = (core_row.get("notes", "") if core_row else "")
+            c_notes.metric("Submission note", "Provided" if str(notes_txt).strip() else "Not provided")
+            if str(notes_txt).strip():
+                st.caption(str(notes_txt)[:4000])
+        else:
+            st.warning("Core submission folder could not be inferred. Add metrics CSV so efficiency panels can populate.")
+
+    with tabs[4]:
+        st.subheader("Future Work / Micro-Twin")
+        _render_judge_gary_micro_twin_3d()
+        st.markdown("---")
+        st.subheader("Research-Grade 6G Simulation Path")
+        st.markdown(
+            """
+**DeepMIMO (site-specific wireless dataset workflow):**
+- Define a scenario with the same city block zoning as the Micro-Twin sites.
+- Generate channel realizations and extract signatures for feature engineering.
+
+**Sionna RT (differentiable ray tracing):**
+- Use radio-material assumptions to model multipath and blockage.
+- Produce ray-based features and use them as future retraining inputs.
+
+**Future integration hooks (honest placeholders):**
+- coverage map
+- beam / channel view
+- ray-tracing-backed scenario
+            """.strip()
+        )
+        st.caption("These simulation components are future integration points. They are not claimed as part of the official submission basis here.")
+
+    with tabs[5]:
+        st.subheader("Novelty Story: What Was Judged vs Future Work")
+        st.markdown(
+            """
+**Core judged submission (scoring basis):**
+- Feature-based binary detector trained on official SpectrumX labeled data (metrics shown from local structured CSVs).
+
+**Future work (non-scoring impact story):**
+- Gary Micro-Twin building model and AI-RAN visualization concepts.
+- DeepMIMO / Sionna RT research-grade simulation path for future scenario-aware sensing.
+            """.strip()
+        )
+        st.caption("This panel explicitly separates scoring-algorithm evidence from future visualization/simulation work.")
+        st.markdown("---")
+        st.subheader("Why it Matters for Gary")
+        st.markdown(
+            """
+The Micro-Twin future work is designed to communicate how improved sensing and coexistence can reduce digital divide gaps—especially for learning and civic services.
+            """.strip()
+        )
+
+elif st.session_state.get("ui_mode") != "Figure Mode":
     if has_data and iq_data is not None:
         # Demo mode banner when using in-app demo data
         if st.session_state.get("use_demo") and "demo_iq" in st.session_state:
