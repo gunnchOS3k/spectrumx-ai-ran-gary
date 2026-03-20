@@ -25,12 +25,14 @@ Judge Mode loads the CV / leaderboard table from:
 
 - `submissions/submission_metrics.csv` (authoritative when present)
 - Optional: `submissions/leaderboard_summary.csv` (if you include it)
+- Optional: `docs/final_report_figures.yaml` — per-figure caption overrides (`figure_1` … `figure_6`). Copy from `docs/final_report_figures.example.yaml`. Requires **PyYAML** (`pip install pyyaml`).
 
 If `submissions/submission_metrics.csv` is missing, the app shows a clearly-labeled placeholder schema and a note.
 
 Expected CSV schema (header row):
 
 - `submission`
+- `submission_version` (optional but recommended for progress screenshots)
 - `model_family`
 - `artifact_present`
 - `cv_accuracy`
@@ -41,6 +43,8 @@ Expected CSV schema (header row):
 - `leaderboard_rank`
 - `leaderboard_accuracy`
 - `notes`
+- `change` (optional; “what changed” — progress view also accepts `changelog` / `note` as column aliases)
+- `runtime` (optional; Efficiency tab also checks `runtime_per_sample` / `runtime_sec`)
 
 Tip: add optional columns like `runtime` or `runtime_per_sample` if you have measured runtime and want the Efficiency tab to populate runtime per sample.
 
