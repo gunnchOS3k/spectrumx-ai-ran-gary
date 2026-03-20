@@ -16,6 +16,50 @@ import yaml
 from .zones import ZoneModel, Zone
 
 
+def _root_raised_cosine_taps(
+    num_taps: int,
+    sample_rate: float,
+    symbol_rate: float,
+    beta: float = 0.2,
+) -> np.ndarray:
+    """
+    Truncated root-raised-cosine FIR taps (real-valued, demo-safe).
+
+    SciPy does not ship ``signal.firrcos`` on many versions; this replaces it with
+    a standard closed-form RRC impulse (see e.g. Proakis / common comms texts).
+    """
+    if num_taps < 3:
+        num_taps = 3
+    if num_taps % 2 == 0:
+        num_taps += 1
+    sps = sample_rate / symbol_rate  # samples per symbol
+    t = np.arange(num_taps, dtype=np.float64) - (num_taps - 1) / 2.0
+    x = t / sps  # normalized time in symbol intervals
+    h = np.zeros(num_taps, dtype=np.float64)
+    eps = 1e-9
+    for i, xi in enumerate(x):
+        if abs(xi) < eps:
+            h[i] = 1.0 - beta + 4.0 * beta / np.pi
+        elif beta > eps and abs(abs(xi) - 1.0 / (4.0 * beta)) < 1e-9:
+            h[i] = (beta / np.sqrt(2.0)) * (
+                (1.0 + 2.0 / np.pi) * np.sin(np.pi / (4.0 * beta))
+                + (1.0 - 2.0 / np.pi) * np.cos(np.pi / (4.0 * beta))
+            )
+        else:
+            num = np.sin(np.pi * xi * (1.0 - beta)) + 4.0 * beta * xi * np.cos(
+                np.pi * xi * (1.0 + beta)
+            )
+            den = np.pi * xi * (1.0 - (4.0 * beta * xi) ** 2)
+            if abs(den) < eps:
+                h[i] = 0.0
+            else:
+                h[i] = num / den
+    energy = float(np.sum(h**2))
+    if energy > 0:
+        h = h / np.sqrt(energy)
+    return h.astype(np.float64)
+
+
 class SignalGenerator:
     """
     Generator for synthetic IQ signals with impairments.
@@ -166,14 +210,26 @@ class SignalGenerator:
         upsampled = np.zeros(n_symbols * samples_per_symbol, dtype=np.complex64)
         upsampled[::samples_per_symbol] = symbols
         
-        # RRC pulse shaping
-        rrc_taps = signal.firrcos(
-            numtaps=8 * samples_per_symbol + 1,
-            cutoff=symbol_rate / 2,
-            width=symbol_rate * 0.2,
-            fs=self.sample_rate
-        )
-        shaped = signal.lfilter(rrc_taps, 1.0, upsampled)
+        # RRC pulse shaping (portable; no scipy.signal.firrcos)
+        try:
+            rrc_taps = _root_raised_cosine_taps(
+                num_taps=8 * samples_per_symbol + 1,
+                sample_rate=self.sample_rate,
+                symbol_rate=symbol_rate,
+                beta=0.2,
+            )
+            shaped = signal.lfilter(rrc_taps, 1.0, upsampled)
+        except Exception:
+            # Fallback: mild lowpass — keeps micro-twin demo usable
+            ntaps = min(8 * samples_per_symbol + 1, 129)
+            if ntaps < 3:
+                ntaps = 3
+            if ntaps % 2 == 0:
+                ntaps += 1
+            cutoff = min(symbol_rate * 0.6, self.sample_rate * 0.49)
+            rrc_taps = signal.firwin(ntaps, cutoff=cutoff, fs=self.sample_rate, window="hamming")
+            rrc_taps = rrc_taps / (np.sum(rrc_taps) + 1e-12)
+            shaped = signal.lfilter(rrc_taps, 1.0, upsampled)
         
         # Pad or truncate to exact length
         if len(shaped) > self.n_samples:

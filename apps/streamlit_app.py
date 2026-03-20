@@ -15,6 +15,10 @@ try:
     from scipy import signal
     import plotly.graph_objects as go
     from plotly.subplots import make_subplots
+    try:
+        import pandas as pd
+    except ImportError:
+        pd = None  # type: ignore
 except ImportError as e:
     st.error("Missing dependencies for visualizations.")
     st.code(str(e))
@@ -241,6 +245,89 @@ def _features_dataframe(iq: np.ndarray, sample_rate: float):
         return None
 
 
+def _repo_root() -> Path:
+    return Path(__file__).resolve().parent.parent
+
+
+@st.cache_data
+def scan_submissions_inventory(repo_root_str: str) -> list:
+    """Read-only inventory of submissions/* folders (no competition data)."""
+    root = Path(repo_root_str)
+    sub_root = root / "submissions"
+    rows: list = []
+    if not sub_root.is_dir():
+        return rows
+    for p in sorted(sub_root.iterdir()):
+        if not p.is_dir():
+            continue
+        name = p.name
+        main_py = p / "main.py"
+        req = p / "user_reqs.txt"
+        artifacts: list = []
+        for pat in ("*.npz", "*.pkl", "*.joblib"):
+            try:
+                artifacts.extend(p.glob(pat))
+            except Exception:
+                pass
+        artifact_present = len(artifacts) > 0
+        artifact_names = ", ".join(sorted({a.name for a in artifacts}))[:500]
+
+        sig: dict = {
+            "mentions_spectral_flatness": False,
+            "mentions_energy_detector": False,
+            "mentions_extract_features": False,
+            "mentions_lr_or_svm": False,
+            "mentions_trained_artifact": False,
+        }
+        if main_py.is_file():
+            try:
+                txt = main_py.read_text(encoding="utf-8", errors="ignore")[:80000]
+                nl = txt.lower()
+                sig["mentions_spectral_flatness"] = (
+                    "spectral flatness" in nl
+                    or "spectralflatness" in nl.replace(" ", "")
+                    or "spectral_flatness" in nl
+                )
+                sig["mentions_energy_detector"] = "energy" in nl and "detector" in nl
+                sig["mentions_extract_features"] = (
+                    "extract_features" in txt or "extract features" in nl
+                )
+                sig["mentions_lr_or_svm"] = any(
+                    k in nl for k in ("logistic", "linearsvc", "linear svc", " svm", "sklearn")
+                )
+                sig["mentions_trained_artifact"] = ".npz" in nl and (
+                    "load" in nl or "weights" in nl or "artifact" in nl
+                )
+            except Exception:
+                pass
+
+        rows.append(
+            {
+                "folder": name,
+                "main_py": bool(main_py.is_file()),
+                "user_reqs_txt": bool(req.is_file()),
+                "artifact_present": artifact_present,
+                "artifacts": artifact_names,
+                **sig,
+            }
+        )
+    return rows
+
+
+@st.cache_data
+def load_submission_metrics(repo_root_str: str):
+    """Load authoritative CV / leaderboard table if present."""
+    path = Path(repo_root_str) / "submissions" / "submission_metrics.csv"
+    if not path.is_file():
+        return None
+    if pd is None:
+        return None
+    try:
+        return pd.read_csv(path)
+    except Exception:
+        return None
+
+
 # ============================================================================
 # Sidebar
 # ============================================================================
@@ -276,28 +363,31 @@ with st.sidebar:
     uploaded_file = st.file_uploader(
         "Upload .npy file",
         type=['npy'],
-        help="Upload IQ data in .npy format"
+        help="Upload IQ data in .npy format",
+        key="sidebar_file_uploader_npy",
     )
     
     # Format options
     is_int16_interleaved = st.checkbox(
         "int16 interleaved format",
-        help="Check if data is int16 interleaved [I0, Q0, I1, Q1, ...]"
+        help="Check if data is int16 interleaved [I0, Q0, I1, Q1, ...]",
+        key="sidebar_checkbox_int16_interleaved",
     )
     
     # Model selection
     model_option = st.selectbox(
         "Model",
         ["Energy Detector", "Spectral Flatness", "PSD+LogReg", "Coming soon"],
-        help="Select baseline model for prediction"
+        help="Select baseline model for prediction",
+        key="sidebar_select_model",
     )
     
     # Plot toggles
     st.header("📊 Visualizations")
-    show_time_iq = st.toggle("Time/IQ", value=True)
-    show_constellation = st.toggle("Constellation", value=True)
-    show_psd = st.toggle("PSD", value=True)
-    show_spectrogram = st.toggle("Spectrogram", value=True)
+    show_time_iq = st.toggle("Time/IQ", value=True, key="sidebar_toggle_time_iq")
+    show_constellation = st.toggle("Constellation", value=True, key="sidebar_toggle_constellation")
+    show_psd = st.toggle("PSD", value=True, key="sidebar_toggle_psd")
+    show_spectrogram = st.toggle("Spectrogram", value=True, key="sidebar_toggle_spectrogram")
     
     # Sample rate input
     st.header("🔧 Parameters")
@@ -309,7 +399,8 @@ with st.sidebar:
         value=float(default_sample_rate),
         step=1e3,
         format="%.0f",
-        help="Sample rate of the IQ data"
+        help="Sample rate of the IQ data",
+        key="sidebar_sample_rate_hz",
     )
     
     # Micro-Twin sample picker (when available)
@@ -397,7 +488,8 @@ if st.session_state.get("ui_mode") != "Figure Mode":
                 max_value=10.0,
                 value=1.0,
                 step=0.1,
-                help="Power threshold for energy detector"
+                help="Power threshold for energy detector",
+                key="std_slider_energy_threshold",
             )
             prediction, confidence, power = energy_detector(iq_data, threshold)
             model_output = {"mean_power": power, "threshold": threshold}
@@ -408,7 +500,8 @@ if st.session_state.get("ui_mode") != "Figure Mode":
                 max_value=1.0,
                 value=0.5,
                 step=0.01,
-                help="Spectral flatness threshold (lower = more signal-like)"
+                help="Spectral flatness threshold (lower = more signal-like)",
+                key="std_slider_flatness_threshold",
             )
             prediction, confidence, flatness = spectral_flatness_detector(
                 iq_data, sample_rate, threshold
@@ -581,7 +674,10 @@ if st.session_state.get("ui_mode") != "Figure Mode":
                 st.error(f"Error generating demo data: {e}")
                 st.session_state['use_demo'] = False
         
-        if st.button("Generate Demo IQ Sample (1 second, 1 MHz sample rate)"):
+        if st.button(
+            "Generate Demo IQ Sample (1 second, 1 MHz sample rate)",
+            key="std_btn_generate_demo_iq",
+        ):
             generate_demo()
             st.rerun()
         
@@ -591,7 +687,10 @@ if st.session_state.get("ui_mode") != "Figure Mode":
         
         st.markdown("---")
         st.subheader("🏛️ Generate Micro-Twin Demo Data")
-        if st.button("Generate Micro-Twin Demo Data (9–15 samples)"):
+        if st.button(
+            "Generate Micro-Twin Demo Data (9–15 samples)",
+            key="std_btn_generate_micro_twin",
+        ):
             try:
                 import sys
                 from pathlib import Path
@@ -651,6 +750,9 @@ else:
             "Feature Extraction",
             "Prediction Path",
             "Results & Leaderboard",
+            "Submission Explorer",
+            "CV Metrics",
+            "Leaderboard Progress",
             "Micro-Twin (Future Work)",
         ]
     )
@@ -849,6 +951,79 @@ This tab shows the handcrafted features used (or intended) for compact, interpre
         _caption("Headline results table (numbers may be placeholders until final runs are complete).")
 
     with tabs[6]:
+        st.subheader("Submission Explorer")
+        st.caption("Read-only inventory of `submissions/*` (code + artifacts). No competition IQ is loaded in this app.")
+        inv = scan_submissions_inventory(str(_repo_root()))
+        if not inv:
+            st.info("No submission folders found under `submissions/`.")
+        elif pd is not None:
+            st.dataframe(pd.DataFrame(inv), use_container_width=True, hide_index=True)
+        else:
+            st.dataframe(inv, use_container_width=True, hide_index=True)
+
+    with tabs[7]:
+        st.subheader("CV Metrics")
+        mdf = load_submission_metrics(str(_repo_root()))
+        if mdf is not None:
+            st.success("Loaded **submissions/submission_metrics.csv** (authoritative for report-ready CV / leaderboard tables).")
+            st.dataframe(mdf, use_container_width=True, hide_index=True)
+        else:
+            st.warning(
+                "Structured metrics file not found. Add **submissions/submission_metrics.csv** for report-ready CV tables."
+            )
+            _cols = [
+                "submission",
+                "model_family",
+                "artifact_present",
+                "cv_accuracy",
+                "cv_precision",
+                "cv_recall",
+                "cv_f1",
+                "threshold",
+                "leaderboard_rank",
+                "leaderboard_accuracy",
+                "notes",
+            ]
+            if pd is not None:
+                st.dataframe(pd.DataFrame(columns=_cols), use_container_width=True, hide_index=True)
+            else:
+                st.code("\t".join(_cols))
+                st.caption("`pip install pandas` locally to view CSV tables in-app.")
+
+    with tabs[8]:
+        st.subheader("Leaderboard Progress")
+        mdf = load_submission_metrics(str(_repo_root()))
+        if mdf is None:
+            st.info("Populate **submission_metrics.csv** with leaderboard columns to visualize progress.")
+        elif "leaderboard_rank" not in mdf.columns:
+            st.info("Column **leaderboard_rank** not found in submission_metrics.csv.")
+        else:
+            dfp = mdf.copy()
+            try:
+                dfp = dfp.sort_values("leaderboard_rank", na_position="last")
+            except Exception:
+                pass
+            st.dataframe(dfp, use_container_width=True, hide_index=True)
+            if "leaderboard_accuracy" in dfp.columns:
+                try:
+                    fig = go.Figure(
+                        go.Bar(
+                            x=dfp["submission"].astype(str),
+                            y=dfp["leaderboard_accuracy"].astype(float),
+                        )
+                    )
+                    fig.update_layout(
+                        title="Leaderboard accuracy (from submission_metrics.csv)",
+                        height=440,
+                        xaxis_title="Submission",
+                        yaxis_title="Leaderboard accuracy",
+                        margin=dict(t=50, b=10),
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
+                except Exception:
+                    st.caption("Could not render leaderboard chart from CSV (check column types).")
+
+    with tabs[9]:
         st.subheader("Micro-Twin (Future Work)")
         st.markdown(
             """
@@ -861,267 +1036,65 @@ This tab shows the handcrafted features used (or intended) for compact, interpre
         if st.session_state.get("micro_twin_list"):
             st.success("Micro-Twin samples are available. Use the sidebar to select a sample.")
         else:
-            st.info("Generate Micro-Twin demo data from Standard Mode's no-data screen (safe synthetic samples only).")
-    # Demo mode banner when using in-app demo data
-    if st.session_state.get("use_demo") and "demo_iq" in st.session_state:
-        st.info("📡 **Demo mode active** — using in-app generated IQ sample.")
-    # Data info panel
-    with st.expander("📋 File Information", expanded=False):
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.metric("Shape", str(iq_data.shape))
-        with col2:
-            st.metric("Dtype", str(iq_data.dtype))
-        with col3:
-            st.metric("Length", f"{len(iq_data):,} samples")
-        st.text(f"Format: {'int16 interleaved' if is_int16_interleaved else 'auto-detected'}")
-        st.text(f"Sample rate: {sample_rate:,.0f} Hz")
-        st.text(f"Duration: {len(iq_data) / sample_rate:.4f} seconds")
-    
-    # Model prediction panel
-    st.header("🎯 Prediction")
-    
-    prediction = None
-    confidence = None
-    model_output = {}
-    
-    if model_option == "Energy Detector":
-        threshold = st.slider(
-            "Energy Threshold",
-            min_value=0.0,
-            max_value=10.0,
-            value=1.0,
-            step=0.1,
-            help="Power threshold for energy detector"
-        )
-        prediction, confidence, power = energy_detector(iq_data, threshold)
-        model_output = {"mean_power": power, "threshold": threshold}
-    elif model_option == "Spectral Flatness":
-        threshold = st.slider(
-            "Flatness Threshold",
-            min_value=0.0,
-            max_value=1.0,
-            value=0.5,
-            step=0.01,
-            help="Spectral flatness threshold (lower = more signal-like)"
-        )
-        prediction, confidence, flatness = spectral_flatness_detector(
-            iq_data, sample_rate, threshold
-        )
-        model_output = {"flatness": flatness, "threshold": threshold}
-    elif model_option == "PSD+LogReg":
-        result = psd_logreg_detector(iq_data, sample_rate)
-        if result is None:
-            st.info("PSD+LogReg model not yet implemented. Check src/edge_ran_gary/models/ for model files.")
-            prediction, confidence = 0, 0.0
-        else:
-            prediction, confidence = result
-    elif model_option == "Coming soon":
-        st.info("This model is coming soon.")
-        prediction, confidence = 0, 0.0
-    
-    # Display prediction
-    col1, col2 = st.columns(2)
-    with col1:
-        st.metric("Prediction", "Signal" if prediction == 1 else "Noise")
-    with col2:
-        st.metric("Confidence", f"{confidence:.3f}")
-    
-    if model_output:
-        with st.expander("Model Details", expanded=False):
-            for key, value in model_output.items():
-                st.text(f"{key}: {value:.6f}")
-    
-    # Visualizations
-    st.header("📈 Visualizations")
-    
-    if show_time_iq:
-        st.subheader("Time Domain: I(t), Q(t), |x(t)|")
-        max_points = 10000
-        if len(iq_data) > max_points:
-            step = len(iq_data) // max_points
-            iq_plot = iq_data[::step]
-            t_plot = np.arange(len(iq_plot)) * step / sample_rate
-        else:
-            iq_plot = iq_data
-            t_plot = np.arange(len(iq_plot)) / sample_rate
-        fig = make_subplots(
-            rows=3, cols=1,
-            subplot_titles=("I(t)", "Q(t)", "|x(t)|"),
-            vertical_spacing=0.1
-        )
-        fig.add_trace(
-            go.Scatter(x=t_plot, y=np.real(iq_plot), mode='lines', name='I', line=dict(width=1)),
-            row=1, col=1
-        )
-        fig.add_trace(
-            go.Scatter(x=t_plot, y=np.imag(iq_plot), mode='lines', name='Q', line=dict(width=1)),
-            row=2, col=1
-        )
-        fig.add_trace(
-            go.Scatter(x=t_plot, y=np.abs(iq_plot), mode='lines', name='|x|', line=dict(width=1)),
-            row=3, col=1
-        )
-        fig.update_xaxes(title_text="Time (s)", row=3, col=1)
-        fig.update_yaxes(title_text="Amplitude", row=1, col=1)
-        fig.update_yaxes(title_text="Amplitude", row=2, col=1)
-        fig.update_yaxes(title_text="Magnitude", row=3, col=1)
-        fig.update_layout(height=600, showlegend=False)
-        st.plotly_chart(fig, use_container_width=True)
-    
-    if show_constellation:
-        st.subheader("IQ Constellation")
-        max_points = 5000
-        if len(iq_data) > max_points:
-            step = len(iq_data) // max_points
-            iq_const = iq_data[::step]
-        else:
-            iq_const = iq_data
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(
-            x=np.real(iq_const),
-            y=np.imag(iq_const),
-            mode='markers',
-            marker=dict(size=2, opacity=0.5, color=np.abs(iq_const)),
-            name='IQ samples'
-        ))
-        fig.update_layout(
-            xaxis_title="I (In-phase)",
-            yaxis_title="Q (Quadrature)",
-            height=500,
-            title="IQ Constellation Scatter Plot"
-        )
-        st.plotly_chart(fig, use_container_width=True)
-    
-    if show_psd:
-        st.subheader("Power Spectral Density (Welch)")
-        freqs, psd = compute_psd(iq_data, sample_rate)
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(
-            x=freqs,
-            y=10 * np.log10(np.abs(psd) + 1e-10),
-            mode='lines',
-            name='PSD'
-        ))
-        fig.update_layout(
-            xaxis_title="Frequency (Hz)",
-            yaxis_title="PSD (dB/Hz)",
-            height=400,
-            title="Power Spectral Density"
-        )
-        st.plotly_chart(fig, use_container_width=True)
-    
-    if show_spectrogram:
-        st.subheader("Spectrogram")
-        freqs, times, Sxx = compute_spectrogram(iq_data, sample_rate)
-        fig = go.Figure()
-        fig.add_trace(go.Heatmap(
-            z=10 * np.log10(np.abs(Sxx) + 1e-10),
-            x=times,
-            y=freqs,
-            colorscale='Viridis',
-            colorbar=dict(title="Power (dB)")
-        ))
-        fig.update_layout(
-            xaxis_title="Time (s)",
-            yaxis_title="Frequency (Hz)",
-            height=500,
-            title="Spectrogram"
-        )
-        st.plotly_chart(fig, use_container_width=True)
+            st.info("Generate Micro-Twin demo data below when no IQ is loaded (synthetic samples only).")
 
-# No data loaded - show upload prompt
-if not has_data:
-    st.info("👈 Please upload a .npy file, use demo data, or generate Micro-Twin demo data below.")
-    
-    # Optional dataset folder message (if someone expects a path that doesn't exist)
-    default_data_path = Path("data/synthetic/gary_micro_twin")
-    if default_data_path.exists() and list(default_data_path.glob("*.npy")):
-        st.caption(f"Found generated data in `{default_data_path}`. You can upload a file from there.")
-    elif default_data_path.exists() is False:
-        st.caption("No dataset folder found. Generate Micro-Twin demo data below to create synthetic samples.")
-    
-    # Demo data generation option
-    st.markdown("---")
-    st.subheader("🎲 Try Demo Data")
-    
-    def generate_demo():
-        """Generate demo IQ data and set session state flags."""
-        try:
-            # Generate a simple demo signal: QPSK-like burst with noise
-            sample_rate = 1e6
-            duration = 1.0
-            n_samples = int(sample_rate * duration)
-            t = np.arange(n_samples) / sample_rate
-            
-            # Generate QPSK-like signal (simplified)
-            signal_freq = 100e3  # 100 kHz carrier
-            signal_samples = int(0.3 * n_samples)  # 30% of window has signal
-            signal_start = n_samples // 2 - signal_samples // 2
-            
-            demo_iq = np.random.normal(0, 0.1, n_samples) + 1j * np.random.normal(0, 0.1, n_samples)
-            # Add structured signal in the middle
-            signal_phase = 2 * np.pi * signal_freq * t[signal_start:signal_start+signal_samples]
-            demo_iq[signal_start:signal_start+signal_samples] += 0.5 * np.exp(1j * signal_phase)
-            demo_iq = demo_iq.astype(np.complex64)
-            
-            # Store in session state with all required flags
-            st.session_state['demo_iq'] = demo_iq
-            st.session_state['demo_sample_rate'] = sample_rate
-            st.session_state['use_demo'] = True
-            # Clear uploaded file to use demo path
-            if 'uploaded_file' in st.session_state:
-                st.session_state['uploaded_file'] = None
-        except Exception as e:
-            st.error(f"Error generating demo data: {e}")
-            st.session_state['use_demo'] = False
-    
-    if st.button("Generate Demo IQ Sample (1 second, 1 MHz sample rate)"):
-        generate_demo()
-        st.rerun()
-    
-    # Show message if demo data is loaded
-    if st.session_state.get('use_demo', False) and 'demo_iq' in st.session_state:
-        st.success("📡 Demo data loaded! Visualizations shown above.")
-    
-    st.markdown("---")
-    st.subheader("🏛️ Generate Micro-Twin Demo Data")
-    if st.button("Generate Micro-Twin Demo Data (9–15 samples)"):
-        try:
-            import sys
-            from pathlib import Path
-            repo_root = Path(__file__).resolve().parent.parent
-            if str(repo_root) not in sys.path:
-                sys.path.insert(0, str(repo_root))
-            from src.edge_ran_gary.digital_twin.gary_micro_twin import GaryMicroTwin
-            config_path = repo_root / "configs" / "gary_micro_twin.yaml"
-            if not config_path.exists():
-                st.error("Config not found: configs/gary_micro_twin.yaml")
-            else:
-                mt = GaryMicroTwin(config_path=str(config_path))
-                n_per_zone = 4  # 3 zones -> 12 samples
-                samples, meta_df = mt.generate_samples_per_zone(n_per_zone=n_per_zone, label_balance=0.5, seed=42)
-                sample_rate = mt.config.get("sample_rate", 1e6)
-                micro_twin_list = [(s, meta_df.iloc[i].to_dict(), float(sample_rate)) for i, s in enumerate(samples)]
-                st.session_state["micro_twin_list"] = micro_twin_list
-                st.session_state["use_micro_twin"] = True
-                st.session_state["micro_twin_select"] = 0
-                st.session_state["use_demo"] = False
+    # Figure Mode: demo / micro-twin controls when no IQ loaded (unique widget keys)
+    if not has_data:
+        st.divider()
+        st.info(
+            "👈 **Figure Mode:** Upload `.npy` in the sidebar or generate **synthetic demo / Micro-Twin** data below. "
+            "Do not upload official competition data to Streamlit Cloud."
+        )
+
+        def _fig_generate_demo():
+            try:
+                _sr = 1e6
+                duration = 1.0
+                n_samples = int(_sr * duration)
+                t = np.arange(n_samples) / _sr
+                signal_freq = 100e3
+                signal_samples = int(0.3 * n_samples)
+                signal_start = n_samples // 2 - signal_samples // 2
+                demo_iq = np.random.normal(0, 0.1, n_samples) + 1j * np.random.normal(0, 0.1, n_samples)
+                signal_phase = 2 * np.pi * signal_freq * t[signal_start : signal_start + signal_samples]
+                demo_iq[signal_start : signal_start + signal_samples] += 0.5 * np.exp(1j * signal_phase)
+                demo_iq = demo_iq.astype(np.complex64)
+                st.session_state["demo_iq"] = demo_iq
+                st.session_state["demo_sample_rate"] = _sr
+                st.session_state["use_demo"] = True
+                st.session_state["use_micro_twin"] = False
+            except Exception as e:
+                st.error(f"Demo IQ generation failed: {e}")
+
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button("Generate demo IQ (1 s, 1 MHz)", key="fig_btn_generate_demo_iq"):
+                _fig_generate_demo()
                 st.rerun()
-        except Exception as e:
-            st.error(f"Micro-Twin generation failed: {e}")
-    if st.session_state.get("use_micro_twin") and st.session_state.get("micro_twin_list"):
-        st.caption("Select a sample from the sidebar to view IQ, PSD, and spectrogram. Prediction: (model not loaded) if no model is selected.")
-    
-    st.markdown("""
-    ### Supported Formats:
-    - **Complex array**: shape `(N,)` with dtype `complex64` or `complex128`
-    - **Float array**: shape `(N, 2)` interpreted as `[I, Q]` pairs
-    - **int16 interleaved**: shape `(N*2,)` with checkbox enabled: `[I0, Q0, I1, Q1, ...]`
-    
-    ### Usage:
-    1. Upload your .npy file using the sidebar, or click "Generate Demo IQ Sample"
-    2. Select a baseline model
-    3. Adjust parameters (thresholds, sample rate)
-    4. View visualizations and predictions
-    """)
+        with c2:
+            if st.button("Generate Micro-Twin samples (9–15)", key="fig_btn_generate_micro_twin"):
+                try:
+                    import sys
+                    repo_root = Path(__file__).resolve().parent.parent
+                    if str(repo_root) not in sys.path:
+                        sys.path.insert(0, str(repo_root))
+                    from src.edge_ran_gary.digital_twin.gary_micro_twin import GaryMicroTwin
+                    config_path = repo_root / "configs" / "gary_micro_twin.yaml"
+                    if not config_path.exists():
+                        st.error("Config not found: configs/gary_micro_twin.yaml")
+                    else:
+                        mt = GaryMicroTwin(config_path=str(config_path))
+                        samples, meta_df = mt.generate_samples_per_zone(
+                            n_per_zone=4, label_balance=0.5, seed=42
+                        )
+                        mt_sr = float(mt.config.get("sample_rate", 1e6))
+                        micro_twin_list = [
+                            (s, meta_df.iloc[i].to_dict(), mt_sr) for i, s in enumerate(samples)
+                        ]
+                        st.session_state["micro_twin_list"] = micro_twin_list
+                        st.session_state["use_micro_twin"] = True
+                        st.session_state["micro_twin_select"] = 0
+                        st.session_state["use_demo"] = False
+                        st.rerun()
+                except Exception as e:
+                    st.error(f"Micro-Twin generation failed: {e}")

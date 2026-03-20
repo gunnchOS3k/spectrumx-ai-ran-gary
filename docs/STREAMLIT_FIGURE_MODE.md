@@ -43,7 +43,45 @@ Figure Mode persists across reruns using `st.session_state`.
 - **Feature Extraction** → implementation details of handcrafted features (table + optional bar chart)
 - **Prediction Path** → inference flow diagram (screenshot-friendly)
 - **Results & Leaderboard** → experimental results + leaderboard progress (staged headline numbers)
+- **Submission Explorer** → read-only inventory of `submissions/*` (folder, `main.py`, `user_reqs.txt`, artifacts, light keyword hints from `main.py` text only)
+- **CV Metrics** → authoritative table from **`submissions/submission_metrics.csv`** (if present); otherwise a labeled placeholder schema
+- **Leaderboard Progress** → sorted view / bar chart when `leaderboard_rank` and `leaderboard_accuracy` exist in that CSV
 - **Micro-Twin (Future Work)** → appendix / future work (clearly labeled as non-core submission)
+
+### Submissions scan (read-only)
+
+- On each run, Figure Mode calls a cached function that **lists directories under `submissions/`** and checks for:
+  - `main.py`, `user_reqs.txt`, and common learned artifacts (`*.npz`, `*.pkl`, `*.joblib`)
+- It optionally reads **the first ~80k characters** of `main.py` for **keyword hints** (spectral flatness, energy detector, features, sklearn, `.npz`, etc.). This is **not** a substitute for real CV metrics.
+- **No** official competition `.npy` files are read or displayed.
+
+### Authoritative CV / leaderboard table: `submission_metrics.csv`
+
+1. Copy the template (committed example with header only):
+
+   ```bash
+   cp submissions/submission_metrics.example.csv submissions/submission_metrics.csv
+   ```
+
+2. Fill in rows from your **local** training / leaderboard runs (do not commit real competition data).
+
+3. Expected columns (header row):
+
+   | Column | Description |
+   |--------|-------------|
+   | `submission` | Folder name under `submissions/` (e.g. `leaderboard_baseline_v1`) |
+   | `model_family` | Short label (e.g. `spectral_flatness`, `feature_lr`, `feature_svm`) |
+   | `artifact_present` | `yes` / `no` or boolean |
+   | `cv_accuracy` | Cross-validation accuracy (or holdout) |
+   | `cv_precision` | Precision |
+   | `cv_recall` | Recall |
+   | `cv_f1` | F1 |
+   | `threshold` | Decision threshold if applicable |
+   | `leaderboard_rank` | Rank on organizer leaderboard (numeric) |
+   | `leaderboard_accuracy` | Reported leaderboard accuracy if available |
+   | `notes` | Free text |
+
+4. Keep **`submissions/submission_metrics.csv` local** if it contains sensitive run details; the repo includes only **`submissions/submission_metrics.example.csv`** as a schema template. Add `submission_metrics.csv` to `.gitignore` if you never want it committed.
 
 ### Recommended screenshots for the final report
 
@@ -51,11 +89,14 @@ Figure Mode persists across reruns using `st.session_state`.
 - **Figure 2**: Input & Preprocessing tab (Time Domain + PSD + Spectrogram panel)
 - **Figure 3**: Feature Extraction tab (feature table + top-feature bar chart)
 - **Figure 4**: Prediction Path tab (decision flow)
-- **Figure 5**: Results & Leaderboard tab (headline results table)
-- **Figure 6**: Micro-Twin (Future Work) tab (extension panel for appendix)
+- **Figure 5**: Results & Leaderboard tab **or** CV Metrics tab (headline / authoritative table)
+- **Figure 6**: Submission Explorer tab (inventory of submission packages)
+- **Figure 7** (optional): Leaderboard Progress tab (bar chart from CSV)
+- **Figure 8** (optional): Micro-Twin (Future Work) tab (extension panel for appendix)
 
 ### Notes
 
 - Figure Mode is intentionally **additive**: it preserves the existing Standard Mode behavior.
 - No official-data download or training is performed in the Streamlit app.
+- Widget **keys** are set on sidebar controls and on duplicate-prone buttons so **StreamlitDuplicateElementId** does not occur when switching modes or rerunning.
 
