@@ -1,0 +1,19 @@
+# Copy to: docs/final_report_figures.yaml
+# Optional captions for report screenshots (Judge Mode + Figure Mode).
+# Requires: pip install pyyaml
+#
+# Keys under `figures` can be plain strings or { caption: "..." }.
+
+figures:
+  figure_1:
+    caption: "SpectrumX DAC: judging pillars — accuracy, efficiency, novelty, visualization (cloud-safe framing)."
+  figure_2:
+    caption: "Figure 2 — IQ + PSD + spectrogram (synthetic/demo for screenshots; do not use official competition IQ on Streamlit Cloud)."
+  figure_3:
+    caption: "Figure 3 — Handcrafted feature table / chart for interpretability (demo IQ)."
+  figure_4:
+    caption: "Figure 4 — Final submission summary from local structured metrics CSVs."
+  figure_5:
+    caption: "Figure 5 — CV metrics and leaderboard progress from submission_metrics.csv."
+  figure_6:
+    caption: "Figure 6 — Gary Micro-Twin 3D buildings: future work / community impact only."

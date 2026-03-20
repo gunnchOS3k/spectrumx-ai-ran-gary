@@ -29,6 +29,8 @@ streamlit run apps/streamlit_app.py
 3. **Core metrics** are loaded from local `submissions/submission_metrics.csv` (authoritative when present). No official competition IQ data is accessed.
 4. **Future Work / Micro-Twin** is shown as a clearly-labeled, synthetic, screenshot-friendly **3D building scene** (pydeck-based).
 
+Optional: copy `docs/final_report_figures.example.yaml` → `docs/final_report_figures.yaml` to override default captions for Figures **1–6** in **Figure Mode** (and Judge Mode where wired). Requires `pip install pyyaml`.
+
 Recommended screenshot sequence for the final report:
 - Figure 1 + Figure 2: **Problem**
 - Figure 4: **Core Submission**

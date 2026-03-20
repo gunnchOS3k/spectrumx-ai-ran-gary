@@ -1,1 +1,1 @@
-submission,model_family,artifact_present,cv_accuracy,cv_precision,cv_recall,cv_f1,threshold,leaderboard_rank,leaderboard_accuracy,notes
+submission,submission_version,model_family,artifact_present,cv_accuracy,cv_precision,cv_recall,cv_f1,threshold,leaderboard_rank,leaderboard_accuracy,notes,change,runtime

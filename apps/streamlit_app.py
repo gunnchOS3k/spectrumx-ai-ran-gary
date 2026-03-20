@@ -348,6 +348,113 @@ def load_leaderboard_summary(repo_root_str: str):
         return None
 
 
+@st.cache_data
+def load_final_report_figures_yaml(repo_root_str: str):
+    """
+    Optional report figure captions / titles from docs/final_report_figures.yaml.
+    If missing or invalid, returns None (UI shows expected schema).
+    """
+    path = Path(repo_root_str) / "docs" / "final_report_figures.yaml"
+    if not path.is_file():
+        return None
+    try:
+        import yaml  # type: ignore
+    except ImportError:
+        return {"_error": "PyYAML not installed; run `pip install pyyaml` to load figure captions from YAML."}
+    try:
+        txt = path.read_text(encoding="utf-8", errors="ignore")
+        data = yaml.safe_load(txt)
+        return data if isinstance(data, dict) else None
+    except Exception:
+        return None
+
+
+def _fig_yaml_caption(fig_yaml: dict | None, figure_key: str, default: str) -> str:
+    """Resolve caption string for a figure key from optional YAML."""
+    if not fig_yaml or not isinstance(fig_yaml, dict):
+        return default
+    if fig_yaml.get("_error"):
+        return default
+    root = fig_yaml.get("figures")
+    if root is None:
+        root = fig_yaml
+    if not isinstance(root, dict):
+        return default
+    entry = root.get(figure_key)
+    if entry is None:
+        return default
+    if isinstance(entry, str):
+        return entry
+    if isinstance(entry, dict):
+        return str(entry.get("caption") or entry.get("text") or default)
+    return default
+
+
+def _leaderboard_progress_dataframe(mdf):
+    """
+    Narrow metrics to leaderboard-progress columns when present.
+    Maps flexible column names (submission_version, change, etc.).
+    """
+    if mdf is None or pd is None:
+        return None
+    lower = {c.lower(): c for c in mdf.columns}
+
+    def pick(*candidates):
+        for name in candidates:
+            if name in lower:
+                return lower[name]
+        return None
+
+    col_sub = pick("submission", "folder", "name")
+    col_ver = pick("submission_version", "version", "submission_tag", "tag")
+    col_rank = pick("leaderboard_rank", "rank", "lb_rank")
+    col_acc = pick("leaderboard_accuracy", "accuracy", "lb_accuracy", "score")
+    col_note = pick("notes", "change", "changelog", "note", "delta")
+
+    if col_rank is None:
+        return None
+
+    out_cols = []
+    rename = {}
+    if col_ver:
+        out_cols.append(col_ver)
+        rename[col_ver] = "submission_version"
+    elif col_sub:
+        out_cols.append(col_sub)
+        rename[col_sub] = "submission"
+    else:
+        return None
+
+    out_cols.append(col_rank)
+    rename[col_rank] = "leaderboard_rank"
+
+    if col_acc:
+        out_cols.append(col_acc)
+        rename[col_acc] = "leaderboard_accuracy"
+    if col_note:
+        out_cols.append(col_note)
+        rename[col_note] = "notes_or_change"
+
+    try:
+        slim = mdf[[c for c in out_cols if c in mdf.columns]].copy()
+        slim = slim.rename(columns={k: v for k, v in rename.items() if k in slim.columns})
+        return slim.sort_values("leaderboard_rank", na_position="last")
+    except Exception:
+        return None
+
+
+def _user_reqs_line_count(repo_root: Path, submission_folder: str) -> int | None:
+    """Rough dependency footprint: count non-empty lines in user_reqs.txt."""
+    p = repo_root / "submissions" / submission_folder / "user_reqs.txt"
+    if not p.is_file():
+        return None
+    try:
+        lines = [ln.strip() for ln in p.read_text(encoding="utf-8", errors="ignore").splitlines()]
+        return len([ln for ln in lines if ln and not ln.startswith("#")])
+    except Exception:
+        return None
+
+
 def _interpret_bool(val) -> bool | None:
     if val is None:
         return None
@@ -663,6 +770,9 @@ def _render_judge_gary_micro_twin_3d():
         try:
             events = st.pydeck_chart(deck, use_container_width=True)
             _ = events  # not relied on; dropdown provides a deterministic selection
+            st.caption(
+                "Interact: **hover / click** pickable buildings for tooltips; use **Site selector** above for consistent screenshots."
+            )
         except Exception:
             st.caption("3D scene rendered, but interaction events may be limited in this runtime.")
     except Exception as e:
@@ -866,6 +976,7 @@ if judge_mode_enabled:
     inv_rows = scan_submissions_inventory(str(repo_root))
     mdf = load_submission_metrics(str(repo_root))
     ldf = load_leaderboard_summary(str(repo_root))
+    fig_yaml = load_final_report_figures_yaml(str(repo_root))
     core_row = _pick_core_submission_row(mdf, ldf, inv_rows) if (mdf is not None or ldf is not None) else _pick_core_submission_row(None, None, inv_rows)
 
     # Pick a submission folder name for efficiency scans (only if we have a core row).
@@ -885,6 +996,8 @@ if judge_mode_enabled:
 
     with tabs[0]:
         st.subheader("Figure 1: Problem / Task Overview")
+        if fig_yaml and fig_yaml.get("_error"):
+            st.info(str(fig_yaml["_error"]))
         st.markdown(
             """
 SpectrumX DAC judging focuses on: **detection accuracy**, **implementation efficiency**, **algorithmic novelty**, and **visualization quality**.
@@ -894,10 +1007,22 @@ This dashboard presents:
 - **Future work** (Gary Micro-Twin / AI-RAN visualization / simulation concepts) clearly labeled as non-scoring.
             """.strip()
         )
-        st.caption("Cloud safety: official competition IQ data is not included in this app.")
+        st.caption(
+            _fig_yaml_caption(
+                fig_yaml,
+                "figure_1",
+                "Cloud safety: official competition IQ data is not included in this app.",
+            )
+        )
 
         st.subheader("Figure 2: IQ + PSD + Spectrogram (Visualization Only)")
-        st.caption("Synthetic demo IQ is shown for screenshot clarity. It does not drive judge-scoring metrics in this UI.")
+        st.caption(
+            _fig_yaml_caption(
+                fig_yaml,
+                "figure_2",
+                "Synthetic demo IQ is shown for screenshot clarity. It does not drive judge-scoring metrics in this UI.",
+            )
+        )
         if has_data and iq_data is not None:
             # Time-domain IQ
             c1, c2 = st.columns(2)
@@ -949,7 +1074,13 @@ This dashboard presents:
 
     with tabs[1]:
         st.subheader("Figure 4: Final Submission (Core Judged)")
-        st.caption("Read-only, judge-facing summary populated from local structured metrics CSVs.")
+        st.caption(
+            _fig_yaml_caption(
+                fig_yaml,
+                "figure_4",
+                "Read-only, judge-facing summary populated from local structured metrics CSVs.",
+            )
+        )
         if core_row is None:
             st.warning(
                 "Structured metrics not found. Add `submissions/submission_metrics.csv` so the core submission card can be populated."
@@ -961,38 +1092,40 @@ This dashboard presents:
 
         trained_primary = bool(artifact_present)  # conservative: infer trained-artifact when we have an artifact.
 
-        submitted_name = core_row.get("submission", "Not provided")
-        model_family = core_row.get("model_family", "Not provided")
-        leaderboard_rank = core_row.get("leaderboard_rank", "Not provided")
-        leaderboard_accuracy = core_row.get("leaderboard_accuracy", "Not provided")
-        threshold = core_row.get("threshold", "Not provided")
+        submitted_name = core_row.get("submission", "—")
+        sub_version = core_row.get("submission_version", core_row.get("version", "—"))
+        model_family = core_row.get("model_family", "—")
+        leaderboard_rank = core_row.get("leaderboard_rank", "—")
+        leaderboard_accuracy = core_row.get("leaderboard_accuracy", "—")
+        threshold = core_row.get("threshold", "—")
 
         # Optional runtimes (if you extend your metrics CSV)
         runtime_val = core_row.get("runtime", core_row.get("runtime_per_sample", core_row.get("runtime_sec", None)))
 
         c1, c2, c3 = st.columns(3)
         c1.metric("Submission", str(submitted_name))
-        c2.metric("Model family", str(model_family))
-        c3.metric("Leaderboard rank", "N/A" if leaderboard_rank is None else str(leaderboard_rank))
+        c2.metric("Submission version", str(sub_version))
+        c3.metric("Model family", str(model_family))
 
         c4, c5, c6 = st.columns(3)
-        c4.metric("Leaderboard accuracy", "N/A" if leaderboard_accuracy is None else str(leaderboard_accuracy))
-        c5.metric("Threshold", "N/A" if threshold is None else str(threshold))
-        c6.metric("Runtime (per sample)", "N/A" if runtime_val is None else str(runtime_val))
+        c4.metric("Leaderboard rank", "N/A" if leaderboard_rank in (None, "—") else str(leaderboard_rank))
+        c5.metric("Leaderboard accuracy", "N/A" if leaderboard_accuracy in (None, "—") else str(leaderboard_accuracy))
+        c6.metric("Threshold", "N/A" if threshold in (None, "—") else str(threshold))
+
+        c7, c8, c9 = st.columns(3)
+        c7.metric("Runtime (per sample)", "N/A" if runtime_val is None else str(runtime_val))
+        c8.metric("Artifact used?", "Yes" if artifact_present else "No")
+        c9.metric("Trained-model primary?", "Yes" if trained_primary else "No")
 
         st.markdown("---")
-        c7, c8, c9 = st.columns(3)
-        c7.metric("Artifact used?", "Yes" if artifact_present else "No")
-        c8.metric("Trained-model primary?", "Yes" if trained_primary else "No")
-
         # Inference path (code-text heuristic from submission folder)
         if core_submission_name and repo_root.is_dir():
             inf_path = _infer_inference_path(repo_root, core_submission_name)
             size_mb, size_hint = _compute_submission_artifact_footprint(repo_root, core_submission_name)
-            c9.metric("Inference path", inf_path)
+            st.metric("Inference path (heuristic)", inf_path)
             st.caption(f"Learned artifact footprint: ~{size_mb:.2f} MB ({size_hint})")
         else:
-            c9.metric("Inference path", "Unknown (missing submission folder)")
+            st.metric("Inference path (heuristic)", "Unknown (missing submission folder)")
 
         st.caption("Metrics are loaded from local structured CSVs only. No official competition IQ data is accessed here.")
 
@@ -1003,7 +1136,13 @@ This dashboard presents:
         )
 
         st.subheader("Figure 3: Feature Extraction (Visualization Only)")
-        st.caption("Feature table/chart shown for interpretability screenshots. Judge-scoring metrics in this view come only from structured CSVs.")
+        st.caption(
+            _fig_yaml_caption(
+                fig_yaml,
+                "figure_3",
+                "Feature table/chart shown for interpretability screenshots. Judge-scoring metrics in this view come only from structured CSVs.",
+            )
+        )
         if has_data and iq_data is not None:
             df = _features_dataframe(iq_data, sample_rate)
             if df is not None:
@@ -1042,6 +1181,7 @@ This dashboard presents:
             )
             expected_cols = [
                 "submission",
+                "submission_version",
                 "model_family",
                 "artifact_present",
                 "cv_accuracy",
@@ -1052,6 +1192,8 @@ This dashboard presents:
                 "leaderboard_rank",
                 "leaderboard_accuracy",
                 "notes",
+                "change",
+                "runtime",
             ]
             if pd is not None:
                 st.dataframe(pd.DataFrame(columns=expected_cols), use_container_width=True, hide_index=True)
@@ -1065,6 +1207,51 @@ This dashboard presents:
                 st.info(f"Core submission row: `{core_name}`")
             except Exception:
                 pass
+
+        st.markdown("---")
+        st.subheader("Leaderboard progress (rank / version / note)")
+        st.caption(
+            _fig_yaml_caption(
+                fig_yaml,
+                "figure_5",
+                "Subset for screenshots: version, rank, accuracy, and change notes when columns exist in submission_metrics.csv.",
+            )
+        )
+        lb_slim = _leaderboard_progress_dataframe(mdf)
+        if lb_slim is not None:
+            st.dataframe(lb_slim, use_container_width=True, hide_index=True)
+            if "leaderboard_accuracy" in lb_slim.columns:
+                try:
+                    id_col = "submission_version" if "submission_version" in lb_slim.columns else "submission"
+                    fig_lb = go.Figure(
+                        go.Bar(
+                            x=lb_slim[id_col].astype(str),
+                            y=lb_slim["leaderboard_accuracy"].astype(float),
+                        )
+                    )
+                    fig_lb.update_layout(
+                        title="Leaderboard accuracy (progress view)",
+                        height=400,
+                        margin=dict(t=50, b=10),
+                    )
+                    st.plotly_chart(fig_lb, use_container_width=True)
+                except Exception:
+                    st.caption("Could not render leaderboard bar chart (check numeric types).")
+        else:
+            st.info(
+                "Add **leaderboard_rank** plus **submission** or **submission_version** to `submissions/submission_metrics.csv` "
+                "for the progress table. Optional: **leaderboard_accuracy**, **notes** / **change**."
+            )
+
+        st.markdown("---")
+        st.subheader("Submission Explorer (read-only)")
+        st.caption("Inventory of `submissions/*` — code + artifacts only; no competition IQ loaded.")
+        if not inv_rows:
+            st.info("No submission folders found under `submissions/`.")
+        elif pd is not None:
+            st.dataframe(pd.DataFrame(inv_rows), use_container_width=True, hide_index=True)
+        else:
+            st.json(inv_rows[:50])
 
     with tabs[3]:
         st.subheader("Figure: Efficiency & Implementation Fit")
@@ -1085,6 +1272,11 @@ This dashboard presents:
 
             inf_path = _infer_inference_path(repo_root, core_submission_name)
             st.metric("Inference path", inf_path)
+            nlines = _user_reqs_line_count(repo_root, core_submission_name)
+            if nlines is not None:
+                st.metric("Dependency lines (user_reqs.txt, non-comment)", str(nlines))
+            else:
+                st.caption("No `user_reqs.txt` found in submission folder (optional footprint signal).")
             st.caption(
                 "Complexity summary: checks whether the submission mentions feature extraction, linear models (logistic/SVM), and whether it loads persisted weights."
             )
@@ -1106,6 +1298,13 @@ This dashboard presents:
 
     with tabs[4]:
         st.subheader("Future Work / Micro-Twin")
+        st.caption(
+            _fig_yaml_caption(
+                fig_yaml,
+                "figure_6",
+                "Figure 6: 3D Gary Micro-Twin — synthetic / future-work visualization only (not used for official leaderboard scoring).",
+            )
+        )
         _render_judge_gary_micro_twin_3d()
         st.markdown("---")
         st.subheader("Research-Grade 6G Simulation Path")
@@ -1433,6 +1632,19 @@ else:
         f"{st.session_state.get('report_caption_text')}"
     )
 
+    _fig_repo_root = _repo_root()
+    fig_yaml_fm = load_final_report_figures_yaml(str(_fig_repo_root))
+    if fig_yaml_fm and fig_yaml_fm.get("_error"):
+        st.info(str(fig_yaml_fm["_error"]))
+    elif fig_yaml_fm is None:
+        with st.expander("Optional: `docs/final_report_figures.yaml` (not found)", expanded=False):
+            st.markdown(
+                """
+Copy `docs/final_report_figures.example.yaml` → `docs/final_report_figures.yaml` and edit captions for Figures 1–6.
+Requires **PyYAML** (`pip install pyyaml`).
+                """.strip()
+            )
+
     heights = _plot_heights()
     tabs = st.tabs(
         [
@@ -1461,6 +1673,13 @@ else:
 
 **Cloud safety:** This public/cloud dashboard is for **demo/synthetic** IQ only. Do **not** upload the official competition IQ data to Streamlit Cloud.
             """.strip()
+        )
+        _caption(
+            _fig_yaml_caption(
+                fig_yaml_fm,
+                "figure_1",
+                "Judging pillars: detection accuracy, implementation efficiency, algorithmic novelty, visualization quality.",
+            )
         )
 
     with tabs[1]:
@@ -1509,7 +1728,6 @@ else:
                 fig.update_xaxes(title_text="Time (s)", row=3, col=1)
                 fig.update_layout(height=heights["time"], showlegend=False, margin=dict(t=40, b=10))
                 st.plotly_chart(fig, use_container_width=True)
-                _caption("Time-domain view used to illustrate signal bursts vs noise-only windows.")
 
             with col_right:
                 st.markdown("**Power Spectral Density (Welch)**")
@@ -1524,7 +1742,6 @@ else:
                     margin=dict(t=50, b=10),
                 )
                 st.plotly_chart(fig, use_container_width=True)
-                _caption("PSD highlights structured spectral content relative to noise floor.")
 
                 st.markdown("**Spectrogram**")
                 freqs, times, Sxx = compute_spectrogram(iq_data, sample_rate)
@@ -1544,7 +1761,13 @@ else:
                     margin=dict(t=50, b=10),
                 )
                 st.plotly_chart(fig, use_container_width=True)
-                _caption("Spectrogram provides a time-frequency view suitable for report screenshots.")
+            _caption(
+                _fig_yaml_caption(
+                    fig_yaml_fm,
+                    "figure_2",
+                    "Figure 2: IQ + PSD + spectrogram (demo/synthetic in cloud; local IQ only when you run privately).",
+                )
+            )
         else:
             st.info("Load demo/synthetic IQ data (sidebar) to populate input and preprocessing figures.")
 
@@ -1594,7 +1817,6 @@ This tab shows the handcrafted features used (or intended) for compact, interpre
                 st.warning("Shared feature extractor not available in this environment.")
             else:
                 st.dataframe(df, use_container_width=True, hide_index=True)
-                _caption("Feature table for screenshot use (demo/synthetic IQ shown).")
                 if st.session_state.get("figure_screenshot_preset", True):
                     # Optional bar chart for screenshot-friendly emphasis
                     top = sorted(df, key=lambda r: abs(r["value"]), reverse=True)[:12]
@@ -1612,7 +1834,13 @@ This tab shows the handcrafted features used (or intended) for compact, interpre
                         margin=dict(t=50, b=10),
                     )
                     st.plotly_chart(fig, use_container_width=True)
-                    _caption("Optional bar chart to highlight key features for report screenshots.")
+                _caption(
+                    _fig_yaml_caption(
+                        fig_yaml_fm,
+                        "figure_3",
+                        "Figure 3: handcrafted feature table / chart for interpretability (demo/synthetic IQ).",
+                    )
+                )
         else:
             st.info("Load demo/synthetic IQ data to populate the feature table and chart.")
 
@@ -1634,13 +1862,45 @@ This tab shows the handcrafted features used (or intended) for compact, interpre
 
     with tabs[5]:
         st.subheader("Results & Leaderboard")
-        st.markdown("Use the sidebar inputs to stage polished headline numbers for report screenshots.")
-        rows = [
-            {"model": st.session_state.get("results_baseline_name"), "headline_metric": st.session_state.get("results_baseline_metric")},
-            {"model": st.session_state.get("results_improved_name"), "headline_metric": st.session_state.get("results_improved_metric")},
-        ]
-        st.dataframe(rows, use_container_width=True, hide_index=True)
-        _caption("Headline results table (numbers may be placeholders until final runs are complete).")
+        mdf_r = load_submission_metrics(str(_repo_root()))
+        if mdf_r is not None and pd is not None:
+            st.success("Authoritative metrics from **`submissions/submission_metrics.csv`**.")
+            st.dataframe(mdf_r, use_container_width=True, hide_index=True)
+            _caption(
+                _fig_yaml_caption(
+                    fig_yaml_fm,
+                    "figure_4",
+                    "Figure 4 / 5: structured CV and leaderboard fields from local CSV (no competition IQ in-app).",
+                )
+            )
+        else:
+            st.warning(
+                "Structured metrics file not found. Add **`submissions/submission_metrics.csv`** for authoritative results in this tab."
+            )
+            _cols = [
+                "submission",
+                "submission_version",
+                "model_family",
+                "artifact_present",
+                "cv_accuracy",
+                "cv_precision",
+                "cv_recall",
+                "cv_f1",
+                "threshold",
+                "leaderboard_rank",
+                "leaderboard_accuracy",
+                "notes",
+                "change",
+            ]
+            if pd is not None:
+                st.dataframe(pd.DataFrame(columns=_cols), use_container_width=True, hide_index=True)
+        with st.expander("Optional draft comparison labels (screenshots only)", expanded=False):
+            st.caption("Not authoritative; use only for side-by-side draft figures.")
+            rows = [
+                {"model": st.session_state.get("results_baseline_name"), "headline_metric": st.session_state.get("results_baseline_metric")},
+                {"model": st.session_state.get("results_improved_name"), "headline_metric": st.session_state.get("results_improved_metric")},
+            ]
+            st.dataframe(rows, use_container_width=True, hide_index=True)
 
     with tabs[6]:
         st.subheader("Submission Explorer")
@@ -1665,6 +1925,7 @@ This tab shows the handcrafted features used (or intended) for compact, interpre
             )
             _cols = [
                 "submission",
+                "submission_version",
                 "model_family",
                 "artifact_present",
                 "cv_accuracy",
@@ -1675,6 +1936,8 @@ This tab shows the handcrafted features used (or intended) for compact, interpre
                 "leaderboard_rank",
                 "leaderboard_accuracy",
                 "notes",
+                "change",
+                "runtime",
             ]
             if pd is not None:
                 st.dataframe(pd.DataFrame(columns=_cols), use_container_width=True, hide_index=True)
@@ -1690,30 +1953,45 @@ This tab shows the handcrafted features used (or intended) for compact, interpre
         elif "leaderboard_rank" not in mdf.columns:
             st.info("Column **leaderboard_rank** not found in submission_metrics.csv.")
         else:
-            dfp = mdf.copy()
-            try:
-                dfp = dfp.sort_values("leaderboard_rank", na_position="last")
-            except Exception:
-                pass
-            st.dataframe(dfp, use_container_width=True, hide_index=True)
-            if "leaderboard_accuracy" in dfp.columns:
-                try:
-                    fig = go.Figure(
-                        go.Bar(
-                            x=dfp["submission"].astype(str),
-                            y=dfp["leaderboard_accuracy"].astype(float),
+            lb_slim = _leaderboard_progress_dataframe(mdf)
+            if lb_slim is not None:
+                st.caption("Progress view: submission version (or folder), rank, accuracy, notes/change when present.")
+                st.dataframe(lb_slim, use_container_width=True, hide_index=True)
+                if "leaderboard_accuracy" in lb_slim.columns:
+                    try:
+                        id_col = "submission_version" if "submission_version" in lb_slim.columns else "submission"
+                        fig = go.Figure(
+                            go.Bar(
+                                x=lb_slim[id_col].astype(str),
+                                y=lb_slim["leaderboard_accuracy"].astype(float),
+                            )
                         )
-                    )
-                    fig.update_layout(
-                        title="Leaderboard accuracy (from submission_metrics.csv)",
-                        height=440,
-                        xaxis_title="Submission",
-                        yaxis_title="Leaderboard accuracy",
-                        margin=dict(t=50, b=10),
-                    )
-                    st.plotly_chart(fig, use_container_width=True)
+                        fig.update_layout(
+                            title="Leaderboard accuracy (progress view)",
+                            height=440,
+                            xaxis_title="Submission / version",
+                            yaxis_title="Leaderboard accuracy",
+                            margin=dict(t=50, b=10),
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
+                    except Exception:
+                        st.caption("Could not render leaderboard chart from CSV (check column types).")
+            else:
+                st.info("Could not build progress subset (need rank + submission or submission_version).")
+            with st.expander("Full metrics table", expanded=False):
+                dfp = mdf.copy()
+                try:
+                    dfp = dfp.sort_values("leaderboard_rank", na_position="last")
                 except Exception:
-                    st.caption("Could not render leaderboard chart from CSV (check column types).")
+                    pass
+                st.dataframe(dfp, use_container_width=True, hide_index=True)
+            _caption(
+                _fig_yaml_caption(
+                    fig_yaml_fm,
+                    "figure_5",
+                    "Figure 5: leaderboard-oriented progress (subset + optional full table).",
+                )
+            )
 
     with tabs[9]:
         st.subheader("Micro-Twin (Future Work)")
@@ -1729,6 +2007,14 @@ This tab shows the handcrafted features used (or intended) for compact, interpre
             st.success("Micro-Twin samples are available. Use the sidebar to select a sample.")
         else:
             st.info("Generate Micro-Twin demo data below when no IQ is loaded (synthetic samples only).")
+        st.info("For the **interactive 3D Gary building scene (Figure 6)**, enable **Judge Mode** in the sidebar.")
+        _caption(
+            _fig_yaml_caption(
+                fig_yaml_fm,
+                "figure_6",
+                "Figure 6 (Judge Mode): 3D Micro-Twin buildings — future work only, not used for official scoring.",
+            )
+        )
 
     # Figure Mode: demo / micro-twin controls when no IQ loaded (unique widget keys)
     if not has_data:
