@@ -96,7 +96,8 @@ class GaryMicroTwin:
                     'snr_db': np.nan,
                     'cfo_hz': np.nan,
                     'num_taps': np.nan,
-                    'seed': sample_seed
+                    'seed': sample_seed,
+                    'signal_type': None,
                 })
             
             # Generate label=1 samples

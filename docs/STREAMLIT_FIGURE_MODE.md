@@ -37,6 +37,15 @@ Recommended screenshot sequence for the final report:
 - Figure 3 + Figure 5: **Results**
 - Figure 6: **Future Work / Micro-Twin**
 
+### Final Submission & Submission Explorer (Standard + Figure)
+
+In **Standard Mode**, the sidebar **Model / submission** control includes:
+
+- **Final Submission (Best Known)** — runs `submissions/<best>/main.py` `evaluate()` using the priority list in `submission_adapter.py` (e.g. `leaderboard_v9` when present).
+- **Submission Explorer** — choose a specific `submissions/<folder>/main.py` package.
+
+In **Figure Mode**, the **Prediction Path** tab shows the same live `evaluate()` output when one of those two options is selected and IQ data is loaded (demo, Micro-Twin, or private local upload — **not** competition IQ on Cloud).
+
 ### How Figure Mode works
 
 In the sidebar:
@@ -50,6 +59,24 @@ In the sidebar:
    - Use Micro-Twin demo samples (synthetic only).
 
 Figure Mode persists across reruns using `st.session_state`.
+
+### Synthetic demo IQ labeling
+
+The shared demo generator (`_generate_synthetic_demo_iq`):
+
+- **Demo class:** mixed (noise everywhere + middle-window burst).
+- **Signal inserted:** yes.
+- **Burst:** ~30% of the window, centered.
+- **Generator type:** described in-app for judges/screenshots.
+
+### Micro-Twin labels & zeros
+
+- Use the **metadata table** (`label`, `zone_id`, `signal_type`, SNR/CFO/taps, sample rate) — not silent waveform regions — to know if a sample is **noise-only** vs **structured signal**.
+- **Flat or zero-like IQ stretches do not automatically mean “no signal.”**
+
+### How the site-aware digital twin is structured
+
+See **Judge Mode → Future Work / Micro-Twin**: five layers (Site, Users, Radio environment, Controller, Outcome) with explicit **implemented / proxy / future** tags, plus the **RAN Controller** loop and **Research-Grade 6G** subsection (DeepMIMO / Sionna RT as **future work** unless your code truly uses them in the detector).
 
 ### Tabs → Report section mapping
 
