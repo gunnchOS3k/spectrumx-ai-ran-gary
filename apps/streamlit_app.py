@@ -33,13 +33,17 @@ except Exception:
 
 # Page config
 st.set_page_config(
-    page_title="SpX-DAC Baseline Comparison Dashboard",
+    page_title="SpectrumX DAC — Project Dashboard",
     page_icon="📡",
-    layout="wide"
+    layout="wide",
 )
 
 # Title
-st.title("📡 SpX-DAC Baseline Comparison Dashboard")
+st.title("📡 SpectrumX DAC — Winning Project Dashboard")
+st.caption(
+    "Judge Mode highlights the **core SpectrumX DAC detector** (local metrics + live `evaluate()` on synthetic IQ). "
+    "**Future work** (Micro-Twin, 6G research path) is clearly separated."
+)
 
 # Safety banner: do not upload competition data to Cloud
 st.warning(
@@ -52,6 +56,55 @@ try:
     from src.edge_ran_gary.detection.feature_baseline import extract_features as shared_extract_features
 except Exception:
     shared_extract_features = None
+
+# Leaderboard submission packages: load submissions/<pkg>/main.py and call evaluate()
+try:
+    from src.edge_ran_gary.submission_adapter import (
+        discover_submission_folders as _sa_discover_submission_folders,
+        default_best_submission_folder as _sa_default_best_submission_folder,
+        load_submission_module as _sa_load_submission_module,
+        run_evaluate_on_iq_array as _sa_run_evaluate_on_iq_array,
+        submission_folder_info as _sa_submission_folder_info,
+    )
+
+    _SUBMISSION_ADAPTER_OK = True
+except Exception:
+    _SUBMISSION_ADAPTER_OK = False
+    _sa_discover_submission_folders = None  # type: ignore
+    _sa_default_best_submission_folder = None  # type: ignore
+    _sa_load_submission_module = None  # type: ignore
+    _sa_run_evaluate_on_iq_array = None  # type: ignore
+    _sa_submission_folder_info = None  # type: ignore
+
+SUBMISSION_MODEL_FINAL = "Final Submission (Best Known)"
+SUBMISSION_MODEL_EXPLORER = "Submission Explorer"
+
+
+def _discover_submissions_safe(repo_root: Path) -> list:
+    if not _SUBMISSION_ADAPTER_OK or _sa_discover_submission_folders is None:
+        return []
+    try:
+        return list(_sa_discover_submission_folders(repo_root))
+    except Exception:
+        return []
+
+
+def _default_best_pkg(repo_root: Path) -> str | None:
+    if not _SUBMISSION_ADAPTER_OK or _sa_default_best_submission_folder is None:
+        return None
+    try:
+        return _sa_default_best_submission_folder(repo_root)
+    except Exception:
+        return None
+
+
+@st.cache_resource
+def _cached_submission_module(submission_dir_abs: str):
+    """Load submissions/<pkg>/main.py once per process (folder absolute path)."""
+    if _sa_load_submission_module is None:
+        raise RuntimeError("submission adapter not available")
+    return _sa_load_submission_module(Path(submission_dir_abs))
+
 
 # ============================================================================
 # Helper Functions
@@ -580,14 +633,20 @@ def _infer_inference_path(repo_root: Path, submission_folder_name: str) -> str:
 
 
 def _generate_synthetic_demo_iq(sample_rate: float = 1e6, duration: float = 1.0, seed: int = 42):
-    """Generate demo/synthetic IQ for visualization only (never used as judged official input)."""
+    """
+    Generate demo/synthetic IQ for visualization only (never used as judged official input).
+
+    Always injects a **structured carrier burst** in the **middle ~30%** of the window on top of
+    complex Gaussian noise → demo class is **mixed** (not pure noise-only).
+    """
     rng = np.random.default_rng(seed)
     n_samples = int(sample_rate * duration)
     t = np.arange(n_samples) / sample_rate
-    # Simple QPSK-ish burst with controlled carrier to make visuals stable.
     signal_freq = 100e3
     signal_samples = int(0.3 * n_samples)
     signal_start = n_samples // 2 - signal_samples // 2
+    t_burst_start = float(signal_start / sample_rate)
+    t_burst_end = float((signal_start + signal_samples) / sample_rate)
     noise = rng.normal(0, 0.1, n_samples) + 1j * rng.normal(0, 0.1, n_samples)
     signal_phase = 2 * np.pi * signal_freq * t[signal_start : signal_start + signal_samples]
     burst = 0.5 * np.exp(1j * signal_phase)
@@ -595,7 +654,134 @@ def _generate_synthetic_demo_iq(sample_rate: float = 1e6, duration: float = 1.0,
     demo_iq[signal_start : signal_start + signal_samples] = (
         demo_iq[signal_start : signal_start + signal_samples] + burst.astype(np.complex64)
     )
-    return demo_iq
+    meta = {
+        "demo_class": "mixed",
+        "signal_inserted": True,
+        "burst_fraction_of_window": 0.3,
+        "burst_time_start_s": t_burst_start,
+        "burst_time_end_s": t_burst_end,
+        "burst_duration_s": t_burst_end - t_burst_start,
+        "carrier_hz_approx": signal_freq,
+        "generator_type": "Streamlit synthetic demo (Gaussian noise + middle-window phase-modulated burst)",
+        "label_meaning": "Illustration only; not an official SpectrumX label.",
+    }
+    return demo_iq, meta
+
+
+def _metrics_row_for_submission(mdf, folder_name: str | None) -> dict | None:
+    """Return first CSV row whose submission/folder/name column matches the package folder."""
+    if mdf is None or pd is None or not folder_name:
+        return None
+    for col in ("submission", "folder", "name"):
+        if col in mdf.columns:
+            mask = mdf[col].astype(str) == str(folder_name)
+            if mask.any():
+                try:
+                    return mdf.loc[mask].iloc[0].to_dict()
+                except Exception:
+                    return None
+    return None
+
+
+def _render_synthetic_demo_metadata_callout(meta: dict | None, caption_prefix: str = ""):
+    """UI block: explicit synthetic demo labeling (Judge / Standard / Figure)."""
+    if not meta:
+        return
+    st.markdown("**Synthetic demo IQ — what this sample is**")
+    rows = [
+        {"Field": "Demo class", "Value": meta.get("demo_class", "—")},
+        {"Field": "Signal inserted", "Value": "yes" if meta.get("signal_inserted") else "no"},
+        {
+            "Field": "Burst interval (s)",
+            "Value": f"{meta.get('burst_time_start_s', '—'):.4f} – {meta.get('burst_time_end_s', '—'):.4f}",
+        },
+        {"Field": "Burst duration (s)", "Value": f"{meta.get('burst_duration_s', 0):.4f}"},
+        {"Field": "Generator type", "Value": str(meta.get("generator_type", "—"))},
+    ]
+    if pd is not None:
+        st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+    else:
+        st.json(meta)
+    st.info(
+        (caption_prefix + " ").strip()
+        + "**How to interpret:** The waveform always includes **noise everywhere** and a **middle burst** of structured energy. "
+        "Do not treat quiet-looking edges as “official noise-only ground truth” — this is a **demo generator**, not competition data."
+    )
+
+
+def _micro_twin_landmark_name(zone_lookup: dict | None, zone_id) -> str:
+    if not zone_lookup or zone_id is None:
+        return "—"
+    z = zone_lookup.get(str(zone_id)) or zone_lookup.get(zone_id)
+    if isinstance(z, dict):
+        return str(z.get("name") or z.get("landmark_name") or zone_id)
+    return str(zone_id)
+
+
+def _render_micro_twin_sample_card(meta: dict, sample_rate_hz: float, zone_lookup: dict | None):
+    """Compact Micro-Twin metadata for judges (synthetic extension, not scored)."""
+    st.markdown("**Micro-Twin sample (synthetic) — metadata**")
+    sig_type = meta.get("signal_type")
+    if sig_type is None or (isinstance(sig_type, float) and np.isnan(sig_type)):
+        sig_disp = "noise-only sample (no structured signal type)"
+    else:
+        sig_disp = str(sig_type)
+    rows = [
+        {"Field": "label (ground truth for this synthetic row)", "Value": meta.get("label", "—")},
+        {"Field": "zone_id", "Value": meta.get("zone_id", "—")},
+        {"Field": "landmark_name", "Value": _micro_twin_landmark_name(zone_lookup, meta.get("zone_id"))},
+        {"Field": "signal_type", "Value": sig_disp},
+        {"Field": "snr_db", "Value": meta.get("snr_db", "—")},
+        {"Field": "cfo_hz", "Value": meta.get("cfo_hz", "—")},
+        {"Field": "num_taps", "Value": meta.get("num_taps", "—")},
+        {"Field": "sample_rate_hz", "Value": sample_rate_hz},
+        {"Field": "seed", "Value": meta.get("seed", "—")},
+        {"Field": "file (synthetic id)", "Value": meta.get("file", "—")},
+    ]
+    if pd is not None:
+        st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+    else:
+        st.json({r["Field"]: r["Value"] for r in rows})
+    st.success(
+        "**Plain-language note:** Stretches of IQ samples near **zero do not automatically mean “empty spectrum.”** "
+        "For Micro-Twin data, the **label and metadata row** tell you whether the window was generated as **noise-only** "
+        "or **with structured signal** — use those fields, not the waveform shape alone."
+    )
+
+
+def _run_judge_submission_inference(repo_root: Path, folder_name: str | None, iq: np.ndarray | None) -> None:
+    """Populate session_state with live submission evaluate() results (no tracebacks to user)."""
+    st.session_state.pop("judge_live_inf_err", None)
+    if (
+        not folder_name
+        or iq is None
+        or not _SUBMISSION_ADAPTER_OK
+        or _sa_run_evaluate_on_iq_array is None
+    ):
+        st.session_state["judge_live_pred"] = None
+        st.session_state["judge_live_conf"] = None
+        return
+    pkg = (repo_root / "submissions" / folder_name).resolve()
+    if not pkg.is_dir():
+        st.session_state["judge_live_pred"] = None
+        st.session_state["judge_live_inf_err"] = "Submission folder not found."
+        return
+    try:
+        mod = _cached_submission_module(str(pkg))
+        pred, info = _sa_run_evaluate_on_iq_array(mod, iq)
+        st.session_state["judge_live_pred"] = int(pred)
+        st.session_state["judge_live_conf"] = info.get("confidence")
+        st.session_state["judge_live_inf_detail"] = {
+            "trained_path_active": info.get("trained_path_active"),
+            "fallback_active": info.get("fallback_active"),
+            "raw_type": info.get("raw_type"),
+        }
+        if info.get("error"):
+            st.session_state["judge_live_inf_err"] = str(info["error"])[:500]
+    except Exception as e:
+        st.session_state["judge_live_pred"] = None
+        st.session_state["judge_live_conf"] = None
+        st.session_state["judge_live_inf_err"] = f"{type(e).__name__}: {e}"[:500]
 
 
 def _render_judge_gary_micro_twin_3d():
@@ -775,8 +961,95 @@ def _render_judge_gary_micro_twin_3d():
             )
         except Exception:
             st.caption("3D scene rendered, but interaction events may be limited in this runtime.")
-    except Exception as e:
-        st.error(f"3D Micro-Twin scene failed to render: {e}")
+    except Exception:
+        st.error(
+            "3D Micro-Twin scene failed to render. Install **`pydeck`** locally and reload. "
+            "(Technical details are hidden for judge-facing stability.)"
+        )
+
+    st.markdown("---")
+    st.subheader("Layered site model (Future Work — interpretive)")
+    st.caption(
+        "Each layer states what is **implemented now** in this demo vs a **simulated proxy** vs **future integration**."
+    )
+    with st.expander("Layer 1 — Site (implemented: approximate footprints)", expanded=False):
+        st.markdown(
+            f"- **Building footprint / height / role:** pydeck extruded polygons (approximate coordinates).\n"
+            f"- **Selected site:** {selected_building['name']} — {selected_building['role']}."
+        )
+    with st.expander("Layer 2 — Users (simulated proxy)", expanded=False):
+        st.markdown(
+            f"- **User class / demand:** scenario overlay **{b_demand}** demand, **{b_occupancy}** occupancy prior.\n"
+            "- **Traffic demand profile:** not measured live; used only to color-code risk in this demo."
+        )
+    with st.expander("Layer 3 — Radio environment (simulated proxy + future integration)", expanded=False):
+        st.markdown(
+            f"- **Hypothetical gNB / interference:** environment preset **{b_signal_env}**.\n"
+            "- **Low-7 GHz path loss / blockage / penetration:** not ray-traced here — **future** DeepMIMO / Sionna RT class integration."
+        )
+    with st.expander("Layer 4 — Controller (partially implemented demo)", expanded=False):
+        st.markdown(
+            "- **Detector output:** uses the **live submission `evaluate()`** result from Judge Mode demo IQ when available "
+            "(see **Core Submission** tab).\n"
+            "- **Occupancy / interference belief:** combines scenario sliders with building risk tint.\n"
+            "- **Candidate RAN action:** shown in the **RAN Controller** panel below."
+        )
+    with st.expander("Layer 5 — Outcome (simulated proxy KPIs)", expanded=False):
+        st.markdown(
+            "- **Coverage / coexistence / fairness / energy:** simple scenario-derived scores for storytelling — **not** measured on-air."
+        )
+
+    st.subheader("RAN Controller demo (Future Work)")
+    st.caption(
+        "Illustrates a closed-loop story: **sense → belief → act → KPI** for low-7 GHz style coexistence. "
+        "Not tied to official leaderboard scoring."
+    )
+    pred = st.session_state.get("judge_live_pred")
+    conf = st.session_state.get("judge_live_conf")
+    occ_word = "likely occupied" if pred == 1 else ("likely noise-only / vacant" if pred == 0 else "unknown")
+    belief_hi = env_w > 0.6 or demand_w > 0.7
+    if pred is None:
+        action = "Hold / diagnose"
+        outcome = "Run **Core Submission** tab to refresh detector output on demo IQ."
+    elif pred == 1 and belief_hi:
+        action = "Transmit cautiously — reduce power or change channel"
+        outcome = "Coexistence proxy: medium — structured energy detected under stressed scenario."
+    elif pred == 1:
+        action = "Transmit — monitor interference"
+        outcome = "Coexistence proxy: favorable — signal present but scenario stress is moderate/low."
+    elif pred == 0 and belief_hi:
+        action = "Hold transmission — scan alternate channel"
+        outcome = "Vacancy belief under noisy scenario; avoid adding interference."
+    else:
+        action = "Prioritize site / user group if demand is high"
+        outcome = "Vacancy belief with moderate demand — opportunity for equitable capacity routing (storytelling proxy)."
+
+    kpi_cov = max(0.0, min(1.0, 0.55 + 0.25 * (1.0 - env_w) + (0.15 if pred == 1 else -0.05)))
+    kpi_coex = max(0.0, min(1.0, 0.62 - 0.2 * env_w + (0.1 if pred == 0 else -0.05)))
+    kpi_fair = max(0.0, min(1.0, 0.5 + 0.15 * occ_w - 0.1 * (1.0 - demand_w)))
+
+    rc1, rc2 = st.columns(2)
+    with rc1:
+        st.markdown("**Loop (conceptual)**")
+        st.markdown(
+            f"- **Sensed spectrum state:** detector pred = `{pred}` ({occ_word})\n"
+            f"- **Confidence / prob. (if returned):** `{conf if conf is not None else 'N/A'}`\n"
+            f"- **Site / demand context:** {selected_building['name']}, demand **{b_demand}**\n"
+            f"- **Interference belief:** {'elevated' if belief_hi else 'moderate'}\n"
+            f"- **Chosen action:** **{action}**"
+        )
+    with rc2:
+        st.markdown("**Outcome / KPI (proxy)**")
+        st.metric("Coverage proxy", f"{kpi_cov:.2f}")
+        st.metric("Coexistence score (proxy)", f"{kpi_coex:.2f}")
+        st.metric("Digital-divide benefit proxy", f"{kpi_fair:.2f}")
+        st.caption(outcome)
+    st.info(
+        "**Why this matters (non-technical):** In shared spectrum, **one neighbor’s transmission** can make it harder for "
+        "**students, library patrons, or civic services** to get reliable connectivity. A smarter controller could **sense first**, "
+        "**avoid harmful interference**, and **steer capacity** toward places where the digital divide hits hardest — this panel "
+        "is a **visual story**, not a field deployment."
+    )
 
     st.markdown("**Legend (screenshot-friendly)**")
     st.markdown(
@@ -809,6 +1082,37 @@ with st.sidebar:
             "Core judged submission metrics are loaded from `submissions/submission_metrics.csv` (if present). "
             "Official competition IQ data is not included in this app."
         )
+
+        _j_repo = _repo_root()
+        _j_folders = _discover_submissions_safe(_j_repo)
+        _j_best = _default_best_pkg(_j_repo)
+        st.markdown("**Live inference package**")
+        st.caption(
+            "Runs `evaluate()` from `submissions/<pkg>/main.py` on **synthetic demo IQ** only (no competition data)."
+        )
+        _j_mode = st.radio(
+            "Submission mode",
+            [SUBMISSION_MODEL_FINAL, SUBMISSION_MODEL_EXPLORER],
+            key="judge_sidebar_submission_mode",
+            help="Final = highest-priority folder (e.g. leaderboard_v9 when present). Explorer = pick any package.",
+        )
+        if not _j_folders:
+            st.warning("No submission packages found (need `submissions/*/main.py`).")
+            st.session_state["judge_active_submission_folder"] = None
+        elif _j_mode == SUBMISSION_MODEL_FINAL:
+            st.session_state["judge_active_submission_folder"] = _j_best
+            st.success(f"**Active package:** `{_j_best or '—'}`")
+        else:
+            _idx = _j_folders.index(_j_best) if _j_best in _j_folders else 0
+            st.selectbox(
+                "Submission package",
+                _j_folders,
+                index=_idx,
+                key="judge_explorer_submission_folder",
+            )
+            st.session_state["judge_active_submission_folder"] = st.session_state.get(
+                "judge_explorer_submission_folder", _j_best
+            )
 
         uploaded_file = None
         is_int16_interleaved = False
@@ -862,13 +1166,37 @@ with st.sidebar:
             key="sidebar_checkbox_int16_interleaved",
         )
 
-        # Model selection
+        # Model selection (Final Submission default for judge-aligned exploration)
+        _std_pkg_list = _discover_submissions_safe(_repo_root())
+        _std_best = _default_best_pkg(_repo_root())
         model_option = st.selectbox(
-            "Model",
-            ["Energy Detector", "Spectral Flatness", "PSD+LogReg", "Coming soon"],
-            help="Select baseline model for prediction",
+            "Model / submission",
+            [
+                SUBMISSION_MODEL_FINAL,
+                SUBMISSION_MODEL_EXPLORER,
+                "Energy Detector",
+                "Spectral Flatness",
+                "PSD+LogReg",
+                "Coming soon",
+            ],
+            help="Final Submission runs `submissions/<best>/main.py` (priority: v9 > v12 > …). Explorer lets you pick a folder.",
             key="sidebar_select_model",
         )
+        if model_option == SUBMISSION_MODEL_EXPLORER:
+            if not _std_pkg_list:
+                st.caption("No `submissions/*/main.py` packages found.")
+            else:
+                _eidx = (
+                    _std_pkg_list.index(_std_best)
+                    if _std_best in _std_pkg_list
+                    else 0
+                )
+                st.selectbox(
+                    "Submission package",
+                    _std_pkg_list,
+                    index=_eidx,
+                    key="std_explorer_submission_folder",
+                )
 
         # Plot toggles
         st.header("📊 Visualizations")
@@ -947,15 +1275,18 @@ elif st.session_state.get("use_micro_twin") and st.session_state.get("micro_twin
 judge_mode_enabled = bool(st.session_state.get("judge_mode_toggle", False))
 if judge_mode_enabled:
     try:
-        if "judge_demo_iq" not in st.session_state:
-            judge_sr = float(sample_rate) if "sample_rate" in locals() else 1e6
-            st.session_state["judge_demo_iq"] = _generate_synthetic_demo_iq(sample_rate=judge_sr, duration=1.0, seed=42)
+        judge_sr = float(sample_rate) if "sample_rate" in locals() else 1e6
+        if "judge_demo_iq" not in st.session_state or "judge_demo_meta" not in st.session_state:
+            _jiq, _jmeta = _generate_synthetic_demo_iq(sample_rate=judge_sr, duration=1.0, seed=42)
+            st.session_state["judge_demo_iq"] = _jiq
+            st.session_state["judge_demo_meta"] = _jmeta
             st.session_state["judge_demo_sample_rate"] = judge_sr
         iq_data = st.session_state["judge_demo_iq"]
         sample_rate = st.session_state.get("judge_demo_sample_rate", 1e6)
         has_data = True
         # Do not use Micro-Twin samples as the basis of judge-mode visuals/claims.
         st.session_state["use_micro_twin"] = False
+        _run_judge_submission_inference(_repo_root(), st.session_state.get("judge_active_submission_folder"), iq_data)
     except Exception:
         # Fail gracefully: keep has_data=False so user sees an informative message.
         has_data = False
@@ -1008,11 +1339,17 @@ This dashboard presents:
             """.strip()
         )
         st.caption(
+            "**Evidence map:** **Accuracy** → Results tab / CSV; **Efficiency** → Efficiency tab; **Novelty** → Core Submission + notes; **Visualization** → Problem + Future Work figures."
+        )
+        st.caption(
             _fig_yaml_caption(
                 fig_yaml,
                 "figure_1",
                 "Cloud safety: official competition IQ data is not included in this app.",
             )
+        )
+        st.caption(
+            "**Figure 1 caption:** Task overview and judging pillars — core vs future work separation."
         )
 
         st.subheader("Figure 2: IQ + PSD + Spectrogram (Visualization Only)")
@@ -1022,6 +1359,14 @@ This dashboard presents:
                 "figure_2",
                 "Synthetic demo IQ is shown for screenshot clarity. It does not drive judge-scoring metrics in this UI.",
             )
+        )
+        _render_synthetic_demo_metadata_callout(
+            st.session_state.get("judge_demo_meta"),
+            caption_prefix="Judge Mode:",
+        )
+        st.caption(
+            "**Figure 2 caption:** IQ, Welch PSD, and spectrogram panels for **visualization quality** judging — "
+            "synthetic demo only; no official competition IQ in-cloud."
         )
         if has_data and iq_data is not None:
             # Time-domain IQ
@@ -1073,13 +1418,22 @@ This dashboard presents:
             st.info("No demo input available for Figure 2. Reload the app; Judge Mode should auto-generate a synthetic IQ window.")
 
     with tabs[1]:
-        st.subheader("Figure 4: Final Submission (Core Judged)")
+        st.warning(
+            "**What was judged vs future work — read first:** "
+            "**(A) Core judged submission** = feature-based binary detector on **official SpectrumX labeled data** "
+            "(tables/card below use **local CSVs only**). "
+            "**(B) Future work** = Gary Micro-Twin, DeepMIMO / Sionna RT, AI-RAN visuals — **not** the official leaderboard evaluation basis."
+        )
+        st.subheader("Figure 4: Canonical Final Submission card (Core Judged — single source of truth)")
         st.caption(
             _fig_yaml_caption(
                 fig_yaml,
                 "figure_4",
                 "Read-only, judge-facing summary populated from local structured metrics CSVs.",
             )
+        )
+        st.caption(
+            "**Figure 4 caption:** Accuracy / rank / model family / threshold / runtime evidence for **detection** and **efficiency** judging."
         )
         if core_row is None:
             st.warning(
@@ -1129,10 +1483,45 @@ This dashboard presents:
 
         st.caption("Metrics are loaded from local structured CSVs only. No official competition IQ data is accessed here.")
 
+        st.markdown("---")
+        st.subheader("Live submission inference (synthetic demo IQ)")
+        st.caption(
+            "Runs the selected **`submissions/<pkg>/main.py`** `evaluate()` on the **Judge Mode synthetic demo** window. "
+            "Demonstrates **implementation** and **visualization** integration — not a leaderboard replay."
+        )
+        _live_folder = st.session_state.get("judge_active_submission_folder")
+        if _SUBMISSION_ADAPTER_OK and _sa_submission_folder_info is not None and _live_folder:
+            _pinfo = _sa_submission_folder_info(_repo_root(), str(_live_folder))
+            _crow = _metrics_row_for_submission(mdf, str(_live_folder))
+            pc1, pc2, pc3 = st.columns(3)
+            pc1.metric("Package", str(_live_folder))
+            pc2.metric("Model family (CSV)", str(_crow.get("model_family", "—")) if _crow else str(_pinfo.get("model_family_guess", "—")))
+            pc3.metric("Artifact present", "Yes" if _pinfo.get("artifact_present") else "No")
+            st.text(f"Threshold (CSV): {_crow.get('threshold', '—') if _crow else '—'}")
+            jp = st.session_state.get("judge_live_pred")
+            jc = st.session_state.get("judge_live_conf")
+            jd = st.session_state.get("judge_live_inf_detail") or {}
+            st.metric("Prediction on demo IQ", "Occupied (1)" if jp == 1 else ("Noise-only (0)" if jp == 0 else "—"))
+            st.metric("Confidence / probability", "N/A" if jc is None else str(jc))
+            if jd.get("trained_path_active"):
+                st.success("Heuristic: **trained-artifact path** may be active (see `main.py`).")
+            if jd.get("fallback_active"):
+                st.info("Heuristic: **fallback / baseline branch** may exist in `main.py`.")
+            if st.session_state.get("judge_live_inf_err"):
+                st.warning(f"Inference note: {st.session_state['judge_live_inf_err']}")
+        elif not _live_folder:
+            st.info("Select a submission package in the sidebar to enable live inference.")
+        else:
+            st.info("Submission adapter unavailable; live inference disabled.")
+
     with tabs[2]:
         st.subheader("Figure 5: Results (CV + Leaderboard Progress)")
         st.markdown(
             "Authoritative CV / leaderboard tables come from `submissions/submission_metrics.csv` when present."
+        )
+        st.caption(
+            "**Novelty story (for judges):** feature-based, interpretable occupancy detection with a clear inference contract — "
+            "see **Prediction Path** in Figure Mode and `submissions/<pkg>/main.py` for the packaged algorithm."
         )
 
         st.subheader("Figure 3: Feature Extraction (Visualization Only)")
@@ -1170,6 +1559,9 @@ This dashboard presents:
                 st.info("Feature extractor not available in this runtime. (Shared `extract_features` import failed.)")
         else:
             st.info("No demo input available for Figure 3. Reload the app; Judge Mode should auto-generate synthetic IQ.")
+        st.caption(
+            "**Figure 3 caption:** Handcrafted feature panel for **interpretability / novelty** evidence (synthetic demo IQ)."
+        )
         st.markdown("---")
 
         if mdf is not None:
@@ -1364,15 +1756,74 @@ elif st.session_state.get("ui_mode") != "Figure Mode":
             st.text(f"Format: {'int16 interleaved' if is_int16_interleaved else 'auto-detected'}")
             st.text(f"Sample rate: {sample_rate:,.0f} Hz")
             st.text(f"Duration: {len(iq_data) / sample_rate:.4f} seconds")
+
+        if st.session_state.get("use_micro_twin") and st.session_state.get("micro_twin_list"):
+            _mtl = st.session_state["micro_twin_list"]
+            _mts = st.session_state.get("micro_twin_select", 0)
+            if 0 <= _mts < len(_mtl):
+                _iqm, _mmeta, _msr = _mtl[_mts]
+                _render_micro_twin_sample_card(
+                    _mmeta,
+                    float(_msr),
+                    st.session_state.get("micro_twin_zone_lookup"),
+                )
+        if st.session_state.get("use_demo") and st.session_state.get("demo_metadata"):
+            _render_synthetic_demo_metadata_callout(st.session_state.get("demo_metadata"))
         
         # Model prediction panel
         st.header("🎯 Prediction")
         
         prediction = None
         confidence = None
+        confidence_is_numeric = True
         model_output = {}
+
+        _rr_std = _repo_root()
+        _active_pkg = None
+        if model_option == SUBMISSION_MODEL_FINAL:
+            _active_pkg = _default_best_pkg(_rr_std)
+        elif model_option == SUBMISSION_MODEL_EXPLORER:
+            _active_pkg = st.session_state.get("std_explorer_submission_folder") or _default_best_pkg(_rr_std)
+
+        if model_option in (SUBMISSION_MODEL_FINAL, SUBMISSION_MODEL_EXPLORER):
+            if not _SUBMISSION_ADAPTER_OK or _sa_run_evaluate_on_iq_array is None:
+                st.warning("Submission adapter not available (import error).")
+                prediction, confidence = 0, 0.0
+                confidence_is_numeric = True
+            elif not _active_pkg:
+                st.warning("No submission package found under `submissions/`.")
+                prediction, confidence = 0, 0.0
+                confidence_is_numeric = True
+            else:
+                try:
+                    _pkgp = (_rr_std / "submissions" / _active_pkg).resolve()
+                    _mod = _cached_submission_module(str(_pkgp))
+                    pred, info = _sa_run_evaluate_on_iq_array(_mod, iq_data)
+                    prediction = int(pred)
+                    _c = info.get("confidence")
+                    if isinstance(_c, (int, float)):
+                        confidence = float(_c)
+                        confidence_is_numeric = True
+                    else:
+                        confidence = None
+                        confidence_is_numeric = False
+                    if _sa_submission_folder_info is not None:
+                        _pi = _sa_submission_folder_info(_rr_std, str(_active_pkg))
+                    else:
+                        _pi = {}
+                    model_output = {
+                        "submission_package": _active_pkg,
+                        "artifact_present": _pi.get("artifact_present"),
+                        "model_family_guess": _pi.get("model_family_guess"),
+                    }
+                    if info.get("error"):
+                        st.warning(f"Inference note: {info['error'][:400]}")
+                except Exception as e:
+                    st.warning(f"Submission inference failed ({type(e).__name__}). Check `main.py` and dependencies.")
+                    prediction, confidence = 0, 0.0
+                    confidence_is_numeric = True
         
-        if model_option == "Energy Detector":
+        elif model_option == "Energy Detector":
             threshold = st.slider(
                 "Energy Threshold",
                 min_value=0.0,
@@ -1414,12 +1865,18 @@ elif st.session_state.get("ui_mode") != "Figure Mode":
         with col1:
             st.metric("Prediction", "Signal" if prediction == 1 else "Noise")
         with col2:
-            st.metric("Confidence", f"{confidence:.3f}")
+            if confidence is None or not confidence_is_numeric:
+                st.metric("Confidence / probability", "N/A")
+            else:
+                st.metric("Confidence / probability", f"{confidence:.3f}")
         
         if model_output:
             with st.expander("Model Details", expanded=False):
                 for key, value in model_output.items():
-                    st.text(f"{key}: {value:.6f}")
+                    if isinstance(value, float):
+                        st.text(f"{key}: {value:.6f}")
+                    else:
+                        st.text(f"{key}: {value}")
         
         # Visualizations
         st.header("📈 Visualizations")
@@ -1537,33 +1994,19 @@ elif st.session_state.get("ui_mode") != "Figure Mode":
         def generate_demo():
             """Generate demo IQ data and set session state flags."""
             try:
-                # Generate a simple demo signal: QPSK-like burst with noise
                 sample_rate = 1e6
-                duration = 1.0
-                n_samples = int(sample_rate * duration)
-                t = np.arange(n_samples) / sample_rate
-                
-                # Generate QPSK-like signal (simplified)
-                signal_freq = 100e3  # 100 kHz carrier
-                signal_samples = int(0.3 * n_samples)  # 30% of window has signal
-                signal_start = n_samples // 2 - signal_samples // 2
-                
-                demo_iq = np.random.normal(0, 0.1, n_samples) + 1j * np.random.normal(0, 0.1, n_samples)
-                # Add structured signal in the middle
-                signal_phase = 2 * np.pi * signal_freq * t[signal_start:signal_start+signal_samples]
-                demo_iq[signal_start:signal_start+signal_samples] += 0.5 * np.exp(1j * signal_phase)
-                demo_iq = demo_iq.astype(np.complex64)
-                
-                # Store in session state with all required flags
-                st.session_state['demo_iq'] = demo_iq
-                st.session_state['demo_sample_rate'] = sample_rate
-                st.session_state['use_demo'] = True
-                # Clear uploaded file to use demo path
-                if 'uploaded_file' in st.session_state:
-                    st.session_state['uploaded_file'] = None
+                demo_iq, demo_meta = _generate_synthetic_demo_iq(
+                    sample_rate=sample_rate, duration=1.0, seed=42
+                )
+                st.session_state["demo_iq"] = demo_iq
+                st.session_state["demo_metadata"] = demo_meta
+                st.session_state["demo_sample_rate"] = sample_rate
+                st.session_state["use_demo"] = True
+                if "uploaded_file" in st.session_state:
+                    st.session_state["uploaded_file"] = None
             except Exception as e:
-                st.error(f"Error generating demo data: {e}")
-                st.session_state['use_demo'] = False
+                st.warning(f"Demo IQ generation failed ({type(e).__name__}). Try again or reload the app.")
+                st.session_state["use_demo"] = False
         
         if st.button(
             "Generate Demo IQ Sample (1 second, 1 MHz sample rate)",
@@ -1599,12 +2042,16 @@ elif st.session_state.get("ui_mode") != "Figure Mode":
                     sample_rate = mt.config.get("sample_rate", 1e6)
                     micro_twin_list = [(s, meta_df.iloc[i].to_dict(), float(sample_rate)) for i, s in enumerate(samples)]
                     st.session_state["micro_twin_list"] = micro_twin_list
+                    st.session_state["micro_twin_zone_lookup"] = getattr(mt, "zone_metadata", {}) or {}
                     st.session_state["use_micro_twin"] = True
                     st.session_state["micro_twin_select"] = 0
                     st.session_state["use_demo"] = False
                     st.rerun()
             except Exception as e:
-                st.error(f"Micro-Twin generation failed: {e}")
+                st.warning(
+                    f"Micro-Twin generation could not complete ({type(e).__name__}). "
+                    "Check that `configs/gary_micro_twin.yaml` exists and dependencies are installed."
+                )
         if st.session_state.get("use_micro_twin") and st.session_state.get("micro_twin_list"):
             st.caption("Select a sample from the sidebar to view IQ, PSD, and spectrogram. Prediction: (model not loaded) if no model is selected.")
         
@@ -1768,6 +2215,21 @@ Requires **PyYAML** (`pip install pyyaml`).
                     "Figure 2: IQ + PSD + spectrogram (demo/synthetic in cloud; local IQ only when you run privately).",
                 )
             )
+            if st.session_state.get("use_micro_twin") and st.session_state.get("micro_twin_list"):
+                _fmt = st.session_state["micro_twin_list"]
+                _fsel = st.session_state.get("micro_twin_select", 0)
+                if 0 <= _fsel < len(_fmt):
+                    _, _fmeta, _fsr = _fmt[_fsel]
+                    _render_micro_twin_sample_card(
+                        _fmeta,
+                        float(_fsr),
+                        st.session_state.get("micro_twin_zone_lookup"),
+                    )
+            elif st.session_state.get("use_demo") and st.session_state.get("demo_metadata"):
+                _render_synthetic_demo_metadata_callout(
+                    st.session_state.get("demo_metadata"),
+                    caption_prefix="Figure Mode:",
+                )
         else:
             st.info("Load demo/synthetic IQ data (sidebar) to populate input and preprocessing figures.")
 
@@ -1859,6 +2321,37 @@ This tab shows the handcrafted features used (or intended) for compact, interpre
             """.strip()
         )
         _caption("This is the inference contract used by the leaderboard submission wrapper.")
+        st.markdown("---")
+        st.markdown("**Final submission package — live `evaluate()` (Figure Mode)**")
+        st.caption(
+            "Uses the same sidebar **Model / submission** choice as Standard Mode. "
+            "Runs on the currently loaded IQ (demo, Micro-Twin, or upload — never competition IQ in-cloud)."
+        )
+        if has_data and iq_data is not None and model_option in (SUBMISSION_MODEL_FINAL, SUBMISSION_MODEL_EXPLORER):
+            _ff_rr = _repo_root()
+            _ff_pkg = (
+                _default_best_pkg(_ff_rr)
+                if model_option == SUBMISSION_MODEL_FINAL
+                else st.session_state.get("std_explorer_submission_folder") or _default_best_pkg(_ff_rr)
+            )
+            if _SUBMISSION_ADAPTER_OK and _ff_pkg and _sa_run_evaluate_on_iq_array is not None:
+                try:
+                    _ff_mod = _cached_submission_module(str((_ff_rr / "submissions" / _ff_pkg).resolve()))
+                    _ff_pred, _ff_info = _sa_run_evaluate_on_iq_array(_ff_mod, iq_data)
+                    st.metric("Package", str(_ff_pkg))
+                    st.metric("Prediction", "Occupied (1)" if int(_ff_pred) == 1 else "Noise-only (0)")
+                    st.metric(
+                        "Confidence / probability",
+                        "N/A" if _ff_info.get("confidence") is None else str(_ff_info.get("confidence")),
+                    )
+                    if _ff_info.get("error"):
+                        st.warning(str(_ff_info["error"])[:400])
+                except Exception as e:
+                    st.warning(f"Could not run submission here ({type(e).__name__}).")
+            else:
+                st.info("No submission package selected or adapter unavailable.")
+        elif has_data and iq_data is not None:
+            st.info("Choose **Final Submission (Best Known)** or **Submission Explorer** in the sidebar to show live `evaluate()` here.")
 
     with tabs[5]:
         st.subheader("Results & Leaderboard")
@@ -2027,22 +2520,14 @@ This tab shows the handcrafted features used (or intended) for compact, interpre
         def _fig_generate_demo():
             try:
                 _sr = 1e6
-                duration = 1.0
-                n_samples = int(_sr * duration)
-                t = np.arange(n_samples) / _sr
-                signal_freq = 100e3
-                signal_samples = int(0.3 * n_samples)
-                signal_start = n_samples // 2 - signal_samples // 2
-                demo_iq = np.random.normal(0, 0.1, n_samples) + 1j * np.random.normal(0, 0.1, n_samples)
-                signal_phase = 2 * np.pi * signal_freq * t[signal_start : signal_start + signal_samples]
-                demo_iq[signal_start : signal_start + signal_samples] += 0.5 * np.exp(1j * signal_phase)
-                demo_iq = demo_iq.astype(np.complex64)
+                demo_iq, demo_meta = _generate_synthetic_demo_iq(sample_rate=_sr, duration=1.0, seed=42)
                 st.session_state["demo_iq"] = demo_iq
+                st.session_state["demo_metadata"] = demo_meta
                 st.session_state["demo_sample_rate"] = _sr
                 st.session_state["use_demo"] = True
                 st.session_state["use_micro_twin"] = False
             except Exception as e:
-                st.error(f"Demo IQ generation failed: {e}")
+                st.warning(f"Demo IQ generation failed ({type(e).__name__}).")
 
         c1, c2 = st.columns(2)
         with c1:
@@ -2070,9 +2555,13 @@ This tab shows the handcrafted features used (or intended) for compact, interpre
                             (s, meta_df.iloc[i].to_dict(), mt_sr) for i, s in enumerate(samples)
                         ]
                         st.session_state["micro_twin_list"] = micro_twin_list
+                        st.session_state["micro_twin_zone_lookup"] = getattr(mt, "zone_metadata", {}) or {}
                         st.session_state["use_micro_twin"] = True
                         st.session_state["micro_twin_select"] = 0
                         st.session_state["use_demo"] = False
                         st.rerun()
                 except Exception as e:
-                    st.error(f"Micro-Twin generation failed: {e}")
+                    st.warning(
+                        f"Micro-Twin generation could not complete ({type(e).__name__}). "
+                        "Verify config and dependencies."
+                    )

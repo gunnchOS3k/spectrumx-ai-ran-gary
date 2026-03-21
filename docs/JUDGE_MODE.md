@@ -13,11 +13,18 @@ This repo’s Streamlit app (`apps/streamlit_app.py`) includes a **Judge Mode** 
 In the sidebar, enable **`Judge Mode`**. The dashboard switches to a 6-tab **Judge Tour**:
 
 1. **Problem** (Figure 1 + Figure 2)
-2. **Core Submission** (Figure 4)
+2. **Core Submission** (Figure 4 + live inference)
 3. **Results** (Figure 3 + Figure 5)
 4. **Efficiency**
-5. **Future Work / Micro-Twin** (Figure 6 + simulation path story)
+5. **Future Work / Micro-Twin** (Figure 6 + layered site model + RAN demo + 6G research path)
 6. **Why It Matters for Gary**
+
+### Final Submission (Best Known) vs Submission Explorer
+
+- **Final Submission (Best Known):** Selects the highest-priority folder under `submissions/` that contains `main.py`, using the order in `src/edge_ran_gary/submission_adapter.py` (e.g. **`leaderboard_v9`** first when that folder exists).
+- **Submission Explorer:** Lets you pick any discovered package (`leaderboard_v5`, `leaderboard_v9`, …) from disk.
+
+**Live inference:** The sidebar choice drives `evaluate()` from `submissions/<pkg>/main.py` on **synthetic Judge Mode demo IQ** only (never competition data in-cloud).
 
 ### Authoritative metrics source
 
@@ -27,61 +34,42 @@ Judge Mode loads the CV / leaderboard table from:
 - Optional: `submissions/leaderboard_summary.csv` (if you include it)
 - Optional: `docs/final_report_figures.yaml` — per-figure caption overrides (`figure_1` … `figure_6`). Copy from `docs/final_report_figures.example.yaml`. Requires **PyYAML** (`pip install pyyaml`).
 
-If `submissions/submission_metrics.csv` is missing, the app shows a clearly-labeled placeholder schema and a note.
+The **Canonical Final Submission** card in **Core Submission** is the **single source of truth** for judges when CSVs are present. If CSVs are missing, the app shows a labeled placeholder schema and helper text.
 
-Expected CSV schema (header row):
+### Synthetic demo IQ (Judge Mode)
 
-- `submission`
-- `submission_version` (optional but recommended for progress screenshots)
-- `model_family`
-- `artifact_present`
-- `cv_accuracy`
-- `cv_precision`
-- `cv_recall`
-- `cv_f1`
-- `threshold`
-- `leaderboard_rank`
-- `leaderboard_accuracy`
-- `notes`
-- `change` (optional; “what changed” — progress view also accepts `changelog` / `note` as column aliases)
-- `runtime` (optional; Efficiency tab also checks `runtime_per_sample` / `runtime_sec`)
+- The Judge demo generator **always** adds **complex Gaussian noise for the full window** and a **structured burst in the middle ~30%**.
+- **Demo class = mixed** (not pure noise-only). Interpretation text is shown under **Figure 2**.
 
-Tip: add optional columns like `runtime` or `runtime_per_sample` if you have measured runtime and want the Efficiency tab to populate runtime per sample.
+### Micro-Twin metadata (when used outside Judge Mode)
+
+- Each sample has a metadata row: `label`, `zone_id`, `snr_db`, `cfo_hz`, `num_taps`, `sample_rate_hz`, `signal_type`, etc., plus **landmark_name** resolved from the twin config.
+- **Zeros in the waveform are not a reliable “noise-only” indicator** — use the **metadata label** and fields above.
 
 ### Core vs Future Work separation (non-negotiable)
 
 Judge Mode explicitly distinguishes:
 
-- **Core judged submission**: metrics shown from local CSVs and summarized via a read-only “Final Submission” card.
-- **Future Work / Micro-Twin**: synthetic 3D visualization and simulation concepts only (not used for official evaluation).
+- **Core judged submission:** feature-based binary detector trained on official SpectrumX labeled data; metrics from local CSVs; optional live `evaluate()` on **synthetic** IQ.
+- **Future Work / Micro-Twin / DeepMIMO / Sionna RT / AI-RAN:** visualization and research framing only — **not** the official leaderboard evaluation basis unless your own code and claims state otherwise.
 
 ### Gary Micro-Twin 3D building model
 
-The 3D building scene is implemented in `apps/streamlit_app.py` using **pydeck**:
+The 3D building scene uses **pydeck**:
 
-- Approximate building footprints are **manually defined** as polygons.
-- Buildings are rendered with **extruded polygons** (3D) and labeled tooltips.
-- Scenario overlays (low/medium/high demand, occupancy prior, signal environment) change **color coding** to communicate impact and risk.
+- Approximate footprints, extruded polygons, labels / tooltips.
+- **Layered site model** expanders + **RAN Controller** demo (proxy KPIs).
+- **Research-Grade 6G Simulation Path** subsection describes DeepMIMO and Sionna RT as **future integration**, not as the judged detector unless implemented.
 
-If `pydeck` is not installed in your runtime, the app fails gracefully with an in-app message.
-
-### DeepMIMO / Sionna RT integration (Future Work)
-
-Judge Mode includes a “Research-Grade 6G Simulation Path” section that explains how future integration could work:
-
-- DeepMIMO: site-specific wireless dataset workflow
-- Sionna RT: differentiable ray-tracing / radio propagation modeling
-- Honest hooks: coverage map, beam/channel view, ray-tracing-backed scenario
-
-These are presented as **future integration points** only (not claimed as part of the official submission basis unless your local code does so).
+If `pydeck` is not installed, the app shows a judge-safe message (no raw tracebacks).
 
 ### Recommended screenshot sequence
 
 - Figure 1 + Figure 2: **Problem**
-- Figure 4: **Core Submission**
+- Figure 4: **Core Submission** (card + live inference panel)
 - Figure 3 + Figure 5: **Results**
 - Figure: **Efficiency**
-- Figure 6: **Future Work / Micro-Twin**
+- Figure 6 + layers + RAN: **Future Work / Micro-Twin**
 
 ### Run locally
 
@@ -91,3 +79,4 @@ From repo root:
 streamlit run apps/streamlit_app.py
 ```
 
+See also: `docs/MICROTWIN_REALISM_PLAN.md`, `docs/STREAMLIT_FIGURE_MODE.md`.
