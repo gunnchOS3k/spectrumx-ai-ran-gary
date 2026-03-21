@@ -54,21 +54,23 @@ Judge Mode explicitly distinguishes:
 - **Completed research extension (non-scoring):** Gary digital twin + site-aware AI-RAN controller demo (implemented in this UI) with proxy KPIs.
 - **Next research scaling path (future integration):** DeepMIMO / Sionna RT realism upgrades and related beam/channel/coverage visualizations.
 
-### Gary Micro-Twin 3D building model
+### Gary Micro-Twin 3D building model (research-grade extension)
 
-The **Completed Research Extension** tab uses **pydeck** as the **main canvas**:
+The **Completed Research Extension** tab uses **pydeck** as the **main canvas** and is organized for **conference-demo** clarity:
 
+- **Guided walkthrough** strip (six steps) as the default narrative for viewers.
 - **Scenario toolbar** (demand, occupancy, RF environment, **school/after-hours/weekend**, **normal vs event**), then **focus site**.
-- **Central 3D map:** extruded footprints; **violet** demand hotspots; **red** interference proxies; **blue** hypothetical gNB markers; tooltips on pickable layers.
-- **Radio environment cards** (always visible): gNB position, demand zones, interference story, low-7 GHz LOS / penetration / blockage **proxy model** with **implemented now** + **next scaling path** tags.
+- **Central 3D map:** extruded footprints; **cyan path segments** (gNB→site **link proxy**, not ray-traced); **violet** demand hotspots; **red** interference disks **and** optional **polygon** interference footprints; **blue** hypothetical gNB markers; **map legend** + **radio-scene legend** beside the figure.
+- **Radio Environment / Propagation View:** dedicated panel — **current proxy propagation view** (per-site table when **pandas** is installed); explicit disclaimer vs DeepMIMO/Sionna/field data.
 - **Users at this site** persona cards (City Hall / Library / West Side).
-- **RAN controller:** five-column **pipeline** (sense → belief → site → action → KPI) plus candidate actions and a **reason** line.
-- **Five proxy KPIs** (coverage, coexistence, community benefit, energy, continuity) — labeled as non-measured.
-- **Plain-language** “signals × place” panel and a **6G research roadmap** (DeepMIMO / Sionna RT / beam–coverage UI) as the **next scaling path** only.
+- **AI-RAN controller:** **State** metrics (belief, site, demand, radio env score, coexistence risk); **prominent chosen action**; five-column **pipeline**; **Why this is AI-RAN** explainer; **five proxy KPIs** (coverage, coexistence, fairness/community benefit, energy, continuity).
+- **Simulation backbone:** three-layer card (implemented / DeepMIMO path / Sionna path) + optional JSON status from `simulation_integration_hooks.py`; **stub loaders** return no overlay until real parsers exist.
+- **Optional local assets** expander: `submissions/submission_metrics.csv`, `docs/final_report_figures.yaml`, `configs/gary_micro_twin.yaml`, simulation output dirs — all **graceful if missing**.
+- **Plain-language** “signals × place” panel; **next realism scaling** blurb (DeepMIMO / Sionna) — **not** claimed to power the judged detector.
 
 If `pydeck` is not installed, the app shows a judge-safe message (no raw tracebacks).
 
-See **`docs/MICROTWIN_REALISM_PLAN.md`** for what is proxy vs implemented.
+See **`docs/MICROTWIN_REALISM_PLAN.md`** and **`docs/INDUSTRY_GRADE_EXTENSION_PLAN.md`** for proxy vs implemented vs hooks.
 
 ### Recommended screenshot sequence
 
