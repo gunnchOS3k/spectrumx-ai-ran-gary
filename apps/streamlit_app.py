@@ -42,7 +42,8 @@ st.set_page_config(
 st.title("📡 SpectrumX DAC — Winning Project Dashboard")
 st.caption(
     "Judge Mode highlights the **core SpectrumX DAC detector** (local metrics + live `evaluate()` on synthetic IQ). "
-    "**Future work** (Micro-Twin, 6G research path) is clearly separated."
+    "**Completed Research Extension** (Gary site-aware digital twin + AI-RAN controller demo) is implemented now and clearly separated "
+    "from the **Core Judged SpectrumX detector**. DeepMIMO/Sionna RT are the **Next Research Scaling Path**."
 )
 
 # Safety banner: do not upload competition data to Cloud
@@ -786,7 +787,7 @@ def _run_judge_submission_inference(repo_root: Path, folder_name: str | None, iq
 
 def _render_judge_gary_micro_twin_3d():
     """
-    Digital Twin realism pass (Future Work only): anchor-site 3D scene, radio/user proxies,
+    Digital Twin realism pass (completed extension): anchor-site 3D scene, radio/user proxies,
     explicit RAN pipeline, KPI cards, 6G roadmap. Core SpectrumX detector remains separate.
     """
     if pdk is None:
@@ -795,17 +796,51 @@ def _render_judge_gary_micro_twin_3d():
         )
         return
 
-    # --- Non-scoring banner (do not hide judged vs future work) ---
-    st.warning(
-        "**Future work / research extension:** This tab is **not** the SpectrumX DAC judged detector. "
-        "It is a **site-aware AI-RAN + Micro-Twin demo** for judges and 6G-style research storytelling."
+    # --- Separation banner (completed extension is not the judged detector) ---
+    st.success(
+        "**Completed Research Extension:** This tab is **not** the SpectrumX DAC judged detector. "
+        "It is the **implemented site-aware digital twin + AI-RAN controller demo** (research extension prototype), "
+        "shown here as a finished artifact for judges."
     )
 
-    st.markdown("## Gary Micro-Twin — site-aware digital twin (AI-RAN demo)")
+    st.markdown("## Completed Gary Digital Twin Extension — site-aware digital twin + AI-RAN controller demo")
     st.caption(
-        "**Figure: Gary anchor-site Micro-Twin** — extruded footprints, hypothetical gNB / demand / interference overlays (proxies). "
-        "No official competition data."
+        "**Figure: Gary anchor-site digital twin** — extruded footprints + hypothetical gNB/demand/interference overlays (proxies). "
+        "No official competition IQ data is loaded in this app."
     )
+
+    # Evidence cards (screenshot-ready)
+    ce1, ce2 = st.columns(2)
+    with ce1:
+        st.markdown(
+            "<div style='border:1px solid #dee2e6;border-radius:14px;padding:16px;background:#f8f9fa'>"
+            "<div style='font-weight:700;font-size:16px;margin-bottom:8px'>Completed Research Extension (what judges can use)</div>"
+            "<div style='font-size:13px;color:#495057'>"
+            "<ul style='margin:0;padding-left:18px'>"
+            "<li><b>3 anchor sites</b> modeled: City Hall, Library, West Side Leadership Academy</li>"
+            "<li><b>Interactive 3D building scene</b> with pickable tooltips</li>"
+            "<li><b>Site/user/radio/controller/KPI loop</b> (implemented in this prototype)</li>"
+            "<li><b>Live detector integration</b>: controller pipeline can read the demo IQ output from `evaluate()`</li>"
+            "<li><b>Community-impact framing</b> tied to the selected scenario and site</li>"
+            "</ul>"
+            "</div>"
+            "</div>",
+            unsafe_allow_html=True,
+        )
+    with ce2:
+        st.markdown(
+            "<div style='border:1px solid #dee2e6;border-radius:14px;padding:16px;background:#ffffff'>"
+            "<div style='font-weight:700;font-size:16px;margin-bottom:8px'>Why this matters for 6G research</div>"
+            "<div style='font-size:13px;color:#495057'>"
+            "<ul style='margin:0;padding-left:18px'>"
+            "<li><b>Site-aware sensing</b>: maps sensing uncertainty to location-aware context</li>"
+            "<li><b>Coexistence-aware control</b>: controller actions prioritize interference-safety under stress</li>"
+            "<li><b>Digital twin bridge</b>: connects a detector to an AI-RAN-style control loop</li>"
+            "</ul>"
+            "</div>"
+            "</div>",
+            unsafe_allow_html=True,
+        )
 
     # Anchor sites: enriched for conference-demo clarity
     buildings = [
@@ -998,7 +1033,7 @@ def _render_judge_gary_micro_twin_3d():
             "position": [-87.3392, 41.5844],
             "label": "Ambient interference proxy",
             "radius": 200 + int(120 * eff_env),
-            "tip": "Aggregated external RF activity (proxy). **Future:** Sionna RT / measurement trace.",
+            "tip": "Aggregated external RF activity (proxy). **Next:** Sionna RT / measurement trace.",
         },
         {
             "position": [-87.3355, 41.5839],
@@ -1106,9 +1141,10 @@ def _render_judge_gary_micro_twin_3d():
         st.caption(
             f"**Scenario:** {b_demand} demand · {b_occupancy} occ. prior · {b_signal_env} · **{b_time}** · **{b_event}**"
         )
+        st.caption("Implemented now — anchor-site model (approximate footprint + role) for the selected scenario.")
 
     # --- Radio environment: visible cards (not buried in expanders) ---
-    st.markdown("### Radio environment layers (proxies + roadmap tags)")
+    st.markdown("### Radio environment layers (implemented now + next upgrades)")
     clon, clat = selected_building["centroid"]
     gnb_lon = clon + selected_building["gnb_offset_lon"]
     gnb_lat = clat + selected_building["gnb_offset_lat"]
@@ -1123,23 +1159,23 @@ def _render_judge_gary_micro_twin_3d():
 
     r1, r2, r3, r4 = st.columns(4)
     with r1:
-        st.markdown("**gNB / transmitter (proxy)**  \n`implemented proxy`")
+        st.markdown("**gNB / transmitter position**  \n`Implemented now (proxy model)`")
         st.caption(f"Lat {gnb_lat:.5f}, Lon {gnb_lon:.5f}")
         st.caption("Hypothetical serving node offset from footprint centroid.")
     with r2:
-        st.markdown("**User hotspots / demand**  \n`implemented proxy`")
+        st.markdown("**User hotspots / demand**  \n`Implemented now (proxy model)`")
         st.caption(f"Violet disks on map; radius ∝ demand scenario (~{int(selected_building['demand_base_radius_m'] * demand_scale)} m here).")
     with r3:
-        st.markdown("**Interference / risk zones**  \n`implemented proxy`")
+        st.markdown("**Interference / risk zones**  \n`Implemented now (proxy model)`")
         st.caption("Red disks = aggregated external activity (not real identified emitters).")
     with r4:
-        st.markdown("**Low-7 GHz propagation assumptions**  \n`simulated proxy`")
+        st.markdown("**Low-7 GHz propagation assumptions**  \n`Current proxy model`")
         st.caption(f"**LOS proxy:** {los_proxy}. **Indoor penetration (proxy):** ~{pen_db:.0f} dB equiv. **Blockage score:** {block_score:.2f} (0–1).")
-        st.caption("**Future integration:** ray-traced path loss (Sionna RT) / learned channels (DeepMIMO workflow).")
+        st.caption("**Next realism upgrade:** Replace these proxies with ray-traced path loss (Sionna RT) and/or site-specific channels (DeepMIMO).")
 
     st.info(
-        "**Tags:** **Implemented proxy** = shown in this UI/map now, not field-calibrated. "
-        "**Future integration** = DeepMIMO / Sionna RT class tooling — **not** driving the judged detector unless you wire it in code."
+        "**Legend:** **Implemented now** = shown in this completed extension demo (proxy model; not field-calibrated). "
+        "**Next scaling path** = DeepMIMO / Sionna RT tooling (not integrated into this UI yet)."
     )
 
     # --- Users at this site ---
@@ -1155,11 +1191,13 @@ def _render_judge_gary_micro_twin_3d():
     st.caption(
         "**City Hall:** residents, staff, visitors · **Library:** patrons, study users, learners · **West Side:** students, teachers, staff."
     )
+    st.caption("Implemented now — site-specific user personas for this completed extension demo.")
 
     # --- RAN controller: visual pipeline ---
-    st.markdown("### Site-aware RAN controller loop (demo)")
+    st.markdown("### Site-aware RAN controller pipeline (implemented now)")
     st.caption(
-        "**Figure: site-aware RAN controller loop** — five-stage pipeline from sensed spectrum to KPIs (research demo only)."
+        "**Figure: site-aware RAN controller pipeline** — sensed spectrum → belief → site context → controller action → KPI outcome "
+        "(completed extension prototype; separate from the official judged detector)."
     )
 
     pred = st.session_state.get("judge_live_pred")
@@ -1214,7 +1252,7 @@ def _render_judge_gary_micro_twin_3d():
                 unsafe_allow_html=True,
             )
 
-    st.markdown("**Candidate actions (this demo)**")
+    st.markdown("**Candidate actions (current controller proxy)**")
     ca = st.columns(5)
     for i, (k, title, blurb) in enumerate(candidates):
         with ca[i]:
@@ -1230,7 +1268,7 @@ def _render_judge_gary_micro_twin_3d():
     kpi_energy = max(0.0, min(1.0, 0.78 - 0.12 * eff_demand + (0.06 if chosen_key in ("hold", "power") else -0.04)))
     kpi_reliab = max(0.0, min(1.0, 0.5 + 0.22 * kpi_cov - 0.18 * eff_env + 0.08 * (1.0 if pred is not None else 0.0)))
 
-    st.markdown("### Outcome & impact (proxy KPIs)")
+    st.markdown("### Outcome & impact (current proxy KPIs)")
     k1, k2, k3, k4, k5 = st.columns(5)
     k1.metric("Coverage proxy", f"{kpi_cov:.2f}", help="Not measured on-air.")
     k2.metric("Coexistence score", f"{kpi_coex:.2f}", help="Neighbor-friendly spectrum use (proxy).")
@@ -1238,7 +1276,7 @@ def _render_judge_gary_micro_twin_3d():
     k4.metric("Energy / efficiency", f"{kpi_energy:.2f}", help="Hold/low-power favors efficiency (proxy).")
     k5.metric("Service continuity", f"{kpi_reliab:.2f}", help="Reliability proxy vs scenario stress.")
     st.caption(
-        "**Honest labeling:** All KPIs are **deterministic scenario proxies** for screenshots and PhD-style systems narrative — "
+        "**Honest labeling:** KPIs are **deterministic scenario proxies** implemented in this extension for screenshots and research storytelling — "
         "**not** empirical network measurements."
     )
 
@@ -1248,19 +1286,19 @@ def _render_judge_gary_micro_twin_3d():
         "**Buildings** block and scatter radio waves — taller civic structures create **shadows** and **variable indoor penetration**. "
         "**Who shows up when** (school hours, weekend library use, city events) changes **demand** and **coexistence risk**: more active users "
         "mean less margin for careless transmission. **Spectrum sensing** (like the judged detector, run separately on real data) tells a "
-        "future controller **whether the band looks occupied** so it can **hold power**, **retune**, or **prioritize** service where the "
+        "this controller **whether the band looks occupied** so it can **hold power**, **retune**, or **prioritize** service where the "
         "community needs it most."
     )
 
     # --- 6G research roadmap (visible, not overclaimed) ---
-    st.markdown("### Next realism upgrades (6G / wireless ML research roadmap)")
+    st.markdown("### Next Research Scaling Path (6G / wireless ML research roadmap)")
     rm1, rm2, rm3 = st.columns(3)
     with rm1:
         st.markdown(
             "<div style='border-left:4px solid #3498db;padding-left:12px'>"
             "<strong>DeepMIMO path</strong><br/><span style='font-size:13px'>"
             "Site-specific channel scenarios, spatial consistency across anchor footprints, exportable CIR / features for ML.</span><br/>"
-            "<em>Future integration</em> — not in this Streamlit build unless added in repo.</div>",
+            "<em>Next scaling path</em> — not integrated in this Streamlit build yet.</div>",
             unsafe_allow_html=True,
         )
     with rm2:
@@ -1268,7 +1306,7 @@ def _render_judge_gary_micro_twin_3d():
             "<div style='border-left:4px solid #9b59b6;padding-left:12px'>"
             "<strong>Sionna RT path</strong><br/><span style='font-size:13px'>"
             "Ray-tracing / materials / diffraction for realistic blockage and coverage maps at low-7 GHz.</span><br/>"
-            "<em>Future integration</em> — complements (not replaces) the judged DAC detector.</div>",
+            "<em>Next scaling path</em> — complements (not replaces) the judged DAC detector.</div>",
             unsafe_allow_html=True,
         )
     with rm3:
@@ -1276,7 +1314,7 @@ def _render_judge_gary_micro_twin_3d():
             "<div style='border-left:4px solid #27ae60;padding-left:12px'>"
             "<strong>Beam / coverage UI</strong><br/><span style='font-size:13px'>"
             "Azimuth–elevation heatmaps, per-site SINR contours, controller replay logs for paper figures.</span><br/>"
-            "<em>Planned UI hooks</em> — conference-demo targets for the next pass.</div>",
+            "<em>Planned UI hooks</em> — conference-demo targets on top of the completed extension.</div>",
             unsafe_allow_html=True,
         )
 
@@ -1523,8 +1561,10 @@ if judge_mode_enabled:
     # Judge-facing, read-only dashboard.
     st.header("🏆 Judge Tour")
     st.caption(
-        "This view is designed for judges: polished, authoritative tables from local `submissions/` CSVs, "
-        "and clearly separated Future Work / Micro-Twin (not the basis of official evaluation)."
+        "This view is designed for judges: polished, authoritative tables from local `submissions/` CSVs. "
+        "The Gary **Completed Research Extension** (site-aware digital twin + AI-RAN controller demo) is "
+        "**separate from** the **Core Judged SpectrumX DAC detector**, and the DeepMIMO/Sionna RT tools are "
+        "clearly labeled as the **Next Research Scaling Path**."
     )
 
     # Load structured metrics (authoritative when present).
@@ -1545,7 +1585,7 @@ if judge_mode_enabled:
             "Core Submission",
             "Results",
             "Efficiency",
-            "Future Work / Micro-Twin",
+            "Completed Research Extension",
             "Why It Matters for Gary",
         ]
     )
@@ -1560,12 +1600,39 @@ SpectrumX DAC judging focuses on: **detection accuracy**, **implementation effic
 
 This dashboard presents:
 - **Core judged submission** (official SpectrumX DAC detector metrics) from local structured files.
-- **Future work** (Gary Micro-Twin / AI-RAN visualization / simulation concepts) clearly labeled as non-scoring.
+- **Completed research extension** (Gary site-aware digital twin + AI-RAN controller demo) implemented in this prototype and clearly separated from scoring.
+- **Next research scaling path** (DeepMIMO / Sionna RT) clearly labeled as the next layer for realism upgrades.
             """.strip()
         )
         st.caption(
-            "**Evidence map:** **Accuracy** → Results tab / CSV; **Efficiency** → Efficiency tab; **Novelty** → Core Submission + notes; **Visualization** → Problem + Future Work figures."
+            "**Evidence map:** **Accuracy** → Results tab / CSV; **Efficiency** → Efficiency tab; **Novelty** → Core Submission + notes; "
+            "**Completed extension** → Completed Research Extension tab; **Next scaling path** → roadmap in the same tab."
         )
+        ccore, cext, cnext = st.columns(3)
+        with ccore:
+            st.markdown(
+                "<div style='border:1px solid #e9ecef;border-radius:14px;padding:12px;background:#ffffff'>"
+                "<div style='font-weight:700'>Core Judged Submission</div>"
+                "<div style='font-size:13px;color:#495057'>SpectrumX DAC detector (official scoring basis)</div>"
+                "</div>",
+                unsafe_allow_html=True,
+            )
+        with cext:
+            st.markdown(
+                "<div style='border:1px solid #e9ecef;border-radius:14px;padding:12px;background:#ffffff'>"
+                "<div style='font-weight:700'>Completed Research Extension</div>"
+                "<div style='font-size:13px;color:#495057'>Gary digital twin + AI-RAN controller demo (implemented now)</div>"
+                "</div>",
+                unsafe_allow_html=True,
+            )
+        with cnext:
+            st.markdown(
+                "<div style='border:1px solid #e9ecef;border-radius:14px;padding:12px;background:#ffffff'>"
+                "<div style='font-weight:700'>Next Research Scaling Path</div>"
+                "<div style='font-size:13px;color:#495057'>DeepMIMO / Sionna RT realism upgrades (next layer)</div>"
+                "</div>",
+                unsafe_allow_html=True,
+            )
         st.caption(
             _fig_yaml_caption(
                 fig_yaml,
@@ -1574,7 +1641,7 @@ This dashboard presents:
             )
         )
         st.caption(
-            "**Figure 1 caption:** Task overview and judging pillars — core vs future work separation."
+            "**Figure 1 caption:** Task overview and judging pillars — core vs completed extension vs next scaling path separation."
         )
 
         st.subheader("Figure 2: IQ + PSD + Spectrogram (Visualization Only)")
@@ -1644,10 +1711,11 @@ This dashboard presents:
 
     with tabs[1]:
         st.warning(
-            "**What was judged vs future work — read first:** "
+            "**What was judged vs completed extension — read first:** "
             "**(A) Core judged submission** = feature-based binary detector on **official SpectrumX labeled data** "
             "(tables/card below use **local CSVs only**). "
-            "**(B) Future work** = Gary Micro-Twin, DeepMIMO / Sionna RT, AI-RAN visuals — **not** the official leaderboard evaluation basis."
+            "**(B) Completed research extension** = Gary Micro-Twin digital twin + site-aware AI-RAN controller demo — **implemented here as a completed prototype** (non-scoring). "
+            "**(C) Next scaling path** = DeepMIMO / Sionna RT realism scaling — next integration layer for future work."
         )
         st.subheader("Figure 4: Canonical Final Submission card (Core Judged — single source of truth)")
         st.caption(
@@ -1914,34 +1982,38 @@ This dashboard presents:
             st.warning("Core submission folder could not be inferred. Add metrics CSV so efficiency panels can populate.")
 
     with tabs[4]:
-        st.subheader("Future Work / Micro-Twin")
+        st.subheader("Completed Research Extension")
         st.caption(
             _fig_yaml_caption(
                 fig_yaml,
                 "figure_6",
-                "Figure 6: 3D Gary Micro-Twin — synthetic / future-work visualization only (not used for official leaderboard scoring).",
+                "Figure 6: Completed Gary Digital Twin Extension — interactive site-aware map + AI-RAN controller loop (separate from official leaderboard scoring).",
             )
         )
         _render_judge_gary_micro_twin_3d()
 
     with tabs[5]:
-        st.subheader("Novelty Story: What Was Judged vs Future Work")
+        st.subheader("Novelty Story: What Was Judged vs Completed Extension vs Next Scaling Path")
         st.markdown(
             """
 **Core judged submission (scoring basis):**
 - Feature-based binary detector trained on official SpectrumX labeled data (metrics shown from local structured CSVs).
 
-**Future work (non-scoring impact story):**
-- Gary Micro-Twin building model and AI-RAN visualization concepts.
-- DeepMIMO / Sionna RT research-grade simulation path for future scenario-aware sensing.
+**Completed research extension (prototype, non-scoring):**
+- Gary Micro-Twin digital twin (3 anchor sites) + interactive 3D scene and radio environment proxies.
+- Site/user/radio/controller/KPI loop with a simplified AI-RAN-style controller demo.
+
+**Next research scaling path (future integration layer):**
+- DeepMIMO for site-specific wireless channel / scenario generation.
+- Sionna RT for propagation / ray-tracing realism and next-layer coverage inputs.
             """.strip()
         )
-        st.caption("This panel explicitly separates scoring-algorithm evidence from future visualization/simulation work.")
+        st.caption("This panel explicitly separates scoring-algorithm evidence from the completed extension and the next realism scaling path.")
         st.markdown("---")
         st.subheader("Why it Matters for Gary")
         st.markdown(
             """
-The Micro-Twin future work is designed to communicate how improved sensing and coexistence can reduce digital divide gaps—especially for learning and civic services.
+The completed Micro-Twin extension is designed to communicate how site-aware sensing and coexistence-aware control can reduce digital divide gaps—especially for learning and civic services.
             """.strip()
         )
 
@@ -2310,7 +2382,7 @@ Requires **PyYAML** (`pip install pyyaml`).
             "Submission Explorer",
             "CV Metrics",
             "Leaderboard Progress",
-            "Micro-Twin (Future Work)",
+            "Completed Research Extension",
         ]
     )
 
@@ -2693,12 +2765,12 @@ This tab shows the handcrafted features used (or intended) for compact, interpre
             )
 
     with tabs[9]:
-        st.subheader("Micro-Twin (Future Work)")
+        st.subheader("Completed Research Extension")
         st.markdown(
             """
-**Future work / extension:** The Gary Micro-Twin generates synthetic IQ windows across a small set of equity-relevant zones.
+**Completed research extension (prototype):** The Gary Micro-Twin generates synthetic IQ windows across a small set of equity-relevant zones and provides a site-aware digital twin + AI-RAN controller demo.
 
-- This tab is suitable for appendix/future-work screenshots.
+- This tab is suitable for conference-style screenshots of the completed extension (not the official judged detector).
 - The Micro-Twin is **NOT** the basis of the core leaderboard submission.
             """.strip()
         )
@@ -2711,7 +2783,7 @@ This tab shows the handcrafted features used (or intended) for compact, interpre
             _fig_yaml_caption(
                 fig_yaml_fm,
                 "figure_6",
-                "Figure 6 (Judge Mode): 3D Micro-Twin buildings — future work only, not used for official scoring.",
+                "Figure 6 (Judge Mode): Completed Gary Digital Twin Extension — interactive site-aware map + controller demo (separate from official scoring).",
             )
         )
 

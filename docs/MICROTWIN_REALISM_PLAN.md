@@ -2,7 +2,7 @@
 
 ## What changed in the Digital Twin Realism Pass (Streamlit)
 
-The **Future Work / Micro-Twin** tab (`_render_judge_gary_micro_twin_3d` in `apps/streamlit_app.py`) was redesigned for **conference-demo** clarity:
+The **Completed Research Extension** tab (`_render_judge_gary_micro_twin_3d` in `apps/streamlit_app.py`) was redesigned for **conference-demo** clarity and is presented as a **finished extension prototype** for judges:
 
 - **3D map is primary:** Full-width pydeck scene first (after a compact scenario toolbar): extruded footprints + **violet demand disks** + **red interference proxies** + **blue gNB points** + labels.
 - **Scenario toolbar:** Demand, occupancy prior, RF environment, **time context** (school / after hours / weekend), **event mode** (normal vs special event) — combined with **focus site** to adjust effective stress weights and map radii.
@@ -18,13 +18,13 @@ The **Future Work / Micro-Twin** tab (`_render_judge_gary_micro_twin_3d` in `app
 
 Core **SpectrumX DAC detector** routing, submission adapter, and **judged vs future work** separation elsewhere in the app were **not** reworked in this pass.
 
-## What is implemented vs proxy vs future
+## What is implemented vs proxy vs next scaling
 
 | Element | Status |
 |--------|--------|
 | Extruded building footprints, heights, scenario-driven tint | **Implemented** (approximate coordinates) |
-| gNB / demand / interference **scatter overlays** on map | **Implemented proxy** (storytelling geometry) |
-| LOS / penetration / blockage **numbers** in radio card | **Simulated proxy** (deterministic from scenario + building height) |
+| gNB / demand / interference **scatter overlays** on map | **Implemented proxy** (storytelling geometry, not field-calibrated) |
+| LOS / penetration / blockage **numbers** in radio card | **Simulated proxy** (deterministic from scenario + building height; proxy model) |
 | Live detector output in pipeline | **Implemented** when `evaluate()` has run (Judge demo IQ); else “unknown” / hold |
 | DeepMIMO / Sionna RT / beam–coverage maps | **Future integration** (documented only in UI + this doc) |
 | KPI metrics | **Proxy only** (not drive-test or field data) |
@@ -43,9 +43,9 @@ Controller selects among: hold / cautious TX / reduce power / switch channel / p
 Outcome proxies: coverage, coexistence, equity story, energy, continuity
 ```
 
-All Micro-Twin and 3D paths remain **extension / future work**, not the official SpectrumX DAC scoring basis.
+The Micro-Twin and 3D paths are a **completed research extension** (non-scoring), separate from the official SpectrumX DAC scoring basis.
 
-## Next realism upgrades (backlog)
+## Next research scaling path (future integration)
 
 1. Optional **DeepMIMO**-style channel export per anchor footprint (behind flag).
 2. **Sionna RT** (or similar) for real blockage / coverage tiles; feed optional heatmap layer in pydeck.

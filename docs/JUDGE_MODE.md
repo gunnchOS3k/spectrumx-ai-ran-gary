@@ -16,7 +16,7 @@ In the sidebar, enable **`Judge Mode`**. The dashboard switches to a 6-tab **Jud
 2. **Core Submission** (Figure 4 + live inference)
 3. **Results** (Figure 3 + Figure 5)
 4. **Efficiency**
-5. **Future Work / Micro-Twin** (Figure 6 + layered site model + RAN demo + 6G research path)
+5. **Completed Research Extension** (Figure 6 + completed site-aware digital twin + AI-RAN controller demo)
 6. **Why It Matters for Gary**
 
 ### Final Submission (Best Known) vs Submission Explorer
@@ -46,24 +46,25 @@ The **Canonical Final Submission** card in **Core Submission** is the **single s
 - Each sample has a metadata row: `label`, `zone_id`, `snr_db`, `cfo_hz`, `num_taps`, `sample_rate_hz`, `signal_type`, etc., plus **landmark_name** resolved from the twin config.
 - **Zeros in the waveform are not a reliable “noise-only” indicator** — use the **metadata label** and fields above.
 
-### Core vs Future Work separation (non-negotiable)
+### Core vs Extension separation (non-negotiable)
 
 Judge Mode explicitly distinguishes:
 
 - **Core judged submission:** feature-based binary detector trained on official SpectrumX labeled data; metrics from local CSVs; optional live `evaluate()` on **synthetic** IQ.
-- **Future Work / Micro-Twin / DeepMIMO / Sionna RT / AI-RAN:** visualization and research framing only — **not** the official leaderboard evaluation basis unless your own code and claims state otherwise.
+- **Completed research extension (non-scoring):** Gary digital twin + site-aware AI-RAN controller demo (implemented in this UI) with proxy KPIs.
+- **Next research scaling path (future integration):** DeepMIMO / Sionna RT realism upgrades and related beam/channel/coverage visualizations.
 
 ### Gary Micro-Twin 3D building model
 
-The **Future Work / Micro-Twin** tab uses **pydeck** as the **main canvas**:
+The **Completed Research Extension** tab uses **pydeck** as the **main canvas**:
 
 - **Scenario toolbar** (demand, occupancy, RF environment, **school/after-hours/weekend**, **normal vs event**), then **focus site**.
 - **Central 3D map:** extruded footprints; **violet** demand hotspots; **red** interference proxies; **blue** hypothetical gNB markers; tooltips on pickable layers.
-- **Radio environment cards** (always visible): gNB position, demand zones, interference story, low-7 GHz LOS / penetration / blockage **proxies** with **implemented proxy** vs **future integration** tags.
+- **Radio environment cards** (always visible): gNB position, demand zones, interference story, low-7 GHz LOS / penetration / blockage **proxy model** with **implemented now** + **next scaling path** tags.
 - **Users at this site** persona cards (City Hall / Library / West Side).
 - **RAN controller:** five-column **pipeline** (sense → belief → site → action → KPI) plus candidate actions and a **reason** line.
 - **Five proxy KPIs** (coverage, coexistence, community benefit, energy, continuity) — labeled as non-measured.
-- **Plain-language** “signals × place” panel and a **6G research roadmap** (DeepMIMO / Sionna RT / beam–coverage UI) as **future work** only.
+- **Plain-language** “signals × place” panel and a **6G research roadmap** (DeepMIMO / Sionna RT / beam–coverage UI) as the **next scaling path** only.
 
 If `pydeck` is not installed, the app shows a judge-safe message (no raw tracebacks).
 
@@ -75,7 +76,7 @@ See **`docs/MICROTWIN_REALISM_PLAN.md`** for what is proxy vs implemented.
 - Figure 4: **Core Submission** (card + live inference panel)
 - Figure 3 + Figure 5: **Results**
 - Figure: **Efficiency**
-- Figure 6 + layers + RAN: **Future Work / Micro-Twin**
+- Figure 6 + extension scene + controller loop: **Completed Research Extension**
 
 ### Run locally
 
