@@ -26,20 +26,71 @@ PREFERRED_SUBMISSION_ORDER: List[str] = [
     "leaderboard_baseline_v1",
 ]
 
+# Do not scan deeper than this under submissions/ (avoids venvs / accidents).
+_MAX_SUBMISSION_DEPTH = 4
+
+
+def resolve_repo_root(anchor: Optional[Path] = None) -> Path:
+    """
+    Resolve the repository root without relying on the process cwd.
+
+    Walks upward from ``anchor`` (default: this file) looking for ``submissions/``
+    or ``src/edge_ran_gary``. Falls back to three parents of this file
+    (``src/edge_ran_gary/submission_adapter.py`` -> repo root).
+    """
+    start = (anchor or Path(__file__)).resolve()
+    for p in [start, *start.parents]:
+        subs = p / "submissions"
+        if subs.is_dir():
+            return p
+        if (p / "src" / "edge_ran_gary").is_dir():
+            return p
+    # Default: .../repo/src/edge_ran_gary/submission_adapter.py -> parents[2] == repo
+    return Path(__file__).resolve().parents[2]
+
+
+def submission_package_path(repo_root: Path, folder_name: str) -> Path:
+    """
+    Path to ``submissions/<folder_name>/`` where *folder_name* may be nested
+    (e.g. ``leaderboard_baseline_v1/test3k``). Safe for POSIX paths; normalizes
+    backslashes to slashes.
+    """
+    fn = (folder_name or "").replace("\\", "/").strip("/")
+    if not fn:
+        return (repo_root / "submissions" / "_invalid").resolve()
+    return repo_root.joinpath("submissions", *fn.split("/")).resolve()
+
 
 def discover_submission_folders(repo_root: Path) -> List[str]:
-    """Folders under submissions/ that contain main.py."""
-    sub = repo_root / "submissions"
+    """
+    Discover packages under ``submissions/**/main.py`` up to depth
+    ``_MAX_SUBMISSION_DEPTH`` (relative to ``submissions``), plus stable sort
+    with ``PREFERRED_SUBMISSION_ORDER`` applied to the *top-level* segment.
+    """
+    sub = (repo_root / "submissions").resolve()
     if not sub.is_dir():
         return []
-    found: List[str] = []
-    for p in sub.iterdir():
-        if p.is_dir() and (p / "main.py").is_file():
-            found.append(p.name)
+    found: set[str] = set()
+    try:
+        for main_py in sub.rglob("main.py"):
+            if "__pycache__" in main_py.parts:
+                continue
+            try:
+                rel_parent = main_py.parent.relative_to(sub)
+            except ValueError:
+                continue
+            if any(part.startswith(".") for part in rel_parent.parts):
+                continue
+            if len(rel_parent.parts) > _MAX_SUBMISSION_DEPTH:
+                continue
+            found.add(rel_parent.as_posix())
+    except OSError:
+        return []
 
     def sort_key(name: str) -> Tuple[int, str]:
-        if name in PREFERRED_SUBMISSION_ORDER:
-            return (PREFERRED_SUBMISSION_ORDER.index(name), name)
+        top = name.split("/")[0]
+        if top in PREFERRED_SUBMISSION_ORDER:
+            return (PREFERRED_SUBMISSION_ORDER.index(top), name)
         return (len(PREFERRED_SUBMISSION_ORDER), name)
 
     return sorted(found, key=sort_key)
@@ -130,7 +181,7 @@ def run_evaluate_on_iq_array(
 
 def submission_folder_info(repo_root: Path, folder_name: str) -> Dict[str, Any]:
     """Lightweight read-only summary for UI (no execution)."""
-    d = repo_root / "submissions" / folder_name
+    d = submission_package_path(repo_root, folder_name)
     out: Dict[str, Any] = {
         "folder": folder_name,
         "main_py": (d / "main.py").is_file(),
