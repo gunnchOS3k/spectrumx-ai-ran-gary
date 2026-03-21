@@ -82,6 +82,8 @@ try:
         load_submission_module as _sa_load_submission_module,
         run_evaluate_on_iq_array as _sa_run_evaluate_on_iq_array,
         submission_folder_info as _sa_submission_folder_info,
+        resolve_repo_root as _sa_resolve_repo_root,
+        submission_package_path as _sa_submission_package_path,
     )
 
     _SUBMISSION_ADAPTER_OK = True
@@ -92,6 +94,8 @@ except Exception:
     _sa_load_submission_module = None  # type: ignore
     _sa_run_evaluate_on_iq_array = None  # type: ignore
     _sa_submission_folder_info = None  # type: ignore
+    _sa_resolve_repo_root = None  # type: ignore
+    _sa_submission_package_path = None  # type: ignore
 
 SUBMISSION_MODEL_FINAL = "Final Submission (Best Known)"
 SUBMISSION_MODEL_EXPLORER = "Submission Explorer"
@@ -322,21 +326,65 @@ def _features_dataframe(iq: np.ndarray, sample_rate: float):
 
 
 def _repo_root() -> Path:
+    """Repository root — never uses process CWD; anchored to this file + adapter fallbacks."""
+    if _SUBMISSION_ADAPTER_OK and _sa_resolve_repo_root is not None:
+        try:
+            return _sa_resolve_repo_root(Path(__file__))
+        except Exception:
+            pass
     return Path(__file__).resolve().parent.parent
+
+
+def _submission_dir(repo_root: Path, folder_name: str | None) -> Path | None:
+    """Absolute path to ``submissions/<pkg>/`` (supports nested ``a/b`` package names)."""
+    if not folder_name:
+        return None
+    if _SUBMISSION_ADAPTER_OK and _sa_submission_package_path is not None:
+        return _sa_submission_package_path(repo_root, str(folder_name))
+    return (repo_root / "submissions" / folder_name).resolve()
+
+
+# Contrast-safe custom HTML (explicit dark text on light gray — judge-safe in light & dark Streamlit themes).
+def _judge_html_card(title: str, body_inner_html: str, *, tone: str = "gray") -> str:
+    bg = "#ced4da" if tone == "gray" else "#b8c2cc"
+    return (
+        f"<div style='border:1px solid #212529;border-radius:12px;padding:14px 16px;background:{bg};"
+        f"color:#212529;box-shadow:0 1px 3px rgba(0,0,0,0.12);'>"
+        f"<div style='font-weight:700;font-size:16px;color:#212529;margin-bottom:8px'>{title}</div>"
+        f"<div style='font-size:13px;color:#212529;line-height:1.55'>{body_inner_html}</div></div>"
+    )
+
+
+def _judge_html_card_sm(html_inner: str) -> str:
+    return (
+        "<div style='border:1px solid #495057;border-radius:10px;padding:10px 12px;background:#dee2e6;"
+        "color:#212529;min-height:118px;box-shadow:0 1px 2px rgba(0,0,0,0.08);'>"
+        f"{html_inner}</div>"
+    )
 
 
 @st.cache_data
 def scan_submissions_inventory(repo_root_str: str) -> list:
-    """Read-only inventory of submissions/* folders (no competition data)."""
-    root = Path(repo_root_str)
+    """Read-only inventory of submissions packages (nested ``a/b`` supported; no competition data)."""
+    root = Path(repo_root_str).resolve()
     sub_root = root / "submissions"
     rows: list = []
     if not sub_root.is_dir():
         return rows
-    for p in sorted(sub_root.iterdir()):
-        if not p.is_dir():
+    if _SUBMISSION_ADAPTER_OK and _sa_discover_submission_folders is not None:
+        try:
+            folder_names = list(_sa_discover_submission_folders(root))
+        except Exception:
+            folder_names = []
+    else:
+        folder_names = []
+        for p in sorted(sub_root.iterdir()):
+            if p.is_dir() and (p / "main.py").is_file():
+                folder_names.append(p.name)
+    for name in folder_names:
+        p = _submission_dir(root, name)
+        if p is None or not p.is_dir():
             continue
-        name = p.name
         main_py = p / "main.py"
         req = p / "user_reqs.txt"
         artifacts: list = []
@@ -609,8 +657,8 @@ def _pick_core_submission_row(metrics_df, summary_df, inventory_rows: list[dict]
 
 def _compute_submission_artifact_footprint(repo_root: Path, submission_folder_name: str) -> tuple[float, str]:
     """Sum local learned artifact sizes for a submission folder (read-only)."""
-    sub_root = repo_root / "submissions" / submission_folder_name
-    if not sub_root.is_dir():
+    sub_root = _submission_dir(repo_root, submission_folder_name)
+    if sub_root is None or not sub_root.is_dir():
         return 0.0, "0 KB"
     total_bytes = 0
     matches: list[str] = []
@@ -631,8 +679,9 @@ def _compute_submission_artifact_footprint(repo_root: Path, submission_folder_na
 
 def _infer_inference_path(repo_root: Path, submission_folder_name: str) -> str:
     """Lightweight heuristic: trained artifact loads vs fallback baseline."""
-    main_path = repo_root / "submissions" / submission_folder_name / "main.py"
-    if not main_path.is_file():
+    pkg = _submission_dir(repo_root, submission_folder_name)
+    main_path = (pkg / "main.py") if pkg is not None else None
+    if main_path is None or not main_path.is_file():
         return "inference path unknown (missing main.py)"
     txt = _safe_read_text(main_path).lower()
 
@@ -689,14 +738,20 @@ def _metrics_row_for_submission(mdf, folder_name: str | None) -> dict | None:
     """Return first CSV row whose submission/folder/name column matches the package folder."""
     if mdf is None or pd is None or not folder_name:
         return None
+    fn = str(folder_name).replace("\\", "/").strip("/")
+    targets = {fn, str(folder_name)}
+    if "/" in fn:
+        targets.add(fn.split("/")[-1])
     for col in ("submission", "folder", "name"):
         if col in mdf.columns:
-            mask = mdf[col].astype(str) == str(folder_name)
-            if mask.any():
-                try:
-                    return mdf.loc[mask].iloc[0].to_dict()
-                except Exception:
-                    return None
+            colvals = mdf[col].astype(str)
+            for t in targets:
+                mask = colvals == t
+                if mask.any():
+                    try:
+                        return mdf.loc[mask].iloc[0].to_dict()
+                    except Exception:
+                        return None
     return None
 
 
@@ -778,8 +833,8 @@ def _run_judge_submission_inference(repo_root: Path, folder_name: str | None, iq
         st.session_state["judge_live_pred"] = None
         st.session_state["judge_live_conf"] = None
         return
-    pkg = (repo_root / "submissions" / folder_name).resolve()
-    if not pkg.is_dir():
+    pkg = _submission_dir(repo_root, folder_name)
+    if pkg is None or not pkg.is_dir():
         st.session_state["judge_live_pred"] = None
         st.session_state["judge_live_inf_err"] = "Submission folder not found."
         return
@@ -799,6 +854,57 @@ def _run_judge_submission_inference(repo_root: Path, folder_name: str | None, iq
         st.session_state["judge_live_pred"] = None
         st.session_state["judge_live_conf"] = None
         st.session_state["judge_live_inf_err"] = f"{type(e).__name__}: {e}"[:500]
+
+
+def _render_judge_trust_evidence_panel(
+    repo_root: Path,
+    mdf,
+    core_row: dict | None,
+    active_pkg: str | None,
+    inv_count: int,
+):
+    """Judge-facing: structured evidence + explicit judged / extension / scaling separation."""
+    st.markdown("### Why judges can trust this — evidence")
+    st.markdown(
+        _judge_html_card(
+            "Three buckets (do not blur)",
+            "<ul style='margin:0;padding-left:20px'>"
+            "<li><b>Core judged submission</b> — SpectrumX DAC detector trained/evaluated on <b>official competition data</b> (offline). "
+            "This app loads <b>only local CSV summaries</b> and runs <code>evaluate()</code> on <b>synthetic demo IQ</b> — never official IQ in-cloud.</li>"
+            "<li><b>Completed research extension</b> — Gary site-aware digital twin + AI-RAN-style controller demo (non-scoring prototype in this UI).</li>"
+            "<li><b>Next realism scaling</b> — DeepMIMO (site-specific channel workflow) and Sionna RT (ray-traced propagation); file hooks only until pipelines land.</li>"
+            "</ul>",
+        ),
+        unsafe_allow_html=True,
+    )
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown("**Final submission card (from CSV)**")
+        if core_row and any(v not in (None, "", "—") for k, v in core_row.items() if k != "artifact_present"):
+            st.metric("Submission (CSV)", str(core_row.get("submission", "—")))
+            st.metric("Best rank (if in CSV)", str(core_row.get("leaderboard_rank", "—")))
+            st.metric("Best accuracy (if in CSV)", str(core_row.get("leaderboard_accuracy", "—")))
+            st.metric("Runtime (if in CSV)", str(core_row.get("runtime", core_row.get("runtime_per_sample", "—"))))
+        else:
+            st.warning(
+                "No populated row from `submissions/submission_metrics.csv`. **Expected columns** (flexible names): "
+                "`submission` / `folder`, `leaderboard_rank`, `leaderboard_accuracy`, `model_family`, `threshold`, `runtime`."
+            )
+    with c2:
+        st.markdown("**Active model path in this app**")
+        st.metric("Submission packages discovered", str(inv_count))
+        st.metric("Package selected for live inference", str(active_pkg or "—"))
+        if active_pkg and _SUBMISSION_ADAPTER_OK and _sa_submission_folder_info is not None:
+            inf = _sa_submission_folder_info(repo_root, str(active_pkg))
+            st.caption(
+                f"`main.py` present: **{bool(inf.get('main_py'))}** · "
+                f"Artifacts (npz/pkl/joblib): **{bool(inf.get('artifact_present'))}** · "
+                f"Guess: **{inf.get('model_family_guess', 'unknown')}**"
+            )
+        st.caption(
+            f"Repo root resolved: `{repo_root}` (not cwd-dependent). "
+            "Best-known order still prioritizes **leaderboard_v9** when that folder exists."
+        )
 
 
 def _render_judge_gary_micro_twin_3d():
@@ -839,42 +945,40 @@ def _render_judge_gary_micro_twin_3d():
     for col, (num, title, sub) in zip(w, _steps):
         with col:
             st.markdown(
-                f"<div style='border:1px solid #adb5bd;border-radius:10px;padding:10px;background:#fff;min-height:118px'>"
-                f"<div style='font-size:11px;color:#6c757d'>Step {num}</div>"
-                f"<div style='font-weight:700;font-size:13px;margin:4px 0'>{title}</div>"
-                f"<div style='font-size:11px;color:#495057'>{sub}</div></div>",
+                _judge_html_card_sm(
+                    f"<div style='font-size:11px;color:#495057'>Step {num}</div>"
+                    f"<div style='font-weight:700;font-size:13px;color:#212529;margin:4px 0'>{title}</div>"
+                    f"<div style='font-size:11px;color:#212529'>{sub}</div>"
+                ),
                 unsafe_allow_html=True,
             )
 
     ce1, ce2 = st.columns(2)
     with ce1:
         st.markdown(
-            "<div style='border:1px solid #dee2e6;border-radius:14px;padding:16px;background:#f8f9fa'>"
-            "<div style='font-weight:700;font-size:16px;margin-bottom:8px'>Why this is research-grade now</div>"
-            "<div style='font-size:13px;color:#495057'>"
-            "<ul style='margin:0;padding-left:18px'>"
-            "<li><b>Core judged path</b> (separate tab): real SpectrumX DAC detector on official competition data via structured submission + evaluation — not loaded here.</li>"
-            "<li><b>This extension</b>: completed <b>site-aware digital twin</b> with map-visible radio scene (footprints, gNB, hotspots, interference, link proxies).</li>"
-            "<li><b>Explicit control loop</b>: state → action → KPI panel (AI-RAN-style demo, honestly labeled proxies).</li>"
-            "<li><b>Simulation-ready</b>: file paths + hooks for DeepMIMO channels and Sionna RT propagation outputs.</li>"
-            "</ul>"
-            "</div>"
-            "</div>",
+            _judge_html_card(
+                "Why this is research-grade now",
+                "<ul style='margin:0;padding-left:18px'>"
+                "<li><b>Core judged path</b> (separate tab): SpectrumX DAC detector on official data — not loaded in this tab.</li>"
+                "<li><b>This extension</b>: site-aware digital twin — map layers for gNB, demand, interference, propagation proxies.</li>"
+                "<li><b>Control loop</b>: explicit state → action → KPI (AI-RAN-style demo).</li>"
+                "<li><b>Simulation hooks</b>: DeepMIMO + Sionna RT output paths (stubs until real artifacts).</li>"
+                "</ul>",
+            ),
             unsafe_allow_html=True,
         )
     with ce2:
         st.markdown(
-            "<div style='border:1px solid #dee2e6;border-radius:14px;padding:16px;background:#ffffff'>"
-            "<div style='font-weight:700;font-size:16px;margin-bottom:8px'>Why this matters for 6G PhD research</div>"
-            "<div style='font-size:13px;color:#495057'>"
-            "<ul style='margin:0;padding-left:18px'>"
-            "<li><b>AI-native RAN</b>: sensing forms a <b>belief</b> that drives transmit / spectrum decisions.</li>"
-            "<li><b>Digital twins</b>: anchor-site geometry + demand story grounds abstract ML in place.</li>"
-            "<li><b>Propagation-aware control</b>: LOS / penetration / challenge proxies preview where ray-tracing will plug in.</li>"
-            "<li><b>Equitable access</b>: controller explicitly trades coexistence, service, and community benefit.</li>"
-            "</ul>"
-            "</div>"
-            "</div>",
+            _judge_html_card(
+                "Why this matters for 6G PhD research",
+                "<ul style='margin:0;padding-left:18px'>"
+                "<li><b>AI-native RAN</b>: sensing → belief → control.</li>"
+                "<li><b>Digital twins</b>: place-based RF storytelling.</li>"
+                "<li><b>Propagation-aware</b>: where ray-tracing / channels will attach.</li>"
+                "<li><b>Equity</b>: coexistence vs service trade-offs in KPIs.</li>"
+                "</ul>",
+                tone="gray",
+            ),
             unsafe_allow_html=True,
         )
 
@@ -1062,8 +1166,8 @@ def _render_judge_gary_micro_twin_3d():
     # --- Central 3D canvas ---
     st.markdown("### Interactive 3D — Gary anchor sites (wireless scene)")
     st.caption(
-        "Pickable **extruded footprints** (coexistence stress tint). **Blue** = hypothetical gNB; **cyan lines** = gNB→site **serving-link proxy** (not ray-traced); "
-        "**violet** = user-demand hotspot; **red** = interference **region proxy**."
+        "Pickable layers (hover): **buildings** (coexistence tint) · **blue** gNB · **cyan** serving-link segment · **violet** demand disk · "
+        "**orange** low-7 GHz propagation-stress proxy · **red** interference disk + footprint."
     )
 
     demand_scale = 0.75 + 0.55 * eff_demand
@@ -1149,9 +1253,25 @@ def _render_judge_gary_micro_twin_3d():
             }
         )
 
+    # Low-7 GHz propagation / coupling stress markers (site centroids — explicit proxy layer)
+    prop_rows = []
+    for b in buildings:
+        clon, clat = b["centroid"]
+        pr = b["_prop"]
+        stress = float(pr["challenge_proxy"])
+        prop_rows.append(
+            {
+                "position": [clon, clat],
+                "radius": max(28, int(40 + 55 * stress)),
+                "label": f"LP-7 GHz stress · {b['name'][:22]}",
+                "tip": f"Propagation challenge proxy {stress:.2f} · penetration ~{pr['penetration_db_proxy']:.0f} dB equiv. · not Sionna RT.",
+            }
+        )
+
     try:
         poly_layer = pdk.Layer(
             "PolygonLayer",
+            id="layer-buildings",
             data=buildings,
             get_polygon="polygon",
             get_fill_color="fill_color",
@@ -1165,6 +1285,7 @@ def _render_judge_gary_micro_twin_3d():
         )
         if_poly_layer = pdk.Layer(
             "PolygonLayer",
+            id="layer-if-footprints",
             data=if_polygons,
             get_polygon="polygon",
             get_fill_color="fill_color",
@@ -1176,6 +1297,7 @@ def _render_judge_gary_micro_twin_3d():
         )
         path_layer = pdk.Layer(
             "PathLayer",
+            id="layer-serving-links",
             data=link_rows,
             get_path="path",
             get_color=[26, 188, 156, 220],
@@ -1184,6 +1306,7 @@ def _render_judge_gary_micro_twin_3d():
         )
         demand_layer = pdk.Layer(
             "ScatterplotLayer",
+            id="layer-demand-hotspots",
             data=demand_rows,
             get_position="position",
             get_radius="radius",
@@ -1192,8 +1315,20 @@ def _render_judge_gary_micro_twin_3d():
             line_width_min_pixels=1,
             pickable=True,
         )
+        prop_layer = pdk.Layer(
+            "ScatterplotLayer",
+            id="layer-propagation-proxy",
+            data=prop_rows,
+            get_position="position",
+            get_radius="radius",
+            get_fill_color=[230, 126, 34, 100],
+            get_line_color=[180, 90, 20, 220],
+            line_width_min_pixels=1,
+            pickable=True,
+        )
         if_layer = pdk.Layer(
             "ScatterplotLayer",
+            id="layer-interference-disks",
             data=interference_rows,
             get_position="position",
             get_radius="radius",
@@ -1204,6 +1339,7 @@ def _render_judge_gary_micro_twin_3d():
         )
         gnb_layer = pdk.Layer(
             "ScatterplotLayer",
+            id="layer-gnb",
             data=gnb_rows,
             get_position="position",
             get_radius=95,
@@ -1214,6 +1350,7 @@ def _render_judge_gary_micro_twin_3d():
         )
         text_layer = pdk.Layer(
             "TextLayer",
+            id="layer-labels",
             data=buildings,
             get_position="centroid",
             get_text="name",
@@ -1222,7 +1359,16 @@ def _render_judge_gary_micro_twin_3d():
             pickable=False,
         )
         deck = pdk.Deck(
-            layers=[poly_layer, if_poly_layer, path_layer, demand_layer, if_layer, gnb_layer, text_layer],
+            layers=[
+                poly_layer,
+                if_poly_layer,
+                path_layer,
+                demand_layer,
+                prop_layer,
+                if_layer,
+                gnb_layer,
+                text_layer,
+            ],
             initial_view_state=pdk.ViewState(
                 latitude=41.58425,
                 longitude=-87.3398,
@@ -1264,6 +1410,7 @@ def _render_judge_gary_micro_twin_3d():
             "<span style='display:inline-block;width:14px;height:14px;background:#3498db;border-radius:3px;vertical-align:middle;margin-right:6px'></span>Hypothetical gNB / access node<br/>"
             "<span style='display:inline-block;width:14px;height:3px;background:#1abc9c;vertical-align:middle;margin-right:6px'></span>Serving-link segment (straight-line proxy)<br/>"
             "<span style='display:inline-block;width:14px;height:14px;background:rgba(155,89,182,0.5);border-radius:50%;vertical-align:middle;margin-right:6px'></span>User demand hotspot (radius ∝ scenario)<br/>"
+            "<span style='display:inline-block;width:14px;height:14px;background:rgba(230,126,34,0.55);border-radius:50%;vertical-align:middle;margin-right:6px'></span>Low-7 GHz propagation-stress proxy (centroid)<br/>"
             "<span style='display:inline-block;width:14px;height:14px;background:rgba(231,76,60,0.45);border-radius:50%;vertical-align:middle;margin-right:6px'></span>Interference disk proxy<br/>"
             "<span style='display:inline-block;width:14px;height:14px;background:rgba(231,76,60,0.35);border:1px solid #a93226;vertical-align:middle;margin-right:6px'></span>Interference footprint proxy (polygon)</div>",
             unsafe_allow_html=True,
@@ -1368,8 +1515,8 @@ def _render_judge_gary_micro_twin_3d():
     for i, persona in enumerate(selected_building["users"]):
         with uc[i]:
             st.markdown(
-                f"<div style='border:1px solid #dee2e6;border-radius:10px;padding:12px;background:#f8f9fa;text-align:center'>"
-                f"<strong>{persona}</strong></div>",
+                "<div style='border:1px solid #495057;border-radius:10px;padding:12px;background:#dee2e6;text-align:center;"
+                f"color:#212529'><strong style='color:#212529'>{persona}</strong></div>",
                 unsafe_allow_html=True,
             )
     st.caption(
@@ -1408,6 +1555,38 @@ def _render_judge_gary_micro_twin_3d():
     s4.metric("Radio env. score (proxy)", f"{radio_env_favorability:.2f}")
     s5.metric("Coexistence risk (proxy)", f"{coexistence_risk:.2f}")
     st.caption(det_belief_line)
+
+    st.markdown("##### State vector (structured — AI-RAN loop)")
+    if pd is not None:
+        st.dataframe(
+            pd.DataFrame(
+                [
+                    {
+                        "Site": selected_building["name"][:48],
+                        "Demand (proxy)": round(eff_demand, 3),
+                        "Occupancy belief": occ_belief,
+                        "Interference risk (proxy)": round(eff_env, 3),
+                        "Propagation challenge": round(float(_sp["challenge_proxy"]), 3),
+                        "Detector output": occ_word,
+                        "Coexistence (site proxy)": round(coexistence_risk, 3),
+                    }
+                ]
+            ),
+            use_container_width=True,
+            hide_index=True,
+        )
+    else:
+        st.json(
+            {
+                "site": selected_building["name"],
+                "demand_proxy": eff_demand,
+                "occupancy_belief": occ_belief,
+                "interference_risk_proxy": eff_env,
+                "propagation_challenge": float(_sp["challenge_proxy"]),
+                "detector_output": occ_word,
+                "coexistence_site_proxy": coexistence_risk,
+            }
+        )
 
     candidates = [
         ("hold", "Hold", "Wait / sense / avoid adding energy."),
@@ -1451,10 +1630,11 @@ def _render_judge_gary_micro_twin_3d():
     for col, (title, headline, sub) in zip(pipe, stages):
         with col:
             st.markdown(
-                f"<div style='border:1px solid #ced4da;border-radius:10px;padding:10px;min-height:150px;background:#ffffff'>"
-                f"<div style='font-size:12px;color:#6c757d'>{title}</div>"
-                f"<div style='font-weight:600;margin:6px 0;font-size:13px'>{headline}</div>"
-                f"<div style='font-size:11px;color:#495057'>{sub}</div></div>",
+                _judge_html_card_sm(
+                    f"<div style='font-size:12px;color:#495057'>{title}</div>"
+                    f"<div style='font-weight:600;margin:6px 0;font-size:13px;color:#212529'>{headline}</div>"
+                    f"<div style='font-size:11px;color:#212529'>{sub}</div>"
+                ),
                 unsafe_allow_html=True,
             )
 
@@ -1469,11 +1649,11 @@ def _render_judge_gary_micro_twin_3d():
             st.caption(blurb)
 
     st.markdown(
-        "<div style='border-left:4px solid #6610f2;padding:10px 14px;background:#f8f5ff;border-radius:0 10px 10px 0;margin:10px 0'>"
-        "<strong>Why this is AI-RAN (in this demo)</strong><br/>"
-        "<span style='font-size:13px;color:#495057'>"
-        "<b>Sensing</b> updates occupancy / structure belief from IQ. <b>Belief + site + propagation proxies</b> shape a discrete <b>action</b>. "
-        "<b>Actions</b> intentionally trade <b>coexistence</b>, <b>service</b>, and <b>equitable community benefit</b> — the KPI row makes that trade-off visible.</span></div>",
+        "<div style='border-left:5px solid #5b21b6;padding:12px 16px;background:#e9e3f5;border:1px solid #212529;border-radius:0 12px 12px 0;margin:10px 0'>"
+        "<strong style='color:#212529'>Why this is AI-RAN (in this demo)</strong><br/>"
+        "<span style='font-size:13px;color:#212529;line-height:1.55'>"
+        "<b>Sensing</b> updates belief from IQ → <b>state vector</b> (site, demand, interference, propagation) → <b>discrete action</b> → <b>KPI</b> row "
+        "(coverage, coexistence, fairness, energy, continuity). This is the same <b>closed-loop story</b> as AI-native RAN research prototypes — here as a judge-safe demo.</span></div>",
         unsafe_allow_html=True,
     )
 
@@ -1523,39 +1703,39 @@ def _render_judge_gary_micro_twin_3d():
     sb1, sb2, sb3 = st.columns(3)
     with sb1:
         st.markdown(
-            "<div style='border:1px solid #ced4da;border-radius:12px;padding:14px;background:#f8fff9;min-height:220px'>"
-            "<div style='font-weight:700;color:#198754;margin-bottom:8px'>① Implemented now</div>"
-            "<ul style='font-size:13px;color:#495057;margin:0;padding-left:18px;line-height:1.5'>"
-            "<li>Site-aware <b>digital twin</b> (footprints, gNB, hotspots, interference, link proxies)</li>"
-            "<li><b>SpectrumX detector</b> via submission packages (Judge demo IQ) — <b>not</b> competition IQ in-app</li>"
-            "<li><b>AI-RAN-style</b> discrete controller + KPI proxies</li>"
-            "</ul></div>",
+            _judge_html_card(
+                "① Implemented now",
+                "<ul style='margin:0;padding-left:18px;line-height:1.5'>"
+                "<li><b>Digital twin</b>: map layers (buildings, gNB, demand, interference, propagation proxy, links).</li>"
+                "<li><b>Detector</b>: <code>submissions/&lt;pkg&gt;/main.py</code> + synthetic demo IQ only.</li>"
+                "<li><b>Controller</b>: discrete actions + KPI proxies.</li></ul>",
+            ),
             unsafe_allow_html=True,
         )
     with sb2:
         st.markdown(
-            "<div style='border:1px solid #ced4da;border-radius:12px;padding:14px;background:#f0f7ff;min-height:220px'>"
-            "<div style='font-weight:700;color:#0d6efd;margin-bottom:8px'>② Ready path — DeepMIMO</div>"
-            "<ul style='font-size:13px;color:#495057;margin:0;padding-left:18px;line-height:1.5'>"
-            "<li>Drop channels / features under <code>data/simulation/deepmimo/</code></li>"
-            "<li>Suggested: <code>scenario_meta.json</code>, <code>channel_features.npz</code>, <code>site_sinr_proxy.csv</code></li>"
-            "<li>Stub loader returns <b>no overlay</b> until a real parser is added</li>"
-            "</ul></div>",
+            _judge_html_card(
+                "② Integration path — DeepMIMO",
+                "<ul style='margin:0;padding-left:18px;line-height:1.5'>"
+                "<li><b>Research role</b>: reproducible <b>site-specific MIMO channels</b> and scenario matrices for benchmarking / ML features.</li>"
+                "<li><b>Drop zone</b>: <code>data/simulation/deepmimo/</code> — e.g. <code>scenario_meta.json</code>, <code>channel_features.npz</code>.</li>"
+                "<li><b>Status</b>: stub loader — <b>no</b> channel overlay in UI until parser lands.</li></ul>",
+            ),
             unsafe_allow_html=True,
         )
-        st.caption(f"DeepMIMO overlay loaded: **{'yes' if _dm_stub else 'no (stub only)'}**")
+        st.caption(f"DeepMIMO artifacts driving UI: **{'yes' if _dm_stub else 'no (stub only)'}**")
     with sb3:
         st.markdown(
-            "<div style='border:1px solid #ced4da;border-radius:12px;padding:14px;background:#faf5ff;min-height:220px'>"
-            "<div style='font-weight:700;color:#6f42c1;margin-bottom:8px'>③ Ready path — Sionna RT</div>"
-            "<ul style='font-size:13px;color:#495057;margin:0;padding-left:18px;line-height:1.5'>"
-            "<li>Drop ray-tracing summaries under <code>data/simulation/sionna_rt/</code></li>"
-            "<li>Suggested: <code>coverage_grid.geojson</code>, <code>path_loss_summary.json</code></li>"
-            "<li>Stub loader returns <b>no overlay</b> until GeoJSON/JSON adapters exist</li>"
-            "</ul></div>",
+            _judge_html_card(
+                "③ Integration path — Sionna RT",
+                "<ul style='margin:0;padding-left:18px;line-height:1.5'>"
+                "<li><b>Research role</b>: <b>ray-traced propagation</b>, materials, diffraction — replace straight-link / disk proxies with measured-style path loss.</li>"
+                "<li><b>Drop zone</b>: <code>data/simulation/sionna_rt/</code> — e.g. <code>coverage_grid.geojson</code>, <code>path_loss_summary.json</code>.</li>"
+                "<li><b>Status</b>: stub loader — <b>no</b> GeoJSON heatmap until adapter lands.</li></ul>",
+            ),
             unsafe_allow_html=True,
         )
-        st.caption(f"Sionna RT overlay loaded: **{'yes' if _sn_stub else 'no (stub only)'}**")
+        st.caption(f"Sionna RT artifacts driving UI: **{'yes' if _sn_stub else 'no (stub only)'}**")
 
     if _SIM_INTEGRATION_HOOKS_OK and describe_simulation_backbone_status:
         try:
@@ -1565,11 +1745,11 @@ def _render_judge_gary_micro_twin_3d():
         except Exception:
             st.caption("Could not read simulation directory status.")
 
-    st.markdown("#### Next realism scaling (6G research workflow)")
+    st.markdown("#### Next realism scaling (concrete research workflow)")
     st.info(
-        "**DeepMIMO** — site-specific channel generation / scenario benchmarking for ML and controller replay. "
-        "**Sionna RT** — ray-traced propagation and material-aware coverage maps at low-7 GHz. "
-        "Both are **explicit next steps**; the **judged** DAC detector remains the standalone submission on official data."
+        "**DeepMIMO** → export or simulate **CSI / spatial channels** per anchor footprint; feed `data/simulation/deepmimo/` for SINR/feature panels. "
+        "**Sionna RT** → **ray-tracing** outputs (path loss grids, LOS maps) under `data/simulation/sionna_rt/` to replace cyan-link and orange-disk **proxies**. "
+        "**Judged detector** unchanged — official scoring stays on competition data offline."
     )
 
     with st.expander("Optional local assets & expected paths (graceful if missing)", expanded=False):
@@ -1650,6 +1830,31 @@ with st.sidebar:
             st.session_state["judge_active_submission_folder"] = st.session_state.get(
                 "judge_explorer_submission_folder", _j_best
             )
+
+        with st.expander("Submission packages (diagnostic)", expanded=False):
+            st.caption("Read-only: verifies discovery is repo-anchored (not cwd-dependent).")
+            st.markdown(f"**Repo root:** `{_j_repo.resolve()}`")
+            st.markdown(f"**Packages found (`submissions/**/main.py`):** {len(_j_folders)}")
+            _v9 = any(f == "leaderboard_v9" or f.startswith("leaderboard_v9/") for f in _j_folders)
+            st.markdown(
+                f"**leaderboard_v9 discoverable:** {'✅ yes — eligible for Final / Best Known' if _v9 else '— no (not on disk in this clone)'}"
+            )
+            st.markdown(f"**Final / Best Known selection:** `{_j_best}`")
+            _act = st.session_state.get("judge_active_submission_folder")
+            st.markdown(f"**Active for live inference:** `{_act}`")
+            if _act and _SUBMISSION_ADAPTER_OK and _sa_submission_folder_info is not None:
+                _di = _sa_submission_folder_info(_j_repo, str(_act))
+                st.markdown(
+                    f"- `main.py`: **{'yes' if _di.get('main_py') else 'no'}**  \n"
+                    f"- Learned artifacts: **{'yes' if _di.get('artifact_present') else 'no'}** "
+                    f"({', '.join(_di.get('artifacts') or []) or 'none'})"
+                )
+            if _j_folders:
+                st.markdown("**Discovered folders:**")
+                for _fn in _j_folders:
+                    st.caption(f"• `{_fn}`")
+            else:
+                st.warning("No packages found. Expected `submissions/<pkg>/main.py` (nested `a/b` allowed).")
 
         uploaded_file = None
         is_int16_interleaved = False
@@ -1852,6 +2057,15 @@ if judge_mode_enabled:
     # Pick a submission folder name for efficiency scans (only if we have a core row).
     core_submission_name = str(core_row.get("submission")) if core_row and core_row.get("submission") is not None else None
 
+    _pkg_ct = len(_discover_submissions_safe(repo_root))
+    _render_judge_trust_evidence_panel(
+        repo_root,
+        mdf,
+        core_row if isinstance(core_row, dict) else None,
+        st.session_state.get("judge_active_submission_folder"),
+        _pkg_ct,
+    )
+
     # Judge-tour tabs
     tabs = st.tabs(
         [
@@ -1885,26 +2099,27 @@ This dashboard presents:
         ccore, cext, cnext = st.columns(3)
         with ccore:
             st.markdown(
-                "<div style='border:1px solid #e9ecef;border-radius:14px;padding:12px;background:#ffffff'>"
-                "<div style='font-weight:700'>Core Judged Submission</div>"
-                "<div style='font-size:13px;color:#495057'>SpectrumX DAC detector (official scoring basis)</div>"
-                "</div>",
+                _judge_html_card(
+                    "Core judged submission",
+                    "SpectrumX DAC detector — official scoring basis (metrics from local CSVs; IQ judged offline).",
+                ),
                 unsafe_allow_html=True,
             )
         with cext:
             st.markdown(
-                "<div style='border:1px solid #e9ecef;border-radius:14px;padding:12px;background:#ffffff'>"
-                "<div style='font-weight:700'>Completed Research Extension</div>"
-                "<div style='font-size:13px;color:#495057'>Gary digital twin + AI-RAN controller demo (implemented now)</div>"
-                "</div>",
+                _judge_html_card(
+                    "Completed research extension",
+                    "Gary digital twin + AI-RAN-style controller — non-scoring demo in this app.",
+                    tone="gray",
+                ),
                 unsafe_allow_html=True,
             )
         with cnext:
             st.markdown(
-                "<div style='border:1px solid #e9ecef;border-radius:14px;padding:12px;background:#ffffff'>"
-                "<div style='font-weight:700'>Next Research Scaling Path</div>"
-                "<div style='font-size:13px;color:#495057'>DeepMIMO / Sionna RT realism upgrades (next layer)</div>"
-                "</div>",
+                _judge_html_card(
+                    "Next realism scaling",
+                    "<b>DeepMIMO</b>: site-specific channel workflow. <b>Sionna RT</b>: ray-traced propagation. Hooks + drop dirs in repo.",
+                ),
                 unsafe_allow_html=True,
             )
         st.caption(
