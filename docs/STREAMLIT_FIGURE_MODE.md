@@ -76,7 +76,9 @@ The shared demo generator (`_generate_synthetic_demo_iq`):
 
 ### How the site-aware digital twin is structured
 
-See **Judge Mode → Future Work / Micro-Twin**: five layers (Site, Users, Radio environment, Controller, Outcome) with explicit **implemented / proxy / future** tags, plus the **RAN Controller** loop and **Research-Grade 6G** subsection (DeepMIMO / Sionna RT as **future work** unless your code truly uses them in the detector).
+Open **Judge Mode → Future Work / Micro-Twin** for the full **conference-style** demo: **central 3D pydeck** (buildings + demand / interference / gNB overlays), **scenario toolbar** (including school hours & event mode), **radio-environment cards**, **users-at-site** personas, **five-step RAN pipeline**, **proxy KPI row**, plain-language **RF × place** text, and a **6G roadmap** panel (DeepMIMO / Sionna RT / beam–coverage as **future integration**). Details: **`docs/MICROTWIN_REALISM_PLAN.md`**.
+
+The **Micro-Twin (Future Work)** tab in Figure Mode still points you to Judge Mode for the 3D scene; the twin layout itself lives in `apps/streamlit_app.py` (`_render_judge_gary_micro_twin_3d`).
 
 ### Tabs → Report section mapping
 

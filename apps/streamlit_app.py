@@ -785,44 +785,38 @@ def _run_judge_submission_inference(repo_root: Path, folder_name: str | None, iq
 
 
 def _render_judge_gary_micro_twin_3d():
+    """
+    Digital Twin realism pass (Future Work only): anchor-site 3D scene, radio/user proxies,
+    explicit RAN pipeline, KPI cards, 6G roadmap. Core SpectrumX detector remains separate.
+    """
     if pdk is None:
         st.warning(
             "pydeck is not available in this runtime. Install `pydeck` locally to render the 3D Gary Micro-Twin building scene."
         )
         return
 
-    st.subheader("Figure 6: Gary Micro-Twin (Future Work) 3D Building Scene")
-    st.caption("Interactive visualization for future impact storytelling. It is NOT used as the basis of the official leaderboard evaluation.")
-
-    st.markdown("**Select site & scenario overlay**")
-    b_demand = st.selectbox(
-        "Demand level (scenario overlay)",
-        options=["Low", "Medium", "High"],
-        index=1,
-        key="judge_mt_demand",
-    )
-    b_occupancy = st.selectbox(
-        "Occupancy prior (scenario overlay)",
-        options=["Low", "Medium", "High"],
-        index=1,
-        key="judge_mt_occupancy_prior",
-    )
-    b_signal_env = st.selectbox(
-        "Signal environment assumption",
-        options=["Quieter / low interference", "Moderate interference", "Noisier / high interference"],
-        index=1,
-        key="judge_mt_signal_env",
+    # --- Non-scoring banner (do not hide judged vs future work) ---
+    st.warning(
+        "**Future work / research extension:** This tab is **not** the SpectrumX DAC judged detector. "
+        "It is a **site-aware AI-RAN + Micro-Twin demo** for judges and 6G-style research storytelling."
     )
 
-    # Approximate footprint polygons for screenshot-friendly 3D extrusion.
-    # Coordinates are intentionally approximate (demo-only), defined manually.
+    st.markdown("## Gary Micro-Twin — site-aware digital twin (AI-RAN demo)")
+    st.caption(
+        "**Figure: Gary anchor-site Micro-Twin** — extruded footprints, hypothetical gNB / demand / interference overlays (proxies). "
+        "No official competition data."
+    )
+
+    # Anchor sites: enriched for conference-demo clarity
     buildings = [
         {
             "id": "city_hall",
             "name": "Gary City Hall",
+            "building_type": "Municipal civic",
             "role": "Civic command center",
-            "impact": "Digital-divide hotspot: resilient sensing supports public safety workflows.",
+            "why_matters": "Services, hearings, and emergency coordination need dependable links when residents need government most.",
             "height_m": 60,
+            "footprint_approx_m2": 4200,
             "polygon": [
                 [-87.3379, 41.5841],
                 [-87.3374, 41.5841],
@@ -830,13 +824,19 @@ def _render_judge_gary_micro_twin_3d():
                 [-87.3379, 41.5837],
             ],
             "risk_bias": 0.55,
+            "users": ["Residents (services)", "Civic staff", "Visitors / filers"],
+            "gnb_offset_lon": 0.00022,
+            "gnb_offset_lat": 0.00012,
+            "demand_base_radius_m": 200,
         },
         {
             "id": "public_library",
             "name": "Gary Public Library & Cultural Center",
+            "building_type": "Public library & cultural venue",
             "role": "Learning & inclusion hub",
-            "impact": "Better connectivity & sensing improve equitable access to information and services.",
+            "why_matters": "Patrons rely on Wi‑Fi and future cellular for homework, job search, and digital literacy.",
             "height_m": 45,
+            "footprint_approx_m2": 5100,
             "polygon": [
                 [-87.3338, 41.5846],
                 [-87.3333, 41.5846],
@@ -844,13 +844,19 @@ def _render_judge_gary_micro_twin_3d():
                 [-87.3338, 41.5842],
             ],
             "risk_bias": 0.40,
+            "users": ["Patrons", "Study-room users", "Public-access learners"],
+            "gnb_offset_lon": -0.00018,
+            "gnb_offset_lat": 0.00015,
+            "demand_base_radius_m": 240,
         },
         {
             "id": "west_side_leadership",
             "name": "West Side Leadership Academy",
+            "building_type": "K–12 school campus",
             "role": "Education & workforce pipeline",
-            "impact": "Sensing + AI-RAN can reduce coverage gaps for students and community partners.",
+            "why_matters": "Students and teachers need consistent access for instruction, safety comms, and take-home equity.",
             "height_m": 35,
+            "footprint_approx_m2": 3800,
             "polygon": [
                 [-87.3482, 41.5852],
                 [-87.3477, 41.5852],
@@ -858,10 +864,66 @@ def _render_judge_gary_micro_twin_3d():
                 [-87.3482, 41.5848],
             ],
             "risk_bias": 0.65,
+            "users": ["Students", "Teachers", "Staff"],
+            "gnb_offset_lon": 0.0002,
+            "gnb_offset_lat": -0.00014,
+            "demand_base_radius_m": 260,
         },
     ]
 
-    # Map scenario selections to numeric risk drivers.
+    # --- Scenario controls (above map): compact toolbar ---
+    st.markdown("### Scenario & site")
+    tb1, tb2, tb3, tb4, tb5 = st.columns([1, 1, 1, 1, 1.2])
+    with tb1:
+        b_demand = st.selectbox(
+            "Demand",
+            options=["Low", "Medium", "High"],
+            index=1,
+            key="judge_mt_demand",
+            help="Traffic / throughput stress (proxy).",
+        )
+    with tb2:
+        b_occupancy = st.selectbox(
+            "Occupancy prior",
+            options=["Low", "Medium", "High"],
+            index=1,
+            key="judge_mt_occupancy_prior",
+        )
+    with tb3:
+        b_signal_env = st.selectbox(
+            "RF environment",
+            options=["Quieter / low interference", "Moderate interference", "Noisier / high interference"],
+            index=1,
+            key="judge_mt_signal_env",
+        )
+    with tb4:
+        b_time = st.selectbox(
+            "Time context",
+            options=["School hours", "After hours", "Weekend"],
+            index=0,
+            key="judge_mt_time_context",
+        )
+    with tb5:
+        b_event = st.selectbox(
+            "Event mode",
+            options=["Normal", "Special event (high load)"],
+            index=0,
+            key="judge_mt_event_mode",
+        )
+
+    site_ids = [b["id"] for b in buildings]
+    site_id_default = site_ids[0]
+    prev_selected = st.session_state.get("judge_mt_selected_site_id", site_id_default)
+    selected_site_id = st.selectbox(
+        "Focus site (updates panels below)",
+        options=site_ids,
+        format_func=lambda s: next(b["name"] for b in buildings if b["id"] == s),
+        index=site_ids.index(prev_selected) if prev_selected in site_ids else 0,
+        key="judge_mt_selected_site_id_select",
+    )
+    st.session_state["judge_mt_selected_site_id"] = selected_site_id
+    selected_building = next((b for b in buildings if b["id"] == selected_site_id), buildings[0])
+
     demand_w = {"Low": 0.25, "Medium": 0.55, "High": 0.85}[b_demand]
     occ_w = {"Low": 0.25, "Medium": 0.55, "High": 0.80}[b_occupancy]
     env_w = {
@@ -870,196 +932,359 @@ def _render_judge_gary_micro_twin_3d():
         "Noisier / high interference": 0.85,
     }[b_signal_env]
 
+    # Effective scenario weights (site + time + event)
+    eff_demand = float(demand_w)
+    eff_occ = float(occ_w)
+    eff_env = float(env_w)
+    if b_event == "Special event (high load)":
+        eff_demand = min(0.95, eff_demand + 0.18)
+        eff_occ = min(0.95, eff_occ + 0.08)
+    if b_time == "School hours" and selected_site_id == "west_side_leadership":
+        eff_occ = min(0.95, eff_occ + 0.14)
+        eff_demand = min(0.95, eff_demand + 0.1)
+    elif b_time == "After hours":
+        eff_occ *= 0.88
+    if b_time == "Weekend" and selected_site_id == "public_library":
+        eff_demand = min(0.95, eff_demand + 0.1)
+
     for b in buildings:
-        risk = 0.34 * demand_w + 0.33 * occ_w + 0.33 * env_w + 0.18 * b["risk_bias"]
+        risk = 0.34 * eff_demand + 0.33 * eff_occ + 0.33 * eff_env + 0.18 * b["risk_bias"]
         b["risk_score"] = float(risk)
         if risk < 0.50:
-            b["risk_label"] = "Lower risk scenario"
-            b["fill_color"] = [40, 180, 80, 200]  # green
+            b["risk_label"] = "Lower coexistence stress (proxy)"
+            b["fill_color"] = [46, 204, 113, 210]
         elif risk < 0.70:
-            b["risk_label"] = "Moderate risk scenario"
-            b["fill_color"] = [240, 200, 60, 200]  # yellow
+            b["risk_label"] = "Moderate coexistence stress (proxy)"
+            b["fill_color"] = [241, 196, 15, 210]
         else:
-            b["risk_label"] = "Higher risk scenario"
-            b["fill_color"] = [235, 80, 60, 200]  # red
-
-        # Approximate centroid for labels.
+            b["risk_label"] = "Higher coexistence stress (proxy)"
+            b["fill_color"] = [231, 76, 60, 210]
         lons = [p[0] for p in b["polygon"]]
         lats = [p[1] for p in b["polygon"]]
         b["centroid"] = [sum(lons) / len(lons), sum(lats) / len(lats)]
+        # Tooltip fields (shared template with scatter overlays)
+        b["label"] = b["name"]
+        b["tip"] = f"{b['building_type']} · {b['role']} · {b['risk_label']}"
 
-    site_ids = [b["id"] for b in buildings]
-    site_id_default = site_ids[0]
-    prev_selected = st.session_state.get("judge_mt_selected_site_id", site_id_default)
-    selected_site_id = st.selectbox(
-        "Site selector",
-        options=site_ids,
-        format_func=lambda s: next(b["name"] for b in buildings if b["id"] == s),
-        index=site_ids.index(prev_selected) if prev_selected in site_ids else 0,
-        key="judge_mt_selected_site_id_select",
+    # --- Central 3D canvas ---
+    st.markdown("### Interactive 3D — Gary anchor sites")
+    st.caption(
+        "Hover pickable **buildings** (footprint + role). **Blue** = hypothetical gNB proxy; **violet** = demand hotspot; **red** = interference proxy."
     )
 
-    # Keep a single canonical selection id in session state.
-    st.session_state["judge_mt_selected_site_id"] = selected_site_id
+    demand_scale = 0.75 + 0.55 * eff_demand
+    gnb_rows = []
+    demand_rows = []
+    for b in buildings:
+        clon, clat = b["centroid"]
+        gnb_rows.append(
+            {
+                "position": [clon + b["gnb_offset_lon"], clat + b["gnb_offset_lat"]],
+                "label": f"gNB proxy · {b['name'][:28]}",
+                "tip": f"Hypothetical macro/small-cell (not measured). Serves {b['building_type']}.",
+            }
+        )
+        demand_rows.append(
+            {
+                "position": [clon, clat],
+                "label": f"Demand zone · {b['name'][:24]}",
+                "radius": int(b["demand_base_radius_m"] * demand_scale),
+                "tip": f"User demand hotspot (proxy). Radius scales with scenario demand.",
+            }
+        )
 
-    selected_building = next((b for b in buildings if b["id"] == selected_site_id), buildings[0])
-    st.info(
-        f"**{selected_building['name']}** ({selected_building['role']})\n\n"
-        f"{selected_building['impact']}\n\n"
-        f"Scenario overlay: {b_demand} demand, {b_occupancy} occupancy prior, {b_signal_env}.\n"
-        f"Risk indicator: {selected_building['risk_label']}."
-    )
+    interference_rows = [
+        {
+            "position": [-87.3392, 41.5844],
+            "label": "Ambient interference proxy",
+            "radius": 200 + int(120 * eff_env),
+            "tip": "Aggregated external RF activity (proxy). **Future:** Sionna RT / measurement trace.",
+        },
+        {
+            "position": [-87.3355, 41.5839],
+            "label": "Secondary clutter source (proxy)",
+            "radius": 140 + int(80 * eff_env),
+            "tip": "Low-7 GHz coexistence stressor — not a real identified emitter.",
+        },
+    ]
 
-    # 3D Deck.gl layers
     try:
         poly_layer = pdk.Layer(
             "PolygonLayer",
             data=buildings,
             get_polygon="polygon",
             get_fill_color="fill_color",
-            get_line_color=[0, 0, 0, 110],
-            get_line_width=1,
+            get_line_color=[20, 20, 20, 140],
+            get_line_width=2,
             extruded=True,
             get_elevation="height_m",
             pickable=True,
             auto_highlight=True,
-            opacity=0.95,
+            opacity=0.92,
+        )
+        demand_layer = pdk.Layer(
+            "ScatterplotLayer",
+            data=demand_rows,
+            get_position="position",
+            get_radius="radius",
+            get_fill_color=[155, 89, 182, 90],
+            get_line_color=[100, 50, 130, 200],
+            line_width_min_pixels=1,
+            pickable=True,
+        )
+        if_layer = pdk.Layer(
+            "ScatterplotLayer",
+            data=interference_rows,
+            get_position="position",
+            get_radius="radius",
+            get_fill_color=[231, 76, 60, 85],
+            get_line_color=[160, 40, 30, 220],
+            line_width_min_pixels=1,
+            pickable=True,
+        )
+        gnb_layer = pdk.Layer(
+            "ScatterplotLayer",
+            data=gnb_rows,
+            get_position="position",
+            get_radius=95,
+            get_fill_color=[52, 152, 219, 240],
+            get_line_color=[30, 90, 150, 255],
+            line_width_min_pixels=2,
+            pickable=True,
         )
         text_layer = pdk.Layer(
             "TextLayer",
             data=buildings,
             get_position="centroid",
             get_text="name",
-            get_color=[10, 10, 10, 255],
-            get_size=14,
+            get_color=[25, 25, 25, 255],
+            get_size=15,
             pickable=False,
         )
         deck = pdk.Deck(
-            layers=[poly_layer, text_layer],
+            layers=[poly_layer, demand_layer, if_layer, gnb_layer, text_layer],
             initial_view_state=pdk.ViewState(
-                latitude=41.5842,
-                longitude=-87.3400,
-                zoom=12.2,
-                pitch=50,
-                bearing=-20,
+                latitude=41.58425,
+                longitude=-87.3398,
+                zoom=12.65,
+                pitch=56,
+                bearing=-28,
+                max_pitch=85,
             ),
-            # Avoid requiring a Mapbox token in judge/screenshot environments.
             map_style="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
             tooltip={
-                "html": "<b>{name}</b><br/>{role}<br/><br/>"
-                "Scenario risk: {risk_label}<br/>"
-                "{impact}"
-            },
+                "html": "<b>{label}</b><br/><span style='font-size:11px'>{tip}</span>",
+                "style": {"backgroundColor": "#1e1e2e", "color": "white"},
+            },  # buildings + gNB/demand/interference rows all define label/tip
         )
-
-        # Some Streamlit versions return interaction events; others return None.
         try:
-            events = st.pydeck_chart(deck, use_container_width=True)
-            _ = events  # not relied on; dropdown provides a deterministic selection
-            st.caption(
-                "Interact: **hover / click** pickable buildings for tooltips; use **Site selector** above for consistent screenshots."
-            )
-        except Exception:
-            st.caption("3D scene rendered, but interaction events may be limited in this runtime.")
+            st.pydeck_chart(deck, use_container_width=True)
+        except TypeError:
+            st.pydeck_chart(deck)
     except Exception:
         st.error(
             "3D Micro-Twin scene failed to render. Install **`pydeck`** locally and reload. "
             "(Technical details are hidden for judge-facing stability.)"
         )
+        return
 
-    st.markdown("---")
-    st.subheader("Layered site model (Future Work — interpretive)")
     st.caption(
-        "Each layer states what is **implemented now** in this demo vs a **simulated proxy** vs **future integration**."
+        "**Figure: community impact at City Hall / Library / West Side** — building height & tint encode **coexistence stress proxy** "
+        "under your scenario (not calibrated field data)."
     )
-    with st.expander("Layer 1 — Site (implemented: approximate footprints)", expanded=False):
-        st.markdown(
-            f"- **Building footprint / height / role:** pydeck extruded polygons (approximate coordinates).\n"
-            f"- **Selected site:** {selected_building['name']} — {selected_building['role']}."
-        )
-    with st.expander("Layer 2 — Users (simulated proxy)", expanded=False):
-        st.markdown(
-            f"- **User class / demand:** scenario overlay **{b_demand}** demand, **{b_occupancy}** occupancy prior.\n"
-            "- **Traffic demand profile:** not measured live; used only to color-code risk in this demo."
-        )
-    with st.expander("Layer 3 — Radio environment (simulated proxy + future integration)", expanded=False):
-        st.markdown(
-            f"- **Hypothetical gNB / interference:** environment preset **{b_signal_env}**.\n"
-            "- **Low-7 GHz path loss / blockage / penetration:** not ray-traced here — **future** DeepMIMO / Sionna RT class integration."
-        )
-    with st.expander("Layer 4 — Controller (partially implemented demo)", expanded=False):
-        st.markdown(
-            "- **Detector output:** uses the **live submission `evaluate()`** result from Judge Mode demo IQ when available "
-            "(see **Core Submission** tab).\n"
-            "- **Occupancy / interference belief:** combines scenario sliders with building risk tint.\n"
-            "- **Candidate RAN action:** shown in the **RAN Controller** panel below."
-        )
-    with st.expander("Layer 5 — Outcome (simulated proxy KPIs)", expanded=False):
-        st.markdown(
-            "- **Coverage / coexistence / fairness / energy:** simple scenario-derived scores for storytelling — **not** measured on-air."
+
+    # --- Site identity card (selected) ---
+    sc1, sc2, sc3 = st.columns([1.1, 1.1, 1.2])
+    with sc1:
+        st.metric("Building type", selected_building["building_type"])
+        st.caption(f"**Role:** {selected_building['role']}")
+    with sc2:
+        st.metric("Approx. height", f"{selected_building['height_m']} m")
+        st.metric("Footprint (approx.)", f"{selected_building['footprint_approx_m2']:,} m²")
+    with sc3:
+        st.success(f"**Why this site matters:** {selected_building['why_matters']}")
+        st.caption(
+            f"**Scenario:** {b_demand} demand · {b_occupancy} occ. prior · {b_signal_env} · **{b_time}** · **{b_event}**"
         )
 
-    st.subheader("RAN Controller demo (Future Work)")
-    st.caption(
-        "Illustrates a closed-loop story: **sense → belief → act → KPI** for low-7 GHz style coexistence. "
-        "Not tied to official leaderboard scoring."
+    # --- Radio environment: visible cards (not buried in expanders) ---
+    st.markdown("### Radio environment layers (proxies + roadmap tags)")
+    clon, clat = selected_building["centroid"]
+    gnb_lon = clon + selected_building["gnb_offset_lon"]
+    gnb_lat = clat + selected_building["gnb_offset_lat"]
+    los_proxy = "Partial LOS"
+    if selected_building["height_m"] >= 55:
+        los_proxy = "Shadowing likely (tall civic mass)"
+    elif selected_site_id == "west_side_leadership":
+        los_proxy = "Mixed LOS (campus + parking)"
+
+    pen_db = 12 + 8 * eff_env + (4 if selected_building["height_m"] > 40 else 0)
+    block_score = min(1.0, 0.25 + 0.45 * eff_env + 0.15 * (selected_building["height_m"] / 70.0))
+
+    r1, r2, r3, r4 = st.columns(4)
+    with r1:
+        st.markdown("**gNB / transmitter (proxy)**  \n`implemented proxy`")
+        st.caption(f"Lat {gnb_lat:.5f}, Lon {gnb_lon:.5f}")
+        st.caption("Hypothetical serving node offset from footprint centroid.")
+    with r2:
+        st.markdown("**User hotspots / demand**  \n`implemented proxy`")
+        st.caption(f"Violet disks on map; radius ∝ demand scenario (~{int(selected_building['demand_base_radius_m'] * demand_scale)} m here).")
+    with r3:
+        st.markdown("**Interference / risk zones**  \n`implemented proxy`")
+        st.caption("Red disks = aggregated external activity (not real identified emitters).")
+    with r4:
+        st.markdown("**Low-7 GHz propagation assumptions**  \n`simulated proxy`")
+        st.caption(f"**LOS proxy:** {los_proxy}. **Indoor penetration (proxy):** ~{pen_db:.0f} dB equiv. **Blockage score:** {block_score:.2f} (0–1).")
+        st.caption("**Future integration:** ray-traced path loss (Sionna RT) / learned channels (DeepMIMO workflow).")
+
+    st.info(
+        "**Tags:** **Implemented proxy** = shown in this UI/map now, not field-calibrated. "
+        "**Future integration** = DeepMIMO / Sionna RT class tooling — **not** driving the judged detector unless you wire it in code."
     )
+
+    # --- Users at this site ---
+    st.markdown("### Users at this site")
+    uc = st.columns(len(selected_building["users"]))
+    for i, persona in enumerate(selected_building["users"]):
+        with uc[i]:
+            st.markdown(
+                f"<div style='border:1px solid #dee2e6;border-radius:10px;padding:12px;background:#f8f9fa;text-align:center'>"
+                f"<strong>{persona}</strong></div>",
+                unsafe_allow_html=True,
+            )
+    st.caption(
+        "**City Hall:** residents, staff, visitors · **Library:** patrons, study users, learners · **West Side:** students, teachers, staff."
+    )
+
+    # --- RAN controller: visual pipeline ---
+    st.markdown("### Site-aware RAN controller loop (demo)")
+    st.caption(
+        "**Figure: site-aware RAN controller loop** — five-stage pipeline from sensed spectrum to KPIs (research demo only)."
+    )
+
     pred = st.session_state.get("judge_live_pred")
     conf = st.session_state.get("judge_live_conf")
-    occ_word = "likely occupied" if pred == 1 else ("likely noise-only / vacant" if pred == 0 else "unknown")
-    belief_hi = env_w > 0.6 or demand_w > 0.7
+    occ_word = "occupied (1)" if pred == 1 else ("noise-only (0)" if pred == 0 else "unknown")
+    belief_hi = eff_env > 0.62 or eff_demand > 0.72
+    occ_belief = "High occupancy / demand pressure" if eff_occ > 0.65 else "Moderate occupancy belief"
+    if eff_occ < 0.42:
+        occ_belief = "Lower occupancy belief"
+
+    candidates = [
+        ("hold", "Hold transmission", "Wait / sense / avoid adding energy."),
+        ("cautious", "Transmit cautiously", "Lower power or narrower beam story (proxy)."),
+        ("power", "Reduce power", "Protect neighbors while maintaining a link."),
+        ("channel", "Switch channel", "Avoid overlapping interference (proxy)."),
+        ("prioritize", "Prioritize service at site", "Steer capacity to high-equity demand."),
+    ]
+
     if pred is None:
-        action = "Hold / diagnose"
-        outcome = "Run **Core Submission** tab to refresh detector output on demo IQ."
+        chosen_key = "hold"
+        action_reason = "No live detector output — open **Core Submission** to run `evaluate()` on demo IQ."
     elif pred == 1 and belief_hi:
-        action = "Transmit cautiously — reduce power or change channel"
-        outcome = "Coexistence proxy: medium — structured energy detected under stressed scenario."
-    elif pred == 1:
-        action = "Transmit — monitor interference"
-        outcome = "Coexistence proxy: favorable — signal present but scenario stress is moderate/low."
-    elif pred == 0 and belief_hi:
-        action = "Hold transmission — scan alternate channel"
-        outcome = "Vacancy belief under noisy scenario; avoid adding interference."
-    else:
-        action = "Prioritize site / user group if demand is high"
-        outcome = "Vacancy belief with moderate demand — opportunity for equitable capacity routing (storytelling proxy)."
-
-    kpi_cov = max(0.0, min(1.0, 0.55 + 0.25 * (1.0 - env_w) + (0.15 if pred == 1 else -0.05)))
-    kpi_coex = max(0.0, min(1.0, 0.62 - 0.2 * env_w + (0.1 if pred == 0 else -0.05)))
-    kpi_fair = max(0.0, min(1.0, 0.5 + 0.15 * occ_w - 0.1 * (1.0 - demand_w)))
-
-    rc1, rc2 = st.columns(2)
-    with rc1:
-        st.markdown("**Loop (conceptual)**")
-        st.markdown(
-            f"- **Sensed spectrum state:** detector pred = `{pred}` ({occ_word})\n"
-            f"- **Confidence / prob. (if returned):** `{conf if conf is not None else 'N/A'}`\n"
-            f"- **Site / demand context:** {selected_building['name']}, demand **{b_demand}**\n"
-            f"- **Interference belief:** {'elevated' if belief_hi else 'moderate'}\n"
-            f"- **Chosen action:** **{action}**"
+        chosen_key = "cautious"
+        action_reason = (
+            f"**High demand + stressed RF + {selected_building['name']}** → cautious transmission to protect coexistence."
         )
-    with rc2:
-        st.markdown("**Outcome / KPI (proxy)**")
-        st.metric("Coverage proxy", f"{kpi_cov:.2f}")
-        st.metric("Coexistence score (proxy)", f"{kpi_coex:.2f}")
-        st.metric("Digital-divide benefit proxy", f"{kpi_fair:.2f}")
-        st.caption(outcome)
-    st.info(
-        "**Why this matters (non-technical):** In shared spectrum, **one neighbor’s transmission** can make it harder for "
-        "**students, library patrons, or civic services** to get reliable connectivity. A smarter controller could **sense first**, "
-        "**avoid harmful interference**, and **steer capacity** toward places where the digital divide hits hardest — this panel "
-        "is a **visual story**, not a field deployment."
+    elif pred == 1:
+        chosen_key = "channel" if eff_env > 0.5 else "cautious"
+        action_reason = "Structured energy detected; moderate stress → balance throughput and neighbor protection."
+    elif pred == 0 and belief_hi:
+        chosen_key = "hold"
+        action_reason = "Vacancy belief but noisy environment → hold and scan before occupying spectrum."
+    else:
+        chosen_key = "prioritize" if eff_demand > 0.6 else "hold"
+        action_reason = "Vacancy belief with capacity opportunity → prioritize equitable service at the focus site."
+
+    pipe = st.columns(5)
+    stages = [
+        ("1 · Sense", f"Detector: **{occ_word}**", "Live `evaluate()` on Judge demo IQ when available."),
+        ("2 · Belief", occ_belief, f"Interference belief: **{'elevated' if belief_hi else 'moderate'}**."),
+        ("3 · Site ctx", selected_building["name"][:22] + "…", f"{b_time} · {b_event} · demand **{b_demand}**"),
+        ("4 · Action", next(c[1] for c in candidates if c[0] == chosen_key), action_reason),
+        ("5 · KPI", "See outcome row →", "Proxies only — not drive-test data."),
+    ]
+    for col, (title, headline, sub) in zip(pipe, stages):
+        with col:
+            st.markdown(
+                f"<div style='border:1px solid #ced4da;border-radius:10px;padding:10px;min-height:168px;background:#ffffff'>"
+                f"<div style='font-size:12px;color:#6c757d'>{title}</div>"
+                f"<div style='font-weight:600;margin:6px 0'>{headline}</div>"
+                f"<div style='font-size:12px;color:#495057'>{sub}</div></div>",
+                unsafe_allow_html=True,
+            )
+
+    st.markdown("**Candidate actions (this demo)**")
+    ca = st.columns(5)
+    for i, (k, title, blurb) in enumerate(candidates):
+        with ca[i]:
+            if k == chosen_key:
+                st.markdown(f"**→ {title}**")
+            else:
+                st.caption(title)
+            st.caption(blurb)
+
+    kpi_cov = max(0.0, min(1.0, 0.52 + 0.28 * (1.0 - eff_env) + (0.14 if pred == 1 else -0.04)))
+    kpi_coex = max(0.0, min(1.0, 0.64 - 0.22 * eff_env + (0.08 if pred == 0 else -0.04)))
+    kpi_fair = max(0.0, min(1.0, 0.48 + 0.18 * eff_occ - 0.12 * (1.0 - eff_demand)))
+    kpi_energy = max(0.0, min(1.0, 0.78 - 0.12 * eff_demand + (0.06 if chosen_key in ("hold", "power") else -0.04)))
+    kpi_reliab = max(0.0, min(1.0, 0.5 + 0.22 * kpi_cov - 0.18 * eff_env + 0.08 * (1.0 if pred is not None else 0.0)))
+
+    st.markdown("### Outcome & impact (proxy KPIs)")
+    k1, k2, k3, k4, k5 = st.columns(5)
+    k1.metric("Coverage proxy", f"{kpi_cov:.2f}", help="Not measured on-air.")
+    k2.metric("Coexistence score", f"{kpi_coex:.2f}", help="Neighbor-friendly spectrum use (proxy).")
+    k3.metric("Community benefit", f"{kpi_fair:.2f}", help="Digital-divide / equity storytelling proxy.")
+    k4.metric("Energy / efficiency", f"{kpi_energy:.2f}", help="Hold/low-power favors efficiency (proxy).")
+    k5.metric("Service continuity", f"{kpi_reliab:.2f}", help="Reliability proxy vs scenario stress.")
+    st.caption(
+        "**Honest labeling:** All KPIs are **deterministic scenario proxies** for screenshots and PhD-style systems narrative — "
+        "**not** empirical network measurements."
     )
 
-    st.markdown("**Legend (screenshot-friendly)**")
-    st.markdown(
-        """
-Green = lower risk, Yellow = moderate risk, Red = higher risk.
-The overlay is for future impact communication only.
-        """.strip()
+    # --- Plain-language RF × place ---
+    st.markdown("### How low-7 GHz 5G-like signals interact with this site")
+    st.success(
+        "**Buildings** block and scatter radio waves — taller civic structures create **shadows** and **variable indoor penetration**. "
+        "**Who shows up when** (school hours, weekend library use, city events) changes **demand** and **coexistence risk**: more active users "
+        "mean less margin for careless transmission. **Spectrum sensing** (like the judged detector, run separately on real data) tells a "
+        "future controller **whether the band looks occupied** so it can **hold power**, **retune**, or **prioritize** service where the "
+        "community needs it most."
     )
 
-    st.caption("Tip for screenshots: zoom/pan your view, then capture the rendered scene from the Future Work tab.")
+    # --- 6G research roadmap (visible, not overclaimed) ---
+    st.markdown("### Next realism upgrades (6G / wireless ML research roadmap)")
+    rm1, rm2, rm3 = st.columns(3)
+    with rm1:
+        st.markdown(
+            "<div style='border-left:4px solid #3498db;padding-left:12px'>"
+            "<strong>DeepMIMO path</strong><br/><span style='font-size:13px'>"
+            "Site-specific channel scenarios, spatial consistency across anchor footprints, exportable CIR / features for ML.</span><br/>"
+            "<em>Future integration</em> — not in this Streamlit build unless added in repo.</div>",
+            unsafe_allow_html=True,
+        )
+    with rm2:
+        st.markdown(
+            "<div style='border-left:4px solid #9b59b6;padding-left:12px'>"
+            "<strong>Sionna RT path</strong><br/><span style='font-size:13px'>"
+            "Ray-tracing / materials / diffraction for realistic blockage and coverage maps at low-7 GHz.</span><br/>"
+            "<em>Future integration</em> — complements (not replaces) the judged DAC detector.</div>",
+            unsafe_allow_html=True,
+        )
+    with rm3:
+        st.markdown(
+            "<div style='border-left:4px solid #27ae60;padding-left:12px'>"
+            "<strong>Beam / coverage UI</strong><br/><span style='font-size:13px'>"
+            "Azimuth–elevation heatmaps, per-site SINR contours, controller replay logs for paper figures.</span><br/>"
+            "<em>Planned UI hooks</em> — conference-demo targets for the next pass.</div>",
+            unsafe_allow_html=True,
+        )
+
+    st.caption("**Map legend:** Green / yellow / red buildings = lower → higher **coexistence stress proxy** under the scenario.")
+
+    st.caption(
+        "**Screenshot tip:** set scenario + site, then capture **3D canvas**, **controller pipeline**, and **KPI row** as separate figures."
+    )
 
 
 # ============================================================================
@@ -1698,25 +1923,6 @@ This dashboard presents:
             )
         )
         _render_judge_gary_micro_twin_3d()
-        st.markdown("---")
-        st.subheader("Research-Grade 6G Simulation Path")
-        st.markdown(
-            """
-**DeepMIMO (site-specific wireless dataset workflow):**
-- Define a scenario with the same city block zoning as the Micro-Twin sites.
-- Generate channel realizations and extract signatures for feature engineering.
-
-**Sionna RT (differentiable ray tracing):**
-- Use radio-material assumptions to model multipath and blockage.
-- Produce ray-based features and use them as future retraining inputs.
-
-**Future integration hooks (honest placeholders):**
-- coverage map
-- beam / channel view
-- ray-tracing-backed scenario
-            """.strip()
-        )
-        st.caption("These simulation components are future integration points. They are not claimed as part of the official submission basis here.")
 
     with tabs[5]:
         st.subheader("Novelty Story: What Was Judged vs Future Work")

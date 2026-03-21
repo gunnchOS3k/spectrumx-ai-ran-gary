@@ -55,13 +55,19 @@ Judge Mode explicitly distinguishes:
 
 ### Gary Micro-Twin 3D building model
 
-The 3D building scene uses **pydeck**:
+The **Future Work / Micro-Twin** tab uses **pydeck** as the **main canvas**:
 
-- Approximate footprints, extruded polygons, labels / tooltips.
-- **Layered site model** expanders + **RAN Controller** demo (proxy KPIs).
-- **Research-Grade 6G Simulation Path** subsection describes DeepMIMO and Sionna RT as **future integration**, not as the judged detector unless implemented.
+- **Scenario toolbar** (demand, occupancy, RF environment, **school/after-hours/weekend**, **normal vs event**), then **focus site**.
+- **Central 3D map:** extruded footprints; **violet** demand hotspots; **red** interference proxies; **blue** hypothetical gNB markers; tooltips on pickable layers.
+- **Radio environment cards** (always visible): gNB position, demand zones, interference story, low-7 GHz LOS / penetration / blockage **proxies** with **implemented proxy** vs **future integration** tags.
+- **Users at this site** persona cards (City Hall / Library / West Side).
+- **RAN controller:** five-column **pipeline** (sense → belief → site → action → KPI) plus candidate actions and a **reason** line.
+- **Five proxy KPIs** (coverage, coexistence, community benefit, energy, continuity) — labeled as non-measured.
+- **Plain-language** “signals × place” panel and a **6G research roadmap** (DeepMIMO / Sionna RT / beam–coverage UI) as **future work** only.
 
 If `pydeck` is not installed, the app shows a judge-safe message (no raw tracebacks).
+
+See **`docs/MICROTWIN_REALISM_PLAN.md`** for what is proxy vs implemented.
 
 ### Recommended screenshot sequence
 

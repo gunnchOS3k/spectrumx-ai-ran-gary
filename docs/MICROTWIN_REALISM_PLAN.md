@@ -1,29 +1,53 @@
 # Gary Micro-Twin — realism & controller loop plan
 
-## Current state (Streamlit)
+## What changed in the Digital Twin Realism Pass (Streamlit)
 
-- **Synthetic IQ:** `GaryMicroTwin.generate_samples_per_zone` produces zone-labeled windows with metadata (`label`, `zone_id`, `snr_db`, `cfo_hz`, `num_taps`, `signal_type`, etc.). Noise-only rows use `signal_type: null` / NaNs for RF parameters.
-- **3D site view:** Approximate building footprints (City Hall, Library, West Side Leadership Academy) rendered with **pydeck** extruded polygons; scenario sliders drive **risk tint** (storytelling proxy only).
-- **Layered model UI:** Five layers (Site → Users → Radio → Controller → Outcome) are documented in-app with tags: **implemented**, **simulated proxy**, **future integration**.
-- **RAN controller demo:** Uses **live** `evaluate()` output from the selected submission package on **Judge Mode synthetic demo IQ** plus scenario sliders to pick a **candidate action** and **proxy KPIs** (coverage, coexistence, fairness). Not field-validated.
+The **Future Work / Micro-Twin** tab (`_render_judge_gary_micro_twin_3d` in `apps/streamlit_app.py`) was redesigned for **conference-demo** clarity:
 
-## Next realism upgrades (ordered)
+- **3D map is primary:** Full-width pydeck scene first (after a compact scenario toolbar): extruded footprints + **violet demand disks** + **red interference proxies** + **blue gNB points** + labels.
+- **Scenario toolbar:** Demand, occupancy prior, RF environment, **time context** (school / after hours / weekend), **event mode** (normal vs special event) — combined with **focus site** to adjust effective stress weights and map radii.
+- **Per-site identity:** Building type, height, approximate footprint, and **why this site matters** in metric/cards (not a single generic `st.info`).
+- **Radio environment row:** Four **always-visible** cards (gNB position, demand hotspots, interference zones, low-7 GHz LOS / penetration / blockage **proxies**) with explicit **`implemented proxy`** vs **`future integration`** tags.
+- **Users at this site:** Persona **cards** (City Hall / Library / West Side) driven by the selected anchor.
+- **RAN controller:** **Five-column pipeline** (Sense → Belief → Site context → Action → KPI) plus a **candidate-actions** row; selected action includes a **one-line reason** tied to scenario + site.
+- **KPI row:** Five **proxy** metrics — coverage, coexistence, community benefit, energy/efficiency, service continuity — all **honestly labeled** as non-measured.
+- **Nontechnical RF panel:** Short **“How low-7 GHz … interacts with the site”** explanation.
+- **6G roadmap:** Three **column cards** (DeepMIMO, Sionna RT, beam/coverage UI) as **future integration** — no overclaim.
+- **Heavy expanders removed** for the old “Layer 1–5” text wall; layers are now **visible cards + map overlays**.
+- Duplicate **Research-Grade 6G** markdown block under the judge tab was **removed** (content folded into the roadmap panel inside the twin renderer).
 
-1. **Radio Layer:** Optional import path for **DeepMIMO**-style channel draws or **Sionna RT** ray-tracing hooks (behind feature flags); keep UI honest about “not driving judged detector until integrated.”
-2. **User / demand Layer:** Tie occupancy priors to time-of-day presets or simple stochastic models; still synthetic.
-3. **Controller Layer:** Replace rule table with logged policy from recorded detector statistics; optional small RL storyboard (research only).
-4. **Outcome Layer:** Calibrate proxy KPIs against simple link-budget spreadsheets for teaching, not claims of measured coverage.
+Core **SpectrumX DAC detector** routing, submission adapter, and **judged vs future work** separation elsewhere in the app were **not** reworked in this pass.
 
-## User → environment → controller → KPI loop
+## What is implemented vs proxy vs future
+
+| Element | Status |
+|--------|--------|
+| Extruded building footprints, heights, scenario-driven tint | **Implemented** (approximate coordinates) |
+| gNB / demand / interference **scatter overlays** on map | **Implemented proxy** (storytelling geometry) |
+| LOS / penetration / blockage **numbers** in radio card | **Simulated proxy** (deterministic from scenario + building height) |
+| Live detector output in pipeline | **Implemented** when `evaluate()` has run (Judge demo IQ); else “unknown” / hold |
+| DeepMIMO / Sionna RT / beam–coverage maps | **Future integration** (documented only in UI + this doc) |
+| KPI metrics | **Proxy only** (not drive-test or field data) |
+
+## User → environment → controller → outcome loop
 
 ```text
-Resident / student / visitor need  →  site context + demand
+Users & time/event scenario  →  demand & occupancy priors (proxy)
         ↓
-Sensed spectrum (detector)  →  belief (occupied? interference stress?)
+Map: buildings + gNB + demand disks + interference disks
         ↓
-RAN action (hold, power down, retune, prioritize site)
+Sensed spectrum (submission evaluate() on demo IQ)  →  belief + stress
         ↓
-Outcome proxies (coverage, coexistence, equity, energy)
+Controller selects among: hold / cautious TX / reduce power / switch channel / prioritize site
+        ↓
+Outcome proxies: coverage, coexistence, equity story, energy, continuity
 ```
 
 All Micro-Twin and 3D paths remain **extension / future work**, not the official SpectrumX DAC scoring basis.
+
+## Next realism upgrades (backlog)
+
+1. Optional **DeepMIMO**-style channel export per anchor footprint (behind flag).
+2. **Sionna RT** (or similar) for real blockage / coverage tiles; feed optional heatmap layer in pydeck.
+3. **Controller replay** log + static figure export for papers.
+4. Calibrate proxies against a **published link-budget worksheet** (teaching only).
