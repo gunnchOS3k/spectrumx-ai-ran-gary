@@ -1,11 +1,12 @@
 """
-Placeholders and status helpers for next-stage wireless simulation integration.
+Integration hooks for simulation-backed realism (completed extension only).
 
-This module does **not** run DeepMIMO or Sionna RT. It documents expected local paths
-and optional future file drops so the Streamlit extension can load real outputs when available.
+This module does **not** run DeepMIMO, Sionna RT, or NVIDIA AI Aerial / Omniverse.
+It documents **drop zones** and optional future loaders for the Streamlit extension.
 
 Truthfulness:
-- Judged SpectrumX detector is separate; simulation outputs here are for the **completed extension** only.
+- Judged SpectrumX detector is separate; nothing here drives official scoring.
+- All loaders return ``None`` until real parsers exist.
 """
 
 from __future__ import annotations
@@ -13,30 +14,44 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-# Expected drop directories (create locally; optional .gitkeep in repo)
-DEEPMIMO_REL = Path("data/simulation/deepmimo")
-SIONNA_RT_REL = Path("data/simulation/sionna_rt")
+# --- Primary drop zones (repo root–relative) ---
+DATA_DEEPMIMO_REL = Path("data/deepmimo")
+DATA_SIONNA_RT_REL = Path("data/sionna_rt")
+DATA_AERIAL_OMNIVERSE_REL = Path("data/aerial_omniverse")
+CONFIG_WIRELESS_SCENE_REL = Path("configs/wireless_scene")
+CONFIG_RIC_REL = Path("configs/ric")
 
-# Suggested filenames (convention — adjust when pipelines exist)
+# --- Legacy / alternate paths (still monitored) ---
+LEGACY_DEEPMIMO_REL = Path("data/simulation/deepmimo")
+LEGACY_SIONNA_RT_REL = Path("data/simulation/sionna_rt")
+
 DEEPMIMO_SUGGESTED_FILES = (
-    "scenario_meta.json",  # site IDs, carrier, bandwidth, seed
-    "channel_features.npz",  # or .npy — CIR summaries / features for ML
-    "site_sinr_proxy.csv",  # optional tabular overlay for UI
+    "scenario_meta.json",
+    "channel_features.npz",
+    "site_sinr_proxy.csv",
 )
 
 SIONNA_SUGGESTED_FILES = (
-    "materials.yaml",  # radio materials / permittivity hooks
-    "coverage_grid.geojson",  # optional map overlay
-    "path_loss_summary.json",  # per-link or per-tile summaries
+    "materials.yaml",
+    "coverage_grid.geojson",
+    "path_loss_summary.json",
 )
 
+AERIAL_SUGGESTED_FILES = (
+    "scene_export.usd",
+    "twin_manifest.json",
+    "rf_overlay_meta.yaml",
+)
 
-def deepmimo_dir(repo_root: Path) -> Path:
-    return (repo_root / DEEPMIMO_REL).resolve()
+WIRELESS_SCENE_CONFIG_SUGGESTED = (
+    "gary_anchor_sites.yaml",
+    "layer_visibility.yaml",
+)
 
-
-def sionna_rt_dir(repo_root: Path) -> Path:
-    return (repo_root / SIONNA_RT_REL).resolve()
+RIC_CONFIG_SUGGESTED = (
+    "xapp_policy_stub.yaml",
+    "near_rt_ric_endpoints.example.yaml",
+)
 
 
 def _dir_status(d: Path) -> Dict[str, Any]:
@@ -44,61 +59,179 @@ def _dir_status(d: Path) -> Dict[str, Any]:
     files: List[str] = []
     if exists:
         try:
-            files = sorted(p.name for p in d.iterdir() if p.is_file())[:30]
+            files = sorted(p.name for p in d.iterdir() if p.is_file())[:40]
         except OSError:
             files = []
-    return {"exists": exists, "path": str(d), "files": files}
+    return {"exists": exists, "path": str(d.resolve()), "files": files}
+
+
+def deepmimo_drop_dirs(repo_root: Path) -> List[Path]:
+    r = repo_root.resolve()
+    return [r / DATA_DEEPMIMO_REL, r / LEGACY_DEEPMIMO_REL]
+
+
+def sionna_rt_drop_dirs(repo_root: Path) -> List[Path]:
+    r = repo_root.resolve()
+    return [r / DATA_SIONNA_RT_REL, r / LEGACY_SIONNA_RT_REL]
+
+
+def aerial_drop_dir(repo_root: Path) -> Path:
+    return (repo_root / DATA_AERIAL_OMNIVERSE_REL).resolve()
+
+
+def wireless_scene_config_dir(repo_root: Path) -> Path:
+    return (repo_root / CONFIG_WIRELESS_SCENE_REL).resolve()
+
+
+def ric_config_dir(repo_root: Path) -> Path:
+    return (repo_root / CONFIG_RIC_REL).resolve()
+
+
+def _merge_dir_status(paths: List[Path], suggested: tuple[str, ...]) -> Dict[str, Any]:
+    """First existing dir wins for 'primary'; list all paths."""
+    statuses = [_dir_status(p) for p in paths]
+    primary = next((s for s in statuses if s["exists"]), statuses[0] if statuses else {})
+    artifact_like: List[str] = []
+    for s in statuses:
+        if not s.get("exists"):
+            continue
+        for f in s.get("files", []):
+            if f.endswith((".npz", ".npy", ".json", ".csv", ".geojson", ".yaml", ".yml", ".usd")):
+                artifact_like.append(f)
+    return {
+        "paths_checked": [str(p.resolve()) for p in paths],
+        "primary": primary,
+        "suggested_inputs": list(suggested),
+        "artifact_like": sorted(set(artifact_like))[:25],
+    }
 
 
 def describe_simulation_backbone_status(repo_root: Path) -> Dict[str, Any]:
-    """Return honest status for UI: dirs exist, any matching suggested artifacts."""
-    dm = _dir_status(deepmimo_dir(repo_root))
-    sn = _dir_status(sionna_rt_dir(repo_root))
-    dm_hits = [f for f in dm["files"] if f.endswith((".npz", ".npy", ".json", ".csv"))]
-    sn_hits = [f for f in sn["files"] if f.endswith((".json", ".geojson", ".yaml", ".yml"))]
+    """Backward-compatible summary + extended keys for UI/JSON expander."""
+    return describe_all_integration_drop_zones(repo_root)
+
+
+def describe_all_integration_drop_zones(repo_root: Path) -> Dict[str, Any]:
+    """Full integration map: data drops + config stubs (honest exists/files)."""
+    r = repo_root.resolve()
+    dm = _merge_dir_status(deepmimo_drop_dirs(r), DEEPMIMO_SUGGESTED_FILES)
+    sn = _merge_dir_status(sionna_rt_drop_dirs(r), SIONNA_SUGGESTED_FILES)
+    ae = _dir_status(aerial_drop_dir(r))
+    ae_hits = [f for f in ae["files"] if f.endswith((".json", ".yaml", ".yml", ".usd", ".usda"))]
+    ws = _dir_status(wireless_scene_config_dir(r))
+    ric = _dir_status(ric_config_dir(r))
     return {
-        "deepmimo": {**dm, "suggested_inputs": list(DEEPMIMO_SUGGESTED_FILES), "artifact_like": dm_hits},
-        "sionna_rt": {**sn, "suggested_inputs": list(SIONNA_SUGGESTED_FILES), "artifact_like": sn_hits},
+        "deepmimo": {
+            **dm,
+            "status": "integration_ready_next_scaling",
+            "note": "Channel / CSI artifacts for site-specific scenarios — not active in UI yet.",
+        },
+        "sionna_rt": {
+            **sn,
+            "status": "integration_ready_next_scaling",
+            "note": "Ray-traced propagation / coverage GeoJSON — not active in UI yet.",
+        },
+        "nvidia_ai_aerial_omniverse": {
+            **ae,
+            "suggested_inputs": list(AERIAL_SUGGESTED_FILES),
+            "artifact_like": ae_hits,
+            "status": "integration_ready_next_scaling",
+            "note": "Digital-twin / RF-visualization exports — requires separate Aerial/Omniverse tooling; not bundled.",
+        },
+        "configs_wireless_scene": {
+            **ws,
+            "suggested_inputs": list(WIRELESS_SCENE_CONFIG_SUGGESTED),
+            "status": "optional_config",
+        },
+        "configs_ric": {
+            **ric,
+            "suggested_inputs": list(RIC_CONFIG_SUGGESTED),
+            "status": "optional_config",
+        },
     }
 
 
 def describe_extension_asset_status(repo_root: Path) -> Dict[str, Any]:
-    """Optional local files the industry-grade extension can reference (no competition IQ)."""
+    """Optional local files + integration drop zones (flat paths for UI lists)."""
     root = repo_root.resolve()
-    paths = {
-        "submission_metrics_csv": root / "submissions" / "submission_metrics.csv",
-        "final_report_figures_yaml": root / "docs" / "final_report_figures.yaml",
-        "gary_micro_twin_yaml": root / "configs" / "gary_micro_twin.yaml",
-        "deepmimo_dir": deepmimo_dir(root),
-        "sionna_rt_dir": sionna_rt_dir(root),
+    return {
+        "submission_metrics_csv": {
+            "path": str(root / "submissions" / "submission_metrics.csv"),
+            "exists": (root / "submissions" / "submission_metrics.csv").is_file(),
+        },
+        "final_report_figures_yaml": {
+            "path": str(root / "docs" / "final_report_figures.yaml"),
+            "exists": (root / "docs" / "final_report_figures.yaml").is_file(),
+        },
+        "gary_micro_twin_yaml": {
+            "path": str(root / "configs" / "gary_micro_twin.yaml"),
+            "exists": (root / "configs" / "gary_micro_twin.yaml").is_file(),
+        },
+        "data_deepmimo": {
+            "path": str((root / DATA_DEEPMIMO_REL).resolve()),
+            "exists": (root / DATA_DEEPMIMO_REL).is_dir(),
+        },
+        "data_sionna_rt": {
+            "path": str((root / DATA_SIONNA_RT_REL).resolve()),
+            "exists": (root / DATA_SIONNA_RT_REL).is_dir(),
+        },
+        "data_aerial_omniverse": {
+            "path": str(aerial_drop_dir(root)),
+            "exists": aerial_drop_dir(root).is_dir(),
+        },
+        "configs_wireless_scene": {
+            "path": str(wireless_scene_config_dir(root)),
+            "exists": wireless_scene_config_dir(root).is_dir(),
+        },
+        "configs_ric": {
+            "path": str(ric_config_dir(root)),
+            "exists": ric_config_dir(root).is_dir(),
+        },
+        "legacy_data_simulation_deepmimo": {
+            "path": str((root / LEGACY_DEEPMIMO_REL).resolve()),
+            "exists": (root / LEGACY_DEEPMIMO_REL).is_dir(),
+        },
+        "legacy_data_simulation_sionna": {
+            "path": str((root / LEGACY_SIONNA_RT_REL).resolve()),
+            "exists": (root / LEGACY_SIONNA_RT_REL).is_dir(),
+        },
     }
-    out: Dict[str, Any] = {}
-    for key, p in paths.items():
-        out[key] = {"path": str(p), "exists": p.is_file() if key != "deepmimo_dir" and key != "sionna_rt_dir" else p.is_dir()}
-    # dirs
-    out["deepmimo_dir"]["exists"] = paths["deepmimo_dir"].is_dir()
-    out["sionna_rt_dir"]["exists"] = paths["sionna_rt_dir"].is_dir()
-    return out
 
 
 def load_deepmimo_overlay_stub(repo_root: Path) -> Optional[Dict[str, Any]]:
-    """
-    Future: load NPZ/JSON from data/simulation/deepmimo for map overlays or feature panels.
-    Returns None until real loader is implemented.
-    """
-    d = deepmimo_dir(repo_root)
-    if not d.is_dir():
-        return None
-    # Placeholder: no parser yet
+    """Future: load from data/deepmimo or data/simulation/deepmimo."""
+    for d in deepmimo_drop_dirs(repo_root):
+        if d.is_dir():
+            return None
     return None
 
 
 def load_sionna_rt_overlay_stub(repo_root: Path) -> Optional[Dict[str, Any]]:
-    """
-    Future: load GeoJSON or JSON summaries from data/simulation/sionna_rt for coverage layers.
-    Returns None until real loader is implemented.
-    """
-    d = sionna_rt_dir(repo_root)
-    if not d.is_dir():
+    """Future: load GeoJSON / JSON from data/sionna_rt or legacy path."""
+    for d in sionna_rt_drop_dirs(repo_root):
+        if d.is_dir():
+            return None
+    return None
+
+
+def load_aerial_omniverse_overlay_stub(repo_root: Path) -> Optional[Dict[str, Any]]:
+    """Future: load Aerial / Omniverse digital-twin RF overlay metadata."""
+    d = aerial_drop_dir(repo_root)
+    if d.is_dir():
         return None
     return None
+
+
+# Back-compat names used by older docs
+def deepmimo_dir(repo_root: Path) -> Path:
+    p = repo_root / LEGACY_DEEPMIMO_REL
+    if p.is_dir():
+        return p.resolve()
+    return (repo_root / DATA_DEEPMIMO_REL).resolve()
+
+
+def sionna_rt_dir(repo_root: Path) -> Path:
+    p = repo_root / LEGACY_SIONNA_RT_REL
+    if p.is_dir():
+        return p.resolve()
+    return (repo_root / DATA_SIONNA_RT_REL).resolve()
