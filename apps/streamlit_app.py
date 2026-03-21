@@ -33,16 +33,20 @@ except Exception:
 
 try:
     from src.edge_ran_gary.simulation_integration_hooks import (
+        describe_all_integration_drop_zones,
         describe_extension_asset_status,
         describe_simulation_backbone_status,
+        load_aerial_omniverse_overlay_stub,
         load_deepmimo_overlay_stub,
         load_sionna_rt_overlay_stub,
     )
 
     _SIM_INTEGRATION_HOOKS_OK = True
 except Exception:
+    describe_all_integration_drop_zones = None  # type: ignore
     describe_extension_asset_status = None  # type: ignore
     describe_simulation_backbone_status = None  # type: ignore
+    load_aerial_omniverse_overlay_stub = None  # type: ignore
     load_deepmimo_overlay_stub = None  # type: ignore
     load_sionna_rt_overlay_stub = None  # type: ignore
     _SIM_INTEGRATION_HOOKS_OK = False
@@ -58,8 +62,8 @@ st.set_page_config(
 st.title("📡 SpectrumX DAC — Winning Project Dashboard")
 st.caption(
     "Judge Mode highlights the **core SpectrumX DAC detector** (local metrics + live `evaluate()` on synthetic IQ). "
-    "**Completed Research Extension** (Gary site-aware digital twin + AI-RAN controller demo) is implemented now and clearly separated "
-    "from the **Core Judged SpectrumX detector**. DeepMIMO/Sionna RT are the **Next Research Scaling Path**."
+    "**Completed Research Extension** (Gary digital twin + **Near-RT RIC–style** AI-RAN demo) is separate from the **core judged detector**. "
+    "**Next realism scaling:** DeepMIMO, Sionna RT, **NVIDIA AI Aerial / Omniverse** — integration-ready paths, **not** active in the judged model unless you add them."
 )
 
 # Safety banner: do not upload competition data to Cloud
@@ -872,7 +876,7 @@ def _render_judge_trust_evidence_panel(
             "<li><b>Core judged submission</b> — SpectrumX DAC detector trained/evaluated on <b>official competition data</b> (offline). "
             "This app loads <b>only local CSV summaries</b> and runs <code>evaluate()</code> on <b>synthetic demo IQ</b> — never official IQ in-cloud.</li>"
             "<li><b>Completed research extension</b> — Gary site-aware digital twin + AI-RAN-style controller demo (non-scoring prototype in this UI).</li>"
-            "<li><b>Next realism scaling</b> — DeepMIMO (site-specific channel workflow) and Sionna RT (ray-traced propagation); file hooks only until pipelines land.</li>"
+            "<li><b>Next realism scaling</b> — DeepMIMO (channels), Sionna RT (ray-tracing), **NVIDIA AI Aerial / Omniverse** (digital-twin RF visualization) — **drop zones + stubs** until pipelines land; **none** drive the judged detector in-app.</li>"
             "</ul>",
         ),
         unsafe_allow_html=True,
@@ -907,6 +911,23 @@ def _render_judge_trust_evidence_panel(
         )
 
 
+def _render_judge_oran_ai_ran_alignment_card():
+    """Compact Judge Tour card: O-RAN / AI-RAN alignment (extension is demo-only)."""
+    st.markdown(
+        _judge_html_card(
+            "Why this aligns with AI-RAN / O-RAN (extension demo)",
+            "<ul style='margin:0;padding-left:18px;line-height:1.55'>"
+            "<li><b>O-RAN</b> separates RAN intelligence into rApps / xApps near a <b>Near-RT RIC</b>. This UI <b>abstracts</b> that loop: "
+            "<b>ingest</b> sensing + site state → <b>policy</b> → discrete <b>RIC-style actions</b> → <b>KPI</b> readout.</li>"
+            "<li><b>AI-RAN</b> uses ML/AI on observations to adapt spectrum use; here the <b>SpectrumX detector</b> (separate tab) supplies "
+            "<b>occupancy belief</b> on <b>synthetic demo IQ</b> — a stand-in for O1 / sensing interfaces.</li>"
+            "<li><b>Truthful scope</b>: no live E2 interface, no real RIC deployment — <b>conference-grade systems storytelling</b> on top of a real judged detector package.</li>"
+            "</ul>",
+        ),
+        unsafe_allow_html=True,
+    )
+
+
 def _render_judge_gary_micro_twin_3d():
     """
     Digital Twin realism pass (completed extension): anchor-site 3D scene, radio/user proxies,
@@ -920,27 +941,26 @@ def _render_judge_gary_micro_twin_3d():
 
     # --- Separation banner (completed extension is not the judged detector) ---
     st.success(
-        "**Completed Research Extension:** This tab is **not** the SpectrumX DAC judged detector. "
-        "It is the **implemented site-aware digital twin + AI-RAN controller demo** (research extension prototype), "
-        "shown here as a finished artifact for judges."
+        "**Completed Research Extension:** Not the judged SpectrumX detector. "
+        "**Gary site-aware digital twin** + **Near-RT RIC–style** (xApp-like) **AI-RAN control abstraction** — research prototype for judges."
     )
 
-    st.markdown("## Completed Gary Digital Twin Extension — site-aware digital twin + AI-RAN controller demo")
+    st.markdown("## Completed Gary Digital Twin Extension — digital twin + Near-RT RIC–style AI-RAN demo")
     st.caption(
-        "**Figure: Gary anchor-site digital twin** — extruded footprints + hypothetical gNB/demand/interference overlays (proxies). "
-        "No official competition IQ data is loaded in this app."
+        "**Wireless research artifact:** 3D **radio scene** (gNB, demand, interference, **coverage halos**, propagation stress — all **proxies** unless you add simulation outputs). "
+        "No official competition IQ in this app."
     )
 
-    # Guided walkthrough (primary path for nontechnical viewers)
-    st.markdown("### Guided walkthrough")
+    # Guided demo strip (primary path for nontechnical viewers)
+    st.markdown("### Guided demo strip (main path)")
     w = st.columns(6)
     _steps = [
-        ("1", "Pick **site**", "Focus building + community context."),
-        ("2", "Pick **scenario**", "Demand, occupancy, RF stress, time."),
-        ("3", "View **detector state**", "Live `evaluate()` when demo IQ runs."),
-        ("4", "**Propagation layer**", "Proxy coverage / LOS / penetration."),
-        ("5", "**Controller decision**", "State → action → KPI trade-offs."),
-        ("6", "**KPI impact**", "Coverage, coexistence, equity proxies."),
+        ("1", "Choose **site**", "Anchor civic / education footprint."),
+        ("2", "Choose **scenario**", "Demand, occupancy, RF stress, time."),
+        ("3", "**Wireless scene**", "Map: gNB, halos, hotspots, IF zones, links."),
+        ("4", "**Propagation / coverage**", "Proxy table + bar chart."),
+        ("5", "**RIC state → action**", "Near-RT xApp-style policy output."),
+        ("6", "**KPI impact**", "Coexistence, equity, energy, continuity."),
     ]
     for col, (num, title, sub) in zip(w, _steps):
         with col:
@@ -959,10 +979,10 @@ def _render_judge_gary_micro_twin_3d():
             _judge_html_card(
                 "Why this is research-grade now",
                 "<ul style='margin:0;padding-left:18px'>"
-                "<li><b>Core judged path</b> (separate tab): SpectrumX DAC detector on official data — not loaded in this tab.</li>"
-                "<li><b>This extension</b>: site-aware digital twin — map layers for gNB, demand, interference, propagation proxies.</li>"
-                "<li><b>Control loop</b>: explicit state → action → KPI (AI-RAN-style demo).</li>"
-                "<li><b>Simulation hooks</b>: DeepMIMO + Sionna RT output paths (stubs until real artifacts).</li>"
+                "<li><b>Real detector</b> on <b>official competition data</b> (offline) — core tab + structured submission workflow.</li>"
+                "<li><b>Completed extension</b>: Gary <b>digital-twin radio scene</b> + <b>O-RAN–aligned</b> Near-RT RIC <b>xApp-style</b> loop (demo).</li>"
+                "<li><b>Propagation / coverage</b>: explicit <b>proxy abstractions</b> + screenshot-ready charts — labeled honest.</li>"
+                "<li><b>Simulation backbone</b>: DeepMIMO, Sionna RT, **NVIDIA AI Aerial / Omniverse** drop zones — <b>integration-ready</b>, not pretending to run in-app.</li>"
                 "</ul>",
             ),
             unsafe_allow_html=True,
@@ -970,12 +990,12 @@ def _render_judge_gary_micro_twin_3d():
     with ce2:
         st.markdown(
             _judge_html_card(
-                "Why this matters for 6G PhD research",
+                "Why this matters for 6G research & admissions",
                 "<ul style='margin:0;padding-left:18px'>"
-                "<li><b>AI-native RAN</b>: sensing → belief → control.</li>"
-                "<li><b>Digital twins</b>: place-based RF storytelling.</li>"
-                "<li><b>Propagation-aware</b>: where ray-tracing / channels will attach.</li>"
-                "<li><b>Equity</b>: coexistence vs service trade-offs in KPIs.</li>"
+                "<li><b>AI-native RAN</b>: shows how <b>sensing</b> could feed a <b>Near-RT</b> control loop (the story faculty expect).</li>"
+                "<li><b>Digital twins</b>: ties ML to <b>place</b> and <b>propagation-aware</b> decisions — core 6G systems theme.</li>"
+                "<li><b>Equitable access</b>: KPIs encode <b>community benefit</b> vs <b>coexistence</b> — policy-relevant framing.</li>"
+                "<li><b>Simulation discipline</b>: clear path from <b>proxy demo</b> → <b>DeepMIMO / Sionna / Aerial</b> — reads as serious systems research.</li>"
                 "</ul>",
                 tone="gray",
             ),
@@ -1164,10 +1184,10 @@ def _render_judge_gary_micro_twin_3d():
         }
 
     # --- Central 3D canvas ---
-    st.markdown("### Interactive 3D — Gary anchor sites (wireless scene)")
+    st.markdown("### Interactive 3D — wireless radio scene (Gary anchors)")
     st.caption(
-        "Pickable layers (hover): **buildings** (coexistence tint) · **blue** gNB · **cyan** serving-link segment · **violet** demand disk · "
-        "**orange** low-7 GHz propagation-stress proxy · **red** interference disk + footprint."
+        "Hover layers: **buildings** (coexistence tint) · **light-green halo** = **coverage-quality proxy** · **blue** gNB · **cyan** serving link · "
+        "**violet** demand · **orange** propagation stress · **red** interference."
     )
 
     demand_scale = 0.75 + 0.55 * eff_demand
@@ -1188,6 +1208,20 @@ def _render_judge_gary_micro_twin_3d():
                 "label": f"Demand zone · {b['name'][:24]}",
                 "radius": int(b["demand_base_radius_m"] * demand_scale),
                 "tip": f"User demand hotspot (proxy). Radius scales with scenario demand.",
+            }
+        )
+
+    # Coverage-quality halo (large translucent disk) — simple heat-style proxy, not a solver grid
+    coverage_halo_rows = []
+    for b in buildings:
+        clon, clat = b["centroid"]
+        cov = float(b["_prop"]["coverage_proxy"])
+        coverage_halo_rows.append(
+            {
+                "position": [clon, clat],
+                "radius": int(95 + 400 * cov),
+                "label": f"Coverage halo (proxy) · {b['name'][:20]}",
+                "tip": f"**Implemented proxy:** halo size ∝ coverage abstraction {cov:.2f}. Not measured SINR / not ray-traced.",
             }
         )
 
@@ -1304,6 +1338,17 @@ def _render_judge_gary_micro_twin_3d():
             get_width=4,
             pickable=True,
         )
+        coverage_halo_layer = pdk.Layer(
+            "ScatterplotLayer",
+            id="layer-coverage-halo-proxy",
+            data=coverage_halo_rows,
+            get_position="position",
+            get_radius="radius",
+            get_fill_color=[46, 204, 113, 45],
+            get_line_color=[30, 132, 73, 130],
+            line_width_min_pixels=1,
+            pickable=True,
+        )
         demand_layer = pdk.Layer(
             "ScatterplotLayer",
             id="layer-demand-hotspots",
@@ -1363,6 +1408,7 @@ def _render_judge_gary_micro_twin_3d():
                 poly_layer,
                 if_poly_layer,
                 path_layer,
+                coverage_halo_layer,
                 demand_layer,
                 prop_layer,
                 if_layer,
@@ -1399,31 +1445,42 @@ def _render_judge_gary_micro_twin_3d():
         "under your scenario (not calibrated field data)."
     )
 
-    lg1, lg2 = st.columns(2)
+    lg1, lg2, lg3 = st.columns(3)
     with lg1:
-        st.markdown("**Map legend**")
+        st.markdown("**Map / glyph legend**")
         st.markdown(
-            "<div style='font-size:12px;line-height:1.65'>"
+            "<div style='font-size:12px;line-height:1.65;color:#212529'>"
             "<span style='display:inline-block;width:14px;height:14px;background:#2ecc71;border-radius:3px;vertical-align:middle;margin-right:6px'></span>Building: lower coexistence stress (proxy)<br/>"
             "<span style='display:inline-block;width:14px;height:14px;background:#f1c40f;border-radius:3px;vertical-align:middle;margin-right:6px'></span>Building: moderate stress (proxy)<br/>"
             "<span style='display:inline-block;width:14px;height:14px;background:#e74c3c;border-radius:3px;vertical-align:middle;margin-right:6px'></span>Building: higher stress (proxy)<br/>"
-            "<span style='display:inline-block;width:14px;height:14px;background:#3498db;border-radius:3px;vertical-align:middle;margin-right:6px'></span>Hypothetical gNB / access node<br/>"
-            "<span style='display:inline-block;width:14px;height:3px;background:#1abc9c;vertical-align:middle;margin-right:6px'></span>Serving-link segment (straight-line proxy)<br/>"
-            "<span style='display:inline-block;width:14px;height:14px;background:rgba(155,89,182,0.5);border-radius:50%;vertical-align:middle;margin-right:6px'></span>User demand hotspot (radius ∝ scenario)<br/>"
-            "<span style='display:inline-block;width:14px;height:14px;background:rgba(230,126,34,0.55);border-radius:50%;vertical-align:middle;margin-right:6px'></span>Low-7 GHz propagation-stress proxy (centroid)<br/>"
-            "<span style='display:inline-block;width:14px;height:14px;background:rgba(231,76,60,0.45);border-radius:50%;vertical-align:middle;margin-right:6px'></span>Interference disk proxy<br/>"
-            "<span style='display:inline-block;width:14px;height:14px;background:rgba(231,76,60,0.35);border:1px solid #a93226;vertical-align:middle;margin-right:6px'></span>Interference footprint proxy (polygon)</div>",
+            "<span style='display:inline-block;width:22px;height:22px;background:rgba(46,204,113,0.35);border:1px solid #1e8449;border-radius:50%;vertical-align:middle;margin-right:6px'></span>Coverage-quality **halo** (size ∝ proxy)<br/>"
+            "<span style='display:inline-block;width:14px;height:14px;background:#3498db;border-radius:3px;vertical-align:middle;margin-right:6px'></span>gNB / O-RAN **RU abstraction** (proxy site)<br/>"
+            "<span style='display:inline-block;width:14px;height:3px;background:#1abc9c;vertical-align:middle;margin-right:6px'></span>Serving link (straight-line proxy)<br/>"
+            "<span style='display:inline-block;width:14px;height:14px;background:rgba(155,89,182,0.5);border-radius:50%;vertical-align:middle;margin-right:6px'></span>User demand hotspot<br/>"
+            "<span style='display:inline-block;width:14px;height:14px;background:rgba(230,126,34,0.55);border-radius:50%;vertical-align:middle;margin-right:6px'></span>Propagation-stress marker<br/>"
+            "<span style='display:inline-block;width:14px;height:14px;background:rgba(231,76,60,0.45);border-radius:50%;vertical-align:middle;margin-right:6px'></span>IF disk · "
+            "<span style='display:inline-block;width:14px;height:14px;background:rgba(231,76,60,0.35);border:1px solid #a93226;vertical-align:middle;margin-right:6px'></span>IF footprint</div>",
             unsafe_allow_html=True,
         )
     with lg2:
-        st.markdown("**Radio-scene legend (semantic)**")
+        st.markdown("**Wireless-layer legend (semantics)**")
         st.markdown(
-            "<div style='font-size:12px;line-height:1.65;color:#495057'>"
-            "<b>Anchor site</b> = municipal / education footprint used as a <em>digital-twin anchor</em> (approximate geometry).<br/>"
-            "<b>gNB</b> = hypothetical macro/small-cell placement offset from centroid — <em>not</em> a licensed asset database.<br/>"
-            "<b>Hotspot</b> = where user demand is narratively concentrated for the scenario.<br/>"
-            "<b>Interference</b> = stylized coexistence pressure — <b>proxy</b>, not identified emitters.<br/>"
-            "<b>Link + tooltip LOS fraction</b> = interpretable <b>proxy indicator</b> along the straight segment; <b>not</b> Sionna RT output.</div>",
+            "<div style='font-size:12px;line-height:1.65;color:#212529'>"
+            "<b>L1 Anchor geometry</b> — extruded footprints (digital-twin anchor; approx. GIS).<br/>"
+            "<b>L2 Access / serving</b> — hypothetical gNB + serving segment (not a carrier asset DB).<br/>"
+            "<b>L3 Traffic demand</b> — violet disks = narrative load hotspots.<br/>"
+            "<b>L4 Propagation abstraction</b> — green halos + orange stress = <b>proxy</b> until Sionna / DeepMIMO / Aerial feeds replace them.<br/>"
+            "<b>L5 Coexistence / risk</b> — red IF proxies = aggregated interference story, not identified emitters.</div>",
+            unsafe_allow_html=True,
+        )
+    with lg3:
+        st.markdown("**O-RAN mapping (conceptual)**")
+        st.markdown(
+            "<div style='font-size:12px;line-height:1.65;color:#212529'>"
+            "<b>RU / O-DU (abstracted)</b> — gNB marker + link geometry.<br/>"
+            "<b>O1 / sensing stand-in</b> — SpectrumX <code>evaluate()</code> on <b>synthetic</b> IQ (Judge tab).<br/>"
+            "<b>Near-RT RIC / xApp</b> — policy panel below maps state → discrete RAN action → KPIs.<br/>"
+            "<em>No live E2 / E1 interfaces in this demo.</em></div>",
             unsafe_allow_html=True,
         )
 
@@ -1442,11 +1499,11 @@ def _render_judge_gary_micro_twin_3d():
         )
         st.caption("Implemented now — anchor-site model (approximate footprint + role) for the selected scenario.")
 
-    # --- Radio environment / propagation (dedicated panel; honest proxy labeling) ---
-    st.markdown("### Radio Environment / Propagation View")
+    # --- Propagation / coverage (screenshot panel; honest proxy labeling) ---
+    st.markdown("### Propagation / Coverage (implemented proxy abstraction)")
     st.warning(
-        "**Current proxy propagation view** — metrics below are **deterministic scenario proxies** computed in this demo. "
-        "They are **not** ray-traced coverage, **not** DeepMIMO channels, and **not** drive-test calibrated."
+        "**Implemented proxy / current abstraction** — deterministic scenario math for **demo + screenshots**. "
+        "**Not** ray-traced coverage, **not** DeepMIMO CSI, **not** Sionna path loss grids, **not** NVIDIA Aerial exports, **not** drive-test data."
     )
     clon, clat = selected_building["centroid"]
     gnb_lon = clon + selected_building["gnb_offset_lon"]
@@ -1488,6 +1545,46 @@ def _render_judge_gary_micro_twin_3d():
         st.metric("Indoor penetration (proxy)", f"~{_sp['penetration_db_proxy']:.0f} dB equiv.")
         st.caption(f"**LOS / NLOS label:** {_sp['los_nl_os']}")
 
+    st.markdown("#### Site-wise coverage vs propagation challenge (proxy bar chart)")
+    if pd is not None:
+        sites_short = [b["name"][:24] for b in buildings]
+        fig_cov = go.Figure()
+        fig_cov.add_trace(
+            go.Bar(
+                name="Coverage (proxy)",
+                x=sites_short,
+                y=[float(b["_prop"]["coverage_proxy"]) for b in buildings],
+                marker_color="#1e8449",
+            )
+        )
+        fig_cov.add_trace(
+            go.Bar(
+                name="Propagation challenge (proxy)",
+                x=sites_short,
+                y=[float(b["_prop"]["challenge_proxy"]) for b in buildings],
+                marker_color="#d35400",
+            )
+        )
+        fig_cov.update_layout(
+            barmode="group",
+            height=360,
+            margin=dict(t=40, b=48),
+            paper_bgcolor="#dee2e6",
+            plot_bgcolor="#f8f9fa",
+            font=dict(color="#212529", size=12),
+            legend=dict(font=dict(color="#212529")),
+            xaxis=dict(tickfont=dict(color="#212529"), title=dict(text="Anchor site", font=dict(color="#212529"))),
+            yaxis=dict(
+                range=[0, 1.08],
+                tickfont=dict(color="#212529"),
+                title=dict(text="Score (0–1 proxy)", font=dict(color="#212529")),
+            ),
+        )
+        st.plotly_chart(fig_cov, use_container_width=True)
+        st.caption("**Screenshot tip:** pair with the 3D scene + **coverage halos** for a conference slide on *proxy → future simulation-backed* layers.")
+    else:
+        st.caption("Install **pandas** for the grouped bar chart; table above still summarizes all sites.")
+
     st.markdown("**Scene elements on map (implemented now)**")
     r1, r2, r3, r4 = st.columns(4)
     with r1:
@@ -1504,9 +1601,9 @@ def _render_judge_gary_micro_twin_3d():
         st.caption("Tooltip along cyan segment — straight-line **indicator**, not Sionna RT.")
 
     st.info(
-        "**Next realism scaling:** **Sionna RT** for ray-traced propagation / coverage grids on these footprints. "
-        "**DeepMIMO** for site-specific MIMO channels and reproducible scenario benchmarking. "
-        "Drop outputs under `data/simulation/sionna_rt/` and `data/simulation/deepmimo/` (see Simulation Backbone below)."
+        "**Next scaling (replace proxies):** **Sionna RT** → path-loss / LOS grids → `data/sionna_rt/` (or legacy `data/simulation/sionna_rt/`). "
+        "**DeepMIMO** → CSI / scenario matrices → `data/deepmimo/`. **NVIDIA AI Aerial / Omniverse** → twin + RF viz → `data/aerial_omniverse/`. "
+        "See **Simulation Backbone** + `docs/SIMULATION_BACKBONE_PLAN.md`."
     )
 
     # --- Users at this site ---
@@ -1524,11 +1621,12 @@ def _render_judge_gary_micro_twin_3d():
     )
     st.caption("Implemented now — site-specific user personas for this completed extension demo.")
 
-    # --- RAN controller: explicit state–action–KPI (research-grade demo) ---
-    st.markdown("### AI-RAN controller — state → action → KPI (implemented extension)")
+    # --- Near-RT RIC / xApp-style control loop (AI-RAN abstraction; demo only) ---
+    st.markdown("### Near-RT RIC–style control loop (xApp abstraction)")
     st.caption(
-        "**Closed-loop story:** sensing **informs belief**, belief **informs control**, control **trades off** coexistence, service continuity, and equity. "
-        "Separate from the **core judged** SpectrumX detector path."
+        "**O-RAN-aligned story (conceptual):** **state ingestion** (sensing + site + propagation proxies) → **belief / policy prior** → **action selection** "
+        "(discrete RAN-style commands) → **KPI feedback** (coverage, coexistence, equity, energy, continuity). "
+        "This is an **AI-RAN research demo** in Streamlit — **not** a deployed xApp on a live Near-RT RIC. **Core judged** detector remains the SpectrumX submission path."
     )
 
     pred = st.session_state.get("judge_live_pred")
@@ -1547,7 +1645,7 @@ def _render_judge_gary_micro_twin_3d():
     radio_env_favorability = max(0.0, min(1.0, 1.0 - 0.85 * eff_env + 0.08 * (1.0 - _sp["challenge_proxy"])))
     coexistence_risk = float(selected_building["risk_score"])
 
-    st.markdown("#### Controller state (observed / inferred proxies)")
+    st.markdown("#### RIC state observation — ingested inputs (proxies + sensing)")
     s1, s2, s3, s4, s5 = st.columns(5)
     s1.metric("Detector belief", occ_word.replace(" (1)", "").replace(" (0)", "")[:14])
     s2.metric("Site context", selected_building["id"].replace("_", " ")[:16])
@@ -1556,7 +1654,7 @@ def _render_judge_gary_micro_twin_3d():
     s5.metric("Coexistence risk (proxy)", f"{coexistence_risk:.2f}")
     st.caption(det_belief_line)
 
-    st.markdown("##### State vector (structured — AI-RAN loop)")
+    st.markdown("##### State vector (xApp policy input — structured)")
     if pd is not None:
         st.dataframe(
             pd.DataFrame(
@@ -1615,17 +1713,17 @@ def _render_judge_gary_micro_twin_3d():
         action_reason = "Vacancy belief with capacity opportunity → prioritize equitable service at the focus site."
 
     _chosen_title = next(c[1] for c in candidates if c[0] == chosen_key)
-    st.markdown("##### Chosen control action (proxy controller)")
+    st.markdown("##### Policy output — selected RAN-style action (proxy xApp)")
     st.success(f"**{_chosen_title}**  \n{action_reason}")
 
-    st.markdown("#### Pipeline trace (sense → decide → KPIs)")
+    st.markdown("#### Control loop trace (ingest → belief/policy → act → KPI feedback)")
     pipe = st.columns(5)
     stages = [
-        ("1 · Sense", f"**{occ_word}**", "Live `evaluate()` on Judge **synthetic** demo IQ."),
-        ("2 · Belief", occ_belief, f"RF stress belief: **{'elevated' if belief_hi else 'moderate'}**."),
-        ("3 · Site + demand", selected_building["name"][:20] + "…", f"{b_time} · {b_event} · demand **{b_demand}**"),
-        ("4 · Action", f"**{_chosen_title}**", "Policy stub — maps state to discrete action set."),
-        ("5 · KPI impact", "Row below →", "Coverage · coexistence · energy · fairness · continuity."),
+        ("1 · State ingestion", f"**{occ_word}**", "Sensing: `evaluate()` on **synthetic** demo IQ (O1-style stand-in)."),
+        ("2 · Belief / policy", occ_belief, f"RF + load belief: **{'elevated' if belief_hi else 'moderate'}** stress."),
+        ("3 · Site context", selected_building["name"][:20] + "…", f"{b_time} · {b_event} · demand **{b_demand}**"),
+        ("4 · Action selection", f"**{_chosen_title}**", "Discrete **xApp-style** command (hold / TX / power / channel / prioritize)."),
+        ("5 · KPI feedback", "Metrics below →", "Closed-loop readout for coexistence & equity."),
     ]
     for col, (title, headline, sub) in zip(pipe, stages):
         with col:
@@ -1638,7 +1736,7 @@ def _render_judge_gary_micro_twin_3d():
                 unsafe_allow_html=True,
             )
 
-    st.markdown("**Action space (proxy)** — hold · cautious transmit · reduce power · change channel · prioritize site")
+    st.markdown("**Candidate action space (proxy xApp)** — hold · cautious transmit · reduce power · change channel · prioritize site")
     ca = st.columns(5)
     for i, (k, title, blurb) in enumerate(candidates):
         with ca[i]:
@@ -1650,10 +1748,10 @@ def _render_judge_gary_micro_twin_3d():
 
     st.markdown(
         "<div style='border-left:5px solid #5b21b6;padding:12px 16px;background:#e9e3f5;border:1px solid #212529;border-radius:0 12px 12px 0;margin:10px 0'>"
-        "<strong style='color:#212529'>Why this is AI-RAN (in this demo)</strong><br/>"
+        "<strong style='color:#212529'>Why this is AI-RAN / Near-RT RIC (in this demo)</strong><br/>"
         "<span style='font-size:13px;color:#212529;line-height:1.55'>"
-        "<b>Sensing</b> updates belief from IQ → <b>state vector</b> (site, demand, interference, propagation) → <b>discrete action</b> → <b>KPI</b> row "
-        "(coverage, coexistence, fairness, energy, continuity). This is the same <b>closed-loop story</b> as AI-native RAN research prototypes — here as a judge-safe demo.</span></div>",
+        "Mirrors how a <b>Near-RT RIC xApp</b> would close the loop: <b>observations</b> (here: detector + twin state) → <b>policy</b> → <b>actions</b> → <b>KPIs</b>. "
+        "Fits <b>AI-native RAN</b> narratives for <b>6G systems</b> and faculty review — with explicit <b>proxy</b> labeling and <b>no</b> false claim of a production RIC.</span></div>",
         unsafe_allow_html=True,
     )
 
@@ -1685,71 +1783,90 @@ def _render_judge_gary_micro_twin_3d():
         "community needs it most."
     )
 
-    # --- Simulation backbone (honest three-layer separation) ---
-    st.markdown("### Simulation backbone — implemented vs ready integration paths")
+    # --- Simulation backbone (three integration pillars + honest status) ---
+    st.markdown("### Simulation backbone")
     st.caption(
-        "**Layer 1** is live in this repo UI. **Layers 2–3** are **ready file/config paths + stub loaders** — no false claim that they drive the judged detector."
+        "**Active in this UI:** digital-twin **radio scene** + **proxy** propagation/coverage abstractions + **Near-RT RIC–style** policy demo. "
+        "**Integration-ready / next scaling:** DeepMIMO, Sionna RT, NVIDIA AI Aerial / Omniverse — **stubs + drop dirs**; **none** are claimed to run the **judged** detector."
     )
 
     _repo = _repo_root()
-    _dm_stub = _sn_stub = None
+    _dm_stub = _sn_stub = _ae_stub = None
     if _SIM_INTEGRATION_HOOKS_OK and load_deepmimo_overlay_stub and load_sionna_rt_overlay_stub:
         try:
             _dm_stub = load_deepmimo_overlay_stub(_repo)
             _sn_stub = load_sionna_rt_overlay_stub(_repo)
         except Exception:
             _dm_stub = _sn_stub = None
+    if _SIM_INTEGRATION_HOOKS_OK and load_aerial_omniverse_overlay_stub:
+        try:
+            _ae_stub = load_aerial_omniverse_overlay_stub(_repo)
+        except Exception:
+            _ae_stub = None
 
     sb1, sb2, sb3 = st.columns(3)
     with sb1:
         st.markdown(
             _judge_html_card(
-                "① Implemented now",
+                "DeepMIMO",
                 "<ul style='margin:0;padding-left:18px;line-height:1.5'>"
-                "<li><b>Digital twin</b>: map layers (buildings, gNB, demand, interference, propagation proxy, links).</li>"
-                "<li><b>Detector</b>: <code>submissions/&lt;pkg&gt;/main.py</code> + synthetic demo IQ only.</li>"
-                "<li><b>Controller</b>: discrete actions + KPI proxies.</li></ul>",
+                "<li><b>Contributes</b>: reproducible <b>site-specific MIMO channels</b>, CSI summaries, scenario matrices for ML + controller replay.</li>"
+                "<li><b>Connects here</b>: feeds <b>propagation / SINR panels</b> and map overlays when NPZ/JSON parsers land.</li>"
+                "<li><b>Status</b>: <b>Integration-ready</b> — drop under <code>data/deepmimo/</code> (also <code>data/simulation/deepmimo/</code>). "
+                f"UI overlay active: **{'yes' if _dm_stub else 'no — stub only'}**.</li></ul>",
             ),
             unsafe_allow_html=True,
         )
     with sb2:
         st.markdown(
             _judge_html_card(
-                "② Integration path — DeepMIMO",
+                "Sionna RT",
                 "<ul style='margin:0;padding-left:18px;line-height:1.5'>"
-                "<li><b>Research role</b>: reproducible <b>site-specific MIMO channels</b> and scenario matrices for benchmarking / ML features.</li>"
-                "<li><b>Drop zone</b>: <code>data/simulation/deepmimo/</code> — e.g. <code>scenario_meta.json</code>, <code>channel_features.npz</code>.</li>"
-                "<li><b>Status</b>: stub loader — <b>no</b> channel overlay in UI until parser lands.</li></ul>",
+                "<li><b>Contributes</b>: <b>ray-traced propagation</b>, materials, diffraction — replaces straight links & disk <b>proxies</b> with physics-backed maps.</li>"
+                "<li><b>Connects here</b>: GeoJSON / JSON → pydeck coverage heatmaps + panel metrics.</li>"
+                "<li><b>Status</b>: <b>Next scaling path</b> — <code>data/sionna_rt/</code> (legacy <code>data/simulation/sionna_rt/</code>). "
+                f"UI overlay active: **{'yes' if _sn_stub else 'no — stub only'}**.</li></ul>",
             ),
             unsafe_allow_html=True,
         )
-        st.caption(f"DeepMIMO artifacts driving UI: **{'yes' if _dm_stub else 'no (stub only)'}**")
     with sb3:
         st.markdown(
             _judge_html_card(
-                "③ Integration path — Sionna RT",
+                "NVIDIA AI Aerial / Omniverse (AODT)",
                 "<ul style='margin:0;padding-left:18px;line-height:1.5'>"
-                "<li><b>Research role</b>: <b>ray-traced propagation</b>, materials, diffraction — replace straight-link / disk proxies with measured-style path loss.</li>"
-                "<li><b>Drop zone</b>: <code>data/simulation/sionna_rt/</code> — e.g. <code>coverage_grid.geojson</code>, <code>path_loss_summary.json</code>.</li>"
-                "<li><b>Status</b>: stub loader — <b>no</b> GeoJSON heatmap until adapter lands.</li></ul>",
+                "<li><b>Contributes</b>: <b>large-scale digital twin</b> + RF visualization workflows (when you run their toolchain separately).</li>"
+                "<li><b>Connects here</b>: exports (e.g. USD scene refs, twin manifest, RF overlay meta) under <code>data/aerial_omniverse/</code> for future loaders.</li>"
+                "<li><b>Status</b>: <b>Next scaling path</b> — requires <b>external accounts / GPU / Omniverse</b> outside this repo. "
+                f"UI integration active: **{'yes' if _ae_stub else 'no — stub only'}**.</li></ul>",
             ),
             unsafe_allow_html=True,
         )
-        st.caption(f"Sionna RT artifacts driving UI: **{'yes' if _sn_stub else 'no (stub only)'}**")
 
-    if _SIM_INTEGRATION_HOOKS_OK and describe_simulation_backbone_status:
+    st.markdown("**Optional config stubs (graceful if missing)**")
+    st.caption(
+        "`configs/wireless_scene/` — layer toggles, anchor overrides. `configs/ric/` — example Near-RT / xApp policy YAML (non-operational)."
+    )
+
+    if _SIM_INTEGRATION_HOOKS_OK and describe_all_integration_drop_zones:
         try:
-            _sb = describe_simulation_backbone_status(_repo)
-            with st.expander("Local simulation directory status (read-only)", expanded=False):
+            _sb = describe_all_integration_drop_zones(_repo)
+            with st.expander("Full integration drop-zone status (read-only JSON)", expanded=False):
                 st.json(_sb)
         except Exception:
-            st.caption("Could not read simulation directory status.")
+            if describe_simulation_backbone_status:
+                try:
+                    with st.expander("Integration drop-zone status (fallback)", expanded=False):
+                        st.json(describe_simulation_backbone_status(_repo))
+                except Exception:
+                    st.caption("Could not read integration directory status.")
+            else:
+                st.caption("Could not read integration directory status.")
 
-    st.markdown("#### Next realism scaling (concrete research workflow)")
+    st.markdown("#### Deployment-style scaling (research path)")
     st.info(
-        "**DeepMIMO** → export or simulate **CSI / spatial channels** per anchor footprint; feed `data/simulation/deepmimo/` for SINR/feature panels. "
-        "**Sionna RT** → **ray-tracing** outputs (path loss grids, LOS maps) under `data/simulation/sionna_rt/` to replace cyan-link and orange-disk **proxies**. "
-        "**Judged detector** unchanged — official scoring stays on competition data offline."
+        "**O-RAN-style** deployment would attach this abstraction to real **E2**/**O1** interfaces; today it remains a **simulation-ready** artifact. "
+        "**DeepMIMO** → channels. **Sionna RT** → propagation realism. **AI Aerial / AODT** → twin-scale scenes. "
+        "**Judged SpectrumX detector** stays on **official data** offline — unchanged by these hooks."
     )
 
     with st.expander("Optional local assets & expected paths (graceful if missing)", expanded=False):
@@ -1766,16 +1883,17 @@ def _render_judge_gary_micro_twin_3d():
             except Exception as e:
                 st.caption(f"Asset scan failed: {e}")
         st.markdown(
-            "**Expected schemas (when you add them):**\n"
-            "- `docs/final_report_figures.yaml` — figure manifest for reports.\n"
-            "- `submissions/submission_metrics.csv` — tabular leaderboard-style metrics.\n"
-            "- `configs/gary_micro_twin.yaml` — optional twin parameters / overrides.\n"
-            "- `data/simulation/deepmimo/*` — NPZ/JSON/CSV channel artifacts.\n"
-            "- `data/simulation/sionna_rt/*` — GeoJSON coverage + JSON path summaries."
+            "**Expected paths (optional — create as needed):**\n"
+            "- `data/deepmimo/` — DeepMIMO-style NPZ/JSON/CSV (legacy: `data/simulation/deepmimo/`).\n"
+            "- `data/sionna_rt/` — Sionna RT GeoJSON + JSON (legacy: `data/simulation/sionna_rt/`).\n"
+            "- `data/aerial_omniverse/` — Aerial / Omniverse exports (USD manifest, RF overlay meta).\n"
+            "- `configs/wireless_scene/` — scene / layer YAML.\n"
+            "- `configs/ric/` — example xApp / RIC policy stubs.\n"
+            "- `docs/final_report_figures.yaml`, `submissions/submission_metrics.csv`, `configs/gary_micro_twin.yaml`."
         )
 
     st.caption(
-        "**Screenshot tip:** capture **3D wireless scene + legends**, **proxy propagation table**, **chosen action callout**, and **KPI row**."
+        "**Screenshot tip:** **3D scene + triple legend** · **propagation table + bar chart** · **RIC policy output** · **KPI row**."
     )
 
 
@@ -2065,6 +2183,7 @@ if judge_mode_enabled:
         st.session_state.get("judge_active_submission_folder"),
         _pkg_ct,
     )
+    _render_judge_oran_ai_ran_alignment_card()
 
     # Judge-tour tabs
     tabs = st.tabs(
@@ -2089,7 +2208,7 @@ SpectrumX DAC judging focuses on: **detection accuracy**, **implementation effic
 This dashboard presents:
 - **Core judged submission** (official SpectrumX DAC detector metrics) from local structured files.
 - **Completed research extension** (Gary site-aware digital twin + AI-RAN controller demo) implemented in this prototype and clearly separated from scoring.
-- **Next research scaling path** (DeepMIMO / Sionna RT) clearly labeled as the next layer for realism upgrades.
+- **Next research scaling path** (DeepMIMO / Sionna RT / NVIDIA AI Aerial–class twins) — integration-ready drop zones; **not** claimed to score the detector.
             """.strip()
         )
         st.caption(
@@ -2118,7 +2237,7 @@ This dashboard presents:
             st.markdown(
                 _judge_html_card(
                     "Next realism scaling",
-                    "<b>DeepMIMO</b>: site-specific channel workflow. <b>Sionna RT</b>: ray-traced propagation. Hooks + drop dirs in repo.",
+                    "<b>DeepMIMO</b> · <b>Sionna RT</b> · <b>NVIDIA AI Aerial / Omniverse</b> — channel, ray-tracing, twin-scale RF viz; see <code>docs/SIMULATION_BACKBONE_PLAN.md</code>.",
                 ),
                 unsafe_allow_html=True,
             )
@@ -2203,8 +2322,8 @@ This dashboard presents:
             "**What was judged vs completed extension — read first:** "
             "**(A) Core judged submission** = feature-based binary detector on **official SpectrumX labeled data** "
             "(tables/card below use **local CSVs only**). "
-            "**(B) Completed research extension** = Gary Micro-Twin digital twin + site-aware AI-RAN controller demo — **implemented here as a completed prototype** (non-scoring). "
-            "**(C) Next scaling path** = DeepMIMO / Sionna RT realism scaling — next integration layer for future work."
+            "**(B) Completed research extension** = Gary digital twin + **Near-RT RIC–style (xApp-like)** AI-RAN control abstraction — **non-scoring** prototype. "
+            "**(C) Next scaling path** = DeepMIMO / Sionna RT / **NVIDIA AI Aerial / Omniverse** — **integration-ready** dirs + stubs; **not** active in the judged detector unless you wire them."
         )
         st.subheader("Figure 4: Canonical Final Submission card (Core Judged — single source of truth)")
         st.caption(
