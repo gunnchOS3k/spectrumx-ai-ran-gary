@@ -1,0 +1,16 @@
+{
+  "deepmimo_export_version": "example-0.1",
+  "deepmimo": {
+    "scenario_name": "gary_civic_example",
+    "num_bs": 3,
+    "num_users": 120,
+    "los_links": 200,
+    "nlos_links": 160,
+    "carrier_ghz": 3.5,
+    "generated_at": "2026-01-28T00:00:00Z"
+  },
+  "channel_statistics": {
+    "mean_path_loss_db": 118.5,
+    "median_sinr_db": 12.3
+  }
+}

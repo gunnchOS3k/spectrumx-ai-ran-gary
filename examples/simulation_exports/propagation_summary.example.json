@@ -1,0 +1,18 @@
+{
+  "sionna_export_version": "example-0.1",
+  "sionna": {
+    "scenario_name": "gary_raytrace_example",
+    "frequency_ghz": 3.5,
+    "mean_path_loss_db": 121.0,
+    "median_path_loss_db": 119.5,
+    "los_fraction": 0.62,
+    "blockage_model": "example_urban",
+    "materials_summary": "concrete_glass_mixed",
+    "generated_at": "2026-01-28T00:00:00Z"
+  },
+  "coverage": {
+    "mean_sinr_db": 11.8,
+    "cell_edge_sinr_db": 4.2,
+    "fraction_above_threshold": 0.78
+  }
+}

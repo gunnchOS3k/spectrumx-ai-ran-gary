@@ -36,11 +36,12 @@ Implemented in `src/edge_ran_gary/gary_scenario_engine.py`:
 - **Guided demo strip (6 steps):** site → **scenario preset** → **wireless scene** (engine-driven) → **propagation / coverage** → **closed-loop controller** → KPIs.
 - **Sources & assumptions** expander: tabulates defaults (sourced vs assumption).
 - **Anchor strip + focus card:** community function, geometry mode (footprint vs 3D asset), footprint provenance note.
-- **3D wireless scene (pydeck):** **extruded site footprints** (and optional **ScenegraphLayer**); **people + device HeatmapLayers** (aggregated samples); **PathLayer** foot-traffic **proxies**; **cluster disks** for cohorts / device load; **summary text** per site; **coverage halos**; violet **demand** radii ∝ **traffic_demand_score**; IF + propagation + gNB (**proxies**); view **centered on anchor bbox**.
-- **Triple legend:** glyph · wireless-layer stack · O-RAN **conceptual** mapping (**RIC-style controller**, not “full RT RIC”).
+- **3D wireless scene (pydeck):** **extruded site footprints** (and optional **ScenegraphLayer**); **people + device HeatmapLayers** (aggregated samples); **PathLayer** foot-traffic **proxies**; **cluster disks** for cohorts / device load; **summary text** per site (elevated **TextLayer** + **billboard** + **outline** for contrast); **coverage halos**; violet **demand** radii ∝ **traffic_demand_score**; IF + propagation + gNB (**proxies**); optional **Sionna** **`GeoJsonLayer`** (`layer-sionna-coverage-geojson`) when `coverage_grid.geojson` validates; view **centered on anchor bbox**.
+- **Triple legend:** glyph · wireless-layer stack · O-RAN **conceptual** mapping (**RIC-style controller**, not “full RT RIC”) — each column wrapped in a **light contrast card** for dark Streamlit themes.
 - **Propagation / Coverage:** proxy table + bar chart; driven by scenario **pressures** + RF slider.
 - **Closed-loop controller:** explicit **state vector** → **`select_closed_loop_action`** → **`apply_action_to_kpis`** (six candidate actions including **rebalance service**).
-- **Simulation backbone:** cards + expander with **`load_*_summary`** — **loaded** path + JSON preview, or **not loaded** + expected filenames/schema hint.
+- **Simulation backbone:** cards + expander reuse the **same** early **`load_*_summary`** results — **loaded** path + JSON preview, or **not loaded** + expected filenames/schema hint (see **`docs/SIMULATION_BACKBONE_PLAN.md`** for exact schemas).
+- **Simulation status (evidence):** compact judge/report panel — exact paths, summary file used, parsed metadata rows, honest **Aerial** “not bundled” note.
 - **Drop zones:** `data/deepmimo/`, `data/sionna_rt/`, `data/aerial_omniverse/`, `configs/wireless_scene/`, `configs/ric/` (+ legacy `data/simulation/*`). See `docs/SIMULATION_BACKBONE_PLAN.md`.
 
 ### Judge Mode (tour-level)

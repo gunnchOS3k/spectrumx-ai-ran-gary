@@ -404,8 +404,8 @@ def _judge_html_card(title: str, body_inner_html: str, *, tone: str = "gray") ->
 
 def _judge_html_card_sm(html_inner: str) -> str:
     return (
-        "<div style='border:1px solid #495057;border-radius:10px;padding:10px 12px;background:#dee2e6;"
-        "color:#212529;min-height:118px;box-shadow:0 1px 2px rgba(0,0,0,0.08);'>"
+        "<div style='border:1px solid #343a40;border-radius:10px;padding:10px 12px;background:#f1f3f5;"
+        "color:#111827;min-height:118px;box-shadow:0 1px 2px rgba(0,0,0,0.08);'>"
         f"{html_inner}</div>"
     )
 
@@ -1023,7 +1023,7 @@ def _render_judge_gary_micro_twin_3d():
         with col:
             st.markdown(
                 _judge_html_card_sm(
-                    f"<div style='font-size:11px;color:#495057'>Step {num}</div>"
+                    f"<div style='font-size:11px;color:#212529'>Step {num}</div>"
                     f"<div style='font-weight:700;font-size:13px;color:#212529;margin:4px 0'>{title}</div>"
                     f"<div style='font-size:11px;color:#212529'>{sub}</div>"
                 ),
@@ -1199,6 +1199,11 @@ def _render_judge_gary_micro_twin_3d():
         lons = [p[0] for p in b["polygon"]]
         lats = [p[1] for p in b["polygon"]]
         b["centroid"] = [sum(lons) / len(lons), sum(lats) / len(lats)]
+        b["label_position_3d"] = [
+            b["centroid"][0],
+            b["centroid"][1],
+            float(b["height_m"]) + 22.0,
+        ]
         st_local = all_site_states[b["id"]]
         b["_scenario"] = st_local
         risk = (
@@ -1231,14 +1236,83 @@ def _render_judge_gary_micro_twin_3d():
     if apply_risk_colors_to_buildings:
         apply_risk_colors_to_buildings(buildings)
 
+    # Simulation summaries (once per run) — used by map, propagation, controller honesty, backbone
+    _repo_mt = _repo_root()
+    _sim_dm: dict = {}
+    _sim_sn: dict = {}
+    _sim_ae: dict = {}
+    if not _SIM_INTEGRATION_HOOKS_OK:
+        _sim_dm = {
+            "loaded": False,
+            "path": str((_repo_mt / "data" / "deepmimo").resolve()),
+            "parser_note": "`simulation_integration_hooks` failed to import — cannot load summaries.",
+        }
+        _sim_sn = {
+            "loaded": False,
+            "path": str((_repo_mt / "data" / "sionna_rt").resolve()),
+            "parser_note": "`simulation_integration_hooks` failed to import — cannot load summaries.",
+        }
+        _sim_ae = {
+            "loaded": False,
+            "path": str((_repo_mt / "data" / "aerial_omniverse").resolve()),
+            "parser_note": "`simulation_integration_hooks` failed to import — cannot load summaries.",
+        }
+    if _SIM_INTEGRATION_HOOKS_OK:
+        if load_deepmimo_scenario_summary:
+            try:
+                _sim_dm = load_deepmimo_scenario_summary(_repo_mt)
+            except Exception:
+                _sim_dm = {
+                    "loaded": False,
+                    "path": str((_repo_mt / "data" / "deepmimo").resolve()),
+                    "expected_files": ["scenario_summary.json", "scenario_meta.json"],
+                    "integration": "deepmimo",
+                    "parser_note": "Loader raised an exception — check terminal logs; not marked loaded.",
+                    "error": "loader_exception",
+                }
+        if load_sionna_propagation_summary:
+            try:
+                _sim_sn = load_sionna_propagation_summary(_repo_mt)
+            except Exception:
+                _sim_sn = {
+                    "loaded": False,
+                    "path": str((_repo_mt / "data" / "sionna_rt").resolve()),
+                    "expected_files": [
+                        "propagation_summary.json",
+                        "path_loss_summary.json",
+                        "coverage_grid.geojson",
+                    ],
+                    "integration": "sionna_rt",
+                    "parser_note": "Loader raised an exception — check terminal logs; not marked loaded.",
+                    "error": "loader_exception",
+                }
+        if load_aerial_overlay_summary:
+            try:
+                _sim_ae = load_aerial_overlay_summary(_repo_mt)
+            except Exception:
+                _sim_ae = {
+                    "loaded": False,
+                    "path": str((_repo_mt / "data" / "aerial_omniverse").resolve()),
+                    "expected_files": ["overlay_summary.json", "twin_manifest.json"],
+                    "integration": "aerial_omniverse",
+                    "parser_note": "Loader raised an exception — check terminal logs; not marked loaded.",
+                    "error": "loader_exception",
+                }
+
     _occ_bundle: dict = {}
     if _OCC_VIZ_OK and build_pydeck_occupancy_bundle is not None:
         try:
             _occ_bundle = build_pydeck_occupancy_bundle(
-                buildings, _preset_key, b_time, _event_high, _repo_root()
+                buildings, _preset_key, b_time, _event_high, _repo_mt
             )
         except Exception:
             _occ_bundle = {}
+    for _sl in _occ_bundle.get("summary_labels") or []:
+        _p = _sl.get("position") or [0, 0]
+        if len(_p) == 2:
+            _sl["position"] = [float(_p[0]), float(_p[1]), 34.0]
+        elif len(_p) == 3:
+            _sl["position"] = [float(_p[0]), float(_p[1]), max(float(_p[2]), 34.0)]
 
     focus_state = all_site_states[selected_site_id]
 
@@ -1259,6 +1333,81 @@ def _render_judge_gary_micro_twin_3d():
             "**Using footprint model (default):** all anchors render as **extruded polygons** — add `assets/models/*.glb` + "
             "`configs/wireless_scene/site_models.json` to enable optional **ScenegraphLayer** (see `docs/SITE_MODELING_PLAN.md`)."
         )
+
+    st.markdown("#### Simulation status (evidence — judge / report safe)")
+    st.markdown(
+        "<div style='background:#f8f9fa;border:2px solid #212529;border-radius:10px;padding:12px 14px;color:#111827;"
+        "font-size:13px;line-height:1.5'>"
+        "External sims are <b>not</b> bundled. <b>Loaded</b> means a file on disk was read and passed the in-repo parser — "
+        "never inferred or faked. <b>NVIDIA AI Aerial / Omniverse</b> normally requires separate installs, <b>GPU</b>, and often "
+        "a <b>NVIDIA account</b> / <b>6G Developer Program</b> access.</div>",
+        unsafe_allow_html=True,
+    )
+    ss1, ss2, ss3 = st.columns(3)
+    with ss1:
+        st.markdown("**DeepMIMO**")
+        if _sim_dm.get("loaded"):
+            st.success(f"**Loaded** — `{_sim_dm.get('path', '')}`")
+            st.caption(f"**Summary file used:** `{_sim_dm.get('path', '')}`")
+            if _sim_dm.get("parser_note"):
+                st.caption(_sim_dm["parser_note"])
+        else:
+            st.warning("**Not loaded**")
+            st.caption(f"Drop zone: `{_sim_dm.get('path', '')}`")
+            st.caption("**Summary file used:** — (none validated)")
+            if _sim_dm.get("parser_note"):
+                st.caption(_sim_dm["parser_note"])
+            if _sim_dm.get("error") and _sim_dm["error"] not in ("not_found", "validation_failed"):
+                st.caption(f"Detail: {_sim_dm['error']}")
+    with ss2:
+        st.markdown("**Sionna RT**")
+        if _sim_sn.get("loaded"):
+            st.success(f"**Loaded** — `{_sim_sn.get('path', '')}`")
+            if _sim_sn.get("summary_json_path"):
+                st.caption(f"Summary JSON: `{_sim_sn['summary_json_path']}`")
+            if _sim_sn.get("geojson_path"):
+                st.caption(f"GeoJSON: `{_sim_sn['geojson_path']}`")
+            if _sim_sn.get("parser_note"):
+                st.caption(_sim_sn["parser_note"])
+        else:
+            st.warning("**Not loaded**")
+            st.caption(f"Drop zone: `{_sim_sn.get('path', '')}`")
+            st.caption("**Summary JSON / GeoJSON used:** — (none validated)")
+    with ss3:
+        st.markdown("**Aerial / Omniverse**")
+        if _sim_ae.get("loaded"):
+            st.success(f"**Loaded** — `{_sim_ae.get('path', '')}`")
+            st.caption(f"**Manifest file used:** `{_sim_ae.get('path', '')}`")
+        else:
+            st.info("**Not loaded** — external tooling not run in this repo by default.")
+            st.caption(f"Drop zone: `{_sim_ae.get('path', '')}`")
+            st.caption("**Manifest / summary file used:** — (none validated)")
+            if _sim_ae.get("external_tooling_required"):
+                st.caption(
+                    "**NVIDIA AI Aerial / Omniverse** is **not bundled**. Full runs need **external installs + GPU**; "
+                    "often a **NVIDIA account** / **6G Developer Program** for downloads and SDK access."
+                )
+    if _sim_dm.get("loaded") and _sim_dm.get("extracted_summary"):
+        st.markdown("**DeepMIMO — parsed summary (from disk)**")
+        if pd is not None:
+            st.dataframe(pd.DataFrame([_sim_dm["extracted_summary"]]), use_container_width=True, hide_index=True)
+        else:
+            st.json(_sim_dm["extracted_summary"])
+        if _sim_dm.get("npz_channel_meta"):
+            st.caption("**NPZ sidecar (metadata only):**")
+            st.json(_sim_dm["npz_channel_meta"])
+    if _sim_sn.get("loaded") and _sim_sn.get("extracted_summary"):
+        st.markdown("**Sionna RT — parsed summary (from disk)**")
+        if pd is not None:
+            st.dataframe(pd.DataFrame([_sim_sn["extracted_summary"]]), use_container_width=True, hide_index=True)
+        else:
+            st.json(_sim_sn["extracted_summary"])
+    if _sim_ae.get("loaded") and _sim_ae.get("extracted_summary"):
+        st.markdown("**Aerial / Omniverse — manifest fields (from disk)**")
+        if pd is not None:
+            st.dataframe(pd.DataFrame([_sim_ae["extracted_summary"]]), use_container_width=True, hide_index=True)
+        else:
+            st.json(_sim_ae["extracted_summary"])
 
     st.markdown("#### Extension evidence — scenario engine output (focus site)")
     ev1, ev2, ev3 = st.columns(3)
@@ -1301,7 +1450,7 @@ def _render_judge_gary_micro_twin_3d():
         with _col:
             st.markdown(
                 f"**{_b.get('map_label', _b['name'])}**  \n"
-                f"<span style='font-size:12px;color:#495057'>{_b.get('site_type', 'site').replace('_', ' ')} · "
+                f"<span style='font-size:12px;color:#212529'>{_b.get('site_type', 'site').replace('_', ' ')} · "
                 f"{_b.get('role', '')}</span>",
                 unsafe_allow_html=True,
             )
@@ -1600,12 +1749,34 @@ def _render_judge_gary_micro_twin_3d():
                 data=_occ_bundle["summary_labels"],
                 get_position="position",
                 get_text="text",
-                get_color=[15, 15, 15, 255],
-                get_size=12,
+                get_color=[20, 20, 20, 255],
+                outline_color=[255, 255, 255, 235],
+                outline_width=4,
+                billboard=True,
+                get_size=13,
                 pickable=True,
             )
         except Exception:
             _occ_summary_text_layer = None
+
+    _sionna_geo_layer = None
+    if _sim_sn.get("loaded") and _sim_sn.get("geojson_for_deck"):
+        try:
+            _sionna_geo_layer = pdk.Layer(
+                "GeoJsonLayer",
+                id="layer-sionna-coverage-geojson",
+                data=_sim_sn["geojson_for_deck"],
+                pickable=True,
+                stroked=True,
+                filled=True,
+                extruded=False,
+                get_line_color=[0, 100, 140, 210],
+                get_fill_color=[0, 160, 200, 55],
+                line_width_min_pixels=1,
+                opacity=0.75,
+            )
+        except Exception:
+            _sionna_geo_layer = None
 
     try:
         poly_layer = None
@@ -1702,12 +1873,15 @@ def _render_judge_gary_micro_twin_3d():
         )
         text_layer = pdk.Layer(
             "TextLayer",
-            id="layer-labels",
+            id="layer-labels-building-names",
             data=buildings,
-            get_position="centroid",
+            get_position="label_position_3d",
             get_text="map_label",
-            get_color=[25, 25, 25, 255],
-            get_size=15,
+            get_color=[17, 24, 39, 255],
+            outline_color=[255, 255, 255, 245],
+            outline_width=5,
+            billboard=True,
+            get_size=16,
             pickable=False,
         )
         _layer_list = []
@@ -1725,6 +1899,8 @@ def _render_judge_gary_micro_twin_3d():
         if _flow_traffic_layer is not None:
             _layer_list.append(_flow_traffic_layer)
         _layer_list.append(coverage_halo_layer)
+        if _sionna_geo_layer is not None:
+            _layer_list.append(_sionna_geo_layer)
         _layer_list.append(demand_layer)
         for _ly in (
             _occ_people_clusters_layer,
@@ -1785,10 +1961,12 @@ def _render_judge_gary_micro_twin_3d():
     )
 
     lg1, lg2, lg3 = st.columns(3)
+    _leg_wrap = "background:#f8f9fa;border:2px solid #dee2e6;border-radius:10px;padding:12px 14px;margin-bottom:4px"
     with lg1:
+        st.markdown(f"<div style='{_leg_wrap}'>", unsafe_allow_html=True)
         st.markdown("**Map / glyph legend**")
         st.markdown(
-            "<div style='font-size:12px;line-height:1.65;color:#212529'>"
+            "<div style='font-size:12px;line-height:1.65;color:#111827'>"
             "<span style='display:inline-block;width:14px;height:14px;background:#2ecc71;border-radius:3px;vertical-align:middle;margin-right:6px'></span>Building: lower coexistence stress (proxy)<br/>"
             "<span style='display:inline-block;width:14px;height:14px;background:#f1c40f;border-radius:3px;vertical-align:middle;margin-right:6px'></span>Building: moderate stress (proxy)<br/>"
             "<span style='display:inline-block;width:14px;height:14px;background:#e74c3c;border-radius:3px;vertical-align:middle;margin-right:6px'></span>Building: higher stress (proxy)<br/>"
@@ -1811,10 +1989,12 @@ def _render_judge_gary_micro_twin_3d():
             "<b>Device clusters</b> (IP vs control emphasis)</div>",
             unsafe_allow_html=True,
         )
+        st.markdown("</div>", unsafe_allow_html=True)
     with lg2:
+        st.markdown(f"<div style='{_leg_wrap}'>", unsafe_allow_html=True)
         st.markdown("**Wireless-layer legend (semantics)**")
         st.markdown(
-            "<div style='font-size:12px;line-height:1.65;color:#212529'>"
+            "<div style='font-size:12px;line-height:1.65;color:#111827'>"
             "<b>L1 Anchor geometry</b> — **site-specific extruded footprints** (multi-vertex outlines); optional **.glb** replaces footprint when configured. "
             "Outline color hints: **civic blue** · **library violet** · **school green** (plus coexistence tint).<br/>"
             "<b>L2 Access / serving</b> — hypothetical gNB + serving segment (not a carrier asset DB).<br/>"
@@ -1823,16 +2003,19 @@ def _render_judge_gary_micro_twin_3d():
             "<b>L5 Coexistence / risk</b> — red IF proxies = aggregated interference story, not identified emitters.</div>",
             unsafe_allow_html=True,
         )
+        st.markdown("</div>", unsafe_allow_html=True)
     with lg3:
+        st.markdown(f"<div style='{_leg_wrap}'>", unsafe_allow_html=True)
         st.markdown("**O-RAN mapping (conceptual)**")
         st.markdown(
-            "<div style='font-size:12px;line-height:1.65;color:#212529'>"
+            "<div style='font-size:12px;line-height:1.65;color:#111827'>"
             "<b>RU / O-DU (abstracted)</b> — gNB marker + link geometry.<br/>"
             "<b>O1 / sensing stand-in</b> — SpectrumX <code>evaluate()</code> on <b>synthetic</b> IQ (Judge tab).<br/>"
             "<b>RIC-style controller</b> — policy panel maps **closed-loop state** → discrete action → KPIs (Near-RT / Non-RT–<b>inspired</b>).<br/>"
             "<em>No live E2 / E1 interfaces in this demo.</em></div>",
             unsafe_allow_html=True,
         )
+        st.markdown("</div>", unsafe_allow_html=True)
 
     # --- Site identity card (selected) — strong Gary / community context ---
     st.markdown("#### Focus site — identity & community role")
@@ -1862,6 +2045,18 @@ def _render_judge_gary_micro_twin_3d():
             f"traffic demand **{focus_state.traffic_demand_score:.2f}**"
         )
         st.caption("Completed extension — **recognizable** anchor footprints + wireless-scene overlays (not raw competition data).")
+        if _sim_dm.get("loaded") and (_sim_dm.get("extracted_summary") or {}):
+            _dex = _sim_dm["extracted_summary"]
+            st.info(
+                f"**DeepMIMO (disk-backed):** `{_dex.get('scenario_name') or 'scenario'}` · "
+                f"BS {_dex.get('num_bs', '—')} · UE {_dex.get('num_users', '—')} · "
+                f"LOS/NLOS links {_dex.get('los_links', '—')} / {_dex.get('nlos_links', '—')} — map layers still **proxies**."
+            )
+        if _sim_sn.get("loaded"):
+            st.info(
+                "**Sionna RT (disk-backed):** validated summary and/or GeoJSON — see **Simulation status**; "
+                "map may show **`layer-sionna-coverage-geojson`** when GeoJSON is present."
+            )
 
     # --- Propagation / coverage (screenshot panel; honest proxy labeling) ---
     st.markdown("### Propagation / Coverage (implemented proxy abstraction)")
@@ -1869,6 +2064,19 @@ def _render_judge_gary_micro_twin_3d():
         "**Implemented proxy / current abstraction** — deterministic scenario math for **demo + screenshots**. "
         "**Not** ray-traced coverage, **not** DeepMIMO CSI, **not** Sionna path loss grids, **not** NVIDIA Aerial exports, **not** drive-test data."
     )
+    _sim_backing_msgs = []
+    if _sim_sn.get("loaded"):
+        _sim_backing_msgs.append(
+            "**Sionna RT (disk):** summary JSON and/or coverage GeoJSON **passed validation**. When GeoJSON is present, the 3D scene adds **layer `layer-sionna-coverage-geojson`** (teal/cyan fill). "
+            "**Per-site table rows and bar chart** still use the **scenario proxy** bundle unless you extend the app to map solver output to anchors."
+        )
+    if _sim_dm.get("loaded"):
+        _sim_backing_msgs.append(
+            "**DeepMIMO (disk):** scenario summary JSON **passed validation** — see **Simulation status** for parsed BS/UE/LOS fields. "
+            "**Map halos / orange stress disks** remain **proxies** (not CSI-driven) in this build."
+        )
+    if _sim_backing_msgs:
+        st.success(" ".join(_sim_backing_msgs))
     clon, clat = selected_building["centroid"]
     gnb_lon = clon + selected_building["gnb_offset_lon"]
     gnb_lat = clat + selected_building["gnb_offset_lat"]
@@ -1981,8 +2189,8 @@ def _render_judge_gary_micro_twin_3d():
     for i, persona in enumerate(selected_building["users"]):
         with uc[i]:
             st.markdown(
-                "<div style='border:1px solid #495057;border-radius:10px;padding:12px;background:#dee2e6;text-align:center;"
-                f"color:#212529'><strong style='color:#212529'>{persona}</strong></div>",
+                "<div style='border:1px solid #343a40;border-radius:10px;padding:12px;background:#f8f9fa;text-align:center;"
+                f"color:#111827'><strong style='color:#111827'>{persona}</strong></div>",
                 unsafe_allow_html=True,
             )
     st.caption(
@@ -2026,6 +2234,26 @@ def _render_judge_gary_micro_twin_3d():
     s4.metric("Radio env. (proxy)", f"{radio_env_favorability:.2f}")
     s5.metric("Coexistence risk (proxy)", f"{coexistence_risk:.2f}")
     st.caption(det_belief_line)
+    _ctrl_sim_bits = []
+    if _sim_sn.get("loaded"):
+        _ctrl_sim_bits.append("Sionna RT summary/GeoJSON (validated on disk)")
+    if _sim_dm.get("loaded"):
+        _ctrl_sim_bits.append("DeepMIMO scenario summary JSON (validated on disk)")
+    _ctrl_proxy_bits = "scenario engine · RF sliders · propagation **proxy** table/chart · synthetic detector IQ"
+    if _ctrl_sim_bits:
+        st.caption(
+            "**Controller input mix (honest):** **Simulation-backed metadata:** "
+            + "; ".join(_ctrl_sim_bits)
+            + ". **Still proxy-driven for closed-loop KPIs:** "
+            + _ctrl_proxy_bits
+            + "."
+        )
+    else:
+        st.caption(
+            "**Controller input mix (honest):** **Proxy-only** for this scene — "
+            + _ctrl_proxy_bits
+            + ". Load validated files under `data/deepmimo/` or `data/sionna_rt/` for **evidence-backed** simulation context (see **Simulation status**)."
+        )
 
     _total_dev = float(focus_state.ip_device_count + focus_state.control_device_count)
     _active_dev = float(focus_state.active_ip_devices + focus_state.active_control_devices)
@@ -2097,7 +2325,7 @@ def _render_judge_gary_micro_twin_3d():
         with col:
             st.markdown(
                 _judge_html_card_sm(
-                    f"<div style='font-size:12px;color:#495057'>{title}</div>"
+                    f"<div style='font-size:12px;color:#212529'>{title}</div>"
                     f"<div style='font-weight:600;margin:6px 0;font-size:13px;color:#212529'>{headline}</div>"
                     f"<div style='font-size:11px;color:#212529'>{sub}</div>"
                 ),
@@ -2219,23 +2447,31 @@ def _render_judge_gary_micro_twin_3d():
         "**Next scaling:** DeepMIMO / Sionna RT / Aerial — **JSON summary loaders** below; **not** claimed to run the **judged** detector unless you wire them in."
     )
 
-    _repo = _repo_root()
-    _dm_status = _sn_status = _ae_status = None
-    if _SIM_INTEGRATION_HOOKS_OK and load_deepmimo_scenario_summary and load_sionna_propagation_summary:
-        try:
-            _dm_status = load_deepmimo_scenario_summary(_repo)
-            _sn_status = load_sionna_propagation_summary(_repo)
-        except Exception:
-            _dm_status = _sn_status = None
-    if _SIM_INTEGRATION_HOOKS_OK and load_aerial_overlay_summary:
-        try:
-            _ae_status = load_aerial_overlay_summary(_repo)
-        except Exception:
-            _ae_status = None
+    _repo = _repo_mt
+    _dm_status = _sim_dm if _SIM_INTEGRATION_HOOKS_OK else None
+    _sn_status = _sim_sn if _SIM_INTEGRATION_HOOKS_OK else None
+    _ae_status = _sim_ae if _SIM_INTEGRATION_HOOKS_OK else None
 
     _dm_loaded = bool(_dm_status and _dm_status.get("loaded"))
     _sn_loaded = bool(_sn_status and _sn_status.get("loaded"))
     _ae_loaded = bool(_ae_status and _ae_status.get("loaded"))
+    _dm_ex = (_dm_status or {}).get("extracted_summary") or {}
+    _sn_ex = (_sn_status or {}).get("extracted_summary") or {}
+    _dm_card_extra = ""
+    if _dm_loaded and _dm_ex:
+        _dm_card_extra = (
+            f"<br/><span style='font-size:11px'>Parsed: <b>{_dm_ex.get('scenario_name') or '—'}</b> · "
+            f"BS {_dm_ex.get('num_bs', '—')} · UE {_dm_ex.get('num_users', '—')}</span>"
+        )
+    _sn_card_extra = ""
+    if _sn_loaded and _sn_ex:
+        _sn_card_extra = (
+            f"<br/><span style='font-size:11px'>Parsed: <b>{_sn_ex.get('scenario_name') or '—'}</b> · "
+            f"mean PL {_sn_ex.get('mean_path_loss_db', '—')} dB · "
+            f"GeoJSON feats {_sn_ex.get('coverage_geojson_features', '—')}</span>"
+        )
+    elif _sn_loaded and (_sn_status or {}).get("parser_note"):
+        _sn_card_extra = f"<br/><span style='font-size:11px'>{(_sn_status or {}).get('parser_note', '')}</span>"
 
     sb1, sb2, sb3 = st.columns(3)
     with sb1:
@@ -2246,7 +2482,8 @@ def _render_judge_gary_micro_twin_3d():
                 "<li><b>Contributes</b>: reproducible <b>site-specific MIMO channels</b>, CSI summaries, scenario matrices for ML + controller replay.</li>"
                 "<li><b>Connects here</b>: feeds <b>propagation / SINR panels</b> and map overlays when parsers land.</li>"
                 "<li><b>Summary JSON</b>: <code>scenario_summary.json</code> or <code>scenario_meta.json</code> under <code>data/deepmimo/</code> (legacy <code>data/simulation/deepmimo/</code>). "
-                f"<b>Loaded:</b> **{'yes — ' + str(_dm_status.get('path', ''))[:48] + '…' if _dm_loaded else 'no — not loaded'}**.</li></ul>",
+                f"<b>Loaded:</b> **{'yes — validated on disk' if _dm_loaded else 'no — not loaded'}**."
+                f"{_dm_card_extra}</li></ul>",
             ),
             unsafe_allow_html=True,
         )
@@ -2257,8 +2494,9 @@ def _render_judge_gary_micro_twin_3d():
                 "<ul style='margin:0;padding-left:18px;line-height:1.5'>"
                 "<li><b>Contributes</b>: <b>ray-traced propagation</b>, materials, diffraction — replaces disk <b>proxies</b> with physics-backed maps.</li>"
                 "<li><b>Connects here</b>: GeoJSON / JSON → pydeck coverage heatmaps + panel metrics.</li>"
-                "<li><b>Summary JSON</b>: <code>propagation_summary.json</code> or <code>path_loss_summary.json</code> under <code>data/sionna_rt/</code> (legacy <code>data/simulation/sionna_rt/</code>). "
-                f"<b>Loaded:</b> **{'yes — ' + str(_sn_status.get('path', ''))[:48] + '…' if _sn_loaded else 'no — not loaded'}**.</li></ul>",
+                "<li><b>Artifacts</b>: <code>propagation_summary.json</code> / <code>path_loss_summary.json</code> and/or <code>coverage_grid.geojson</code> under <code>data/sionna_rt/</code> (legacy <code>data/simulation/sionna_rt/</code>). "
+                f"<b>Loaded:</b> **{'yes — validated on disk' if _sn_loaded else 'no — not loaded'}**; map may show cyan GeoJSON overlay when GeoJSON validates."
+                f"{_sn_card_extra}</li></ul>",
             ),
             unsafe_allow_html=True,
         )
@@ -2269,8 +2507,9 @@ def _render_judge_gary_micro_twin_3d():
                 "<ul style='margin:0;padding-left:18px;line-height:1.5'>"
                 "<li><b>Contributes</b>: <b>large-scale digital twin</b> + RF visualization workflows (external toolchain).</li>"
                 "<li><b>Connects here</b>: exports under <code>data/aerial_omniverse/</code> for future loaders.</li>"
-                "<li><b>Summary JSON</b>: <code>overlay_summary.json</code> or <code>twin_manifest.json</code>. "
-                f"<b>Loaded:</b> **{'yes — ' + str(_ae_status.get('path', ''))[:48] + '…' if _ae_loaded else 'no — not loaded'}**.</li></ul>",
+                "<li><b>Summary JSON</b>: <code>overlay_summary.json</code> or <code>twin_manifest.json</code> under <code>data/aerial_omniverse/</code>. "
+                "<b>Requires</b> external <b>NVIDIA AI Aerial / Omniverse</b> tooling — not bundled; often <b>NVIDIA account</b> / <b>6G Developer Program</b>."
+                f"<br/><b>Loaded:</b> **{'yes — manifest on disk only' if _ae_loaded else 'no — not loaded'}**.</li></ul>",
             ),
             unsafe_allow_html=True,
         )

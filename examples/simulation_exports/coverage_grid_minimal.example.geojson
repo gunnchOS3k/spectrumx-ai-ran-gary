@@ -1,0 +1,21 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "label": "example_cell", "rsrp_dbm": -95 },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-87.3464, 41.6028],
+            [-87.3384, 41.6028],
+            [-87.3384, 41.5968],
+            [-87.3464, 41.5968],
+            [-87.3464, 41.6028]
+          ]
+        ]
+      }
+    }
+  ]
+}
