@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "documentation": "Optional tuning for device-density heatmap. Omit keys to use code defaults.",
+  "heatmap_device_samples_per_site": 18,
+  "heatmap_device_radius_pixels": 48,
+  "sites": {}
+}

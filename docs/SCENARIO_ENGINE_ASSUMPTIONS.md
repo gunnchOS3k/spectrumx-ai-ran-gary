@@ -16,6 +16,7 @@ This document supports the **Completed Research Extension** (`gary_scenario_engi
 | Library IP devices / occupant (**1.3–1.5** default band, **1.4** default) | **Assumption** | Optional **1.0** “simple mode” in UI. |
 | Device concurrency (active share of provisioned devices) | **Scenario parameter** | From preset + manual traffic stress. |
 | Propagation / coverage / KPI numbers in the extension UI | **Proxy** | Deterministic abstractions until DeepMIMO / Sionna RT / Aerial summaries replace them. |
+| **Map visualization** of people / devices / foot traffic | **Aggregated + proxy** | Heatmaps, cluster disks, and **static path polylines** illustrate the **same** scenario-engine counts — **not** individual avatars or GPS traces. See `docs/OCCUPANCY_VISUALIZATION_PLAN.md`. |
 
 ## Site-specific device models (defaults)
 

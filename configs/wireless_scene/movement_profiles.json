@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "documentation": "Optional override for foot-traffic storytelling. Set force_activity_mode to a string to pin paths (e.g. class_change_peak). Otherwise derived from preset + calendar.",
+  "force_activity_mode": null,
+  "sites": {}
+}

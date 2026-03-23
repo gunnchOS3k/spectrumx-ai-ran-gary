@@ -27,11 +27,23 @@ Three buckets:
 
 **Default behavior:** extruded **footprint model** for all three sites. **Optional 3D asset model** when a valid GLB path loads successfully.
 
+## Occupancy & device visualization (scene)
+
+| Layer / element | Tied to engine | Notes |
+|-----------------|----------------|-------|
+| **HeatmapLayer** (people / devices) | `people_count`, `active_ip_devices`, `active_control_devices` | Sampled points **inside** footprints; **weights** aggregate thousands of occupants. |
+| **ScatterplotLayer** clusters | Cohort splits (students/staff, workers/visitors, patron zones) | Disk **radius** scales with counts — **not** one glyph per person. |
+| **PathLayer** foot traffic | Preset + calendar **activity mode** | **Static** illustrative paths (ingress, circulation, queues). |
+| **TextLayer** site summaries | Rounded people + active devices | Screenshot-friendly **aggregate** labels. |
+| **Controller metrics** | Same `SiteScenarioState` | Explicit **total_device_count**, **active_device_count**, **people_count**, **traffic_demand_score**. |
+
+Configs: `configs/wireless_scene/occupancy_profiles.json`, `device_profiles.json`, `movement_profiles.json`. Details: `docs/OCCUPANCY_VISUALIZATION_PLAN.md`.
+
 ## Current capabilities
 
 | Capability | Type |
 |------------|------|
-| Multi-layer **radio scene** (buildings, gNB, halos, demand, IF, propagation stress, links) | **Proxies**; **demand / IF** scale with **engine** outputs; building masses use **realistic outlines** (not single rectangles) |
+| Multi-layer **radio scene** (buildings, gNB, halos, demand, IF, propagation, links, **people/device heatmaps**, **foot-traffic paths**, **aggregate clusters**) | **Proxies** + **aggregated** occupancy viz; **demand / IF** scale with **engine** outputs; footprints are **site-specific outlines** |
 | **Triple legend** (glyph / wireless stack / O-RAN mapping) | **Implemented** |
 | **Propagation / Coverage** table + **Plotly bar chart** | **Proxy**; inputs include **coverage_pressure** / coexistence |
 | **Closed-loop controller** | **Computed** action + KPI shift; **not** a live RIC |
@@ -40,7 +52,7 @@ Three buckets:
 
 ## Proxy vs integration-ready
 
-- **Proxies:** halos, links, IF, orange stress disks, propagation scores, KPIs after heuristic action mapping.
+- **Proxies:** halos, links, IF, orange stress disks, propagation scores, **static foot-traffic paths**, KPIs after heuristic action mapping. **Aggregates:** heatmaps / cluster disks (not per-person geometry).
 - **Optional external sim:** summaries load **only** if JSON files exist; otherwise UI states **not loaded** + expected paths/schema hints.
 - **Judged detector:** unchanged by extension hooks unless you explicitly integrate them into the submission package.
 
@@ -50,6 +62,7 @@ Three buckets:
 - `docs/MICROTWIN_REALISM_PLAN.md` — UI behavior + loop diagram  
 - `docs/SCENARIO_ENGINE_ASSUMPTIONS.md` — public defaults vs scenario assumptions  
 - `docs/SITE_MODELING_PLAN.md` — footprint JSON, GLB paths, fallback rules  
+- `docs/OCCUPANCY_VISUALIZATION_PLAN.md` — people / device / movement map layers  
 
 ## Run locally
 

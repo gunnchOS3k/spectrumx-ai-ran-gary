@@ -36,7 +36,7 @@ Implemented in `src/edge_ran_gary/gary_scenario_engine.py`:
 - **Guided demo strip (6 steps):** site → **scenario preset** → **wireless scene** (engine-driven) → **propagation / coverage** → **closed-loop controller** → KPIs.
 - **Sources & assumptions** expander: tabulates defaults (sourced vs assumption).
 - **Anchor strip + focus card:** community function, geometry mode (footprint vs 3D asset), footprint provenance note.
-- **3D wireless scene (pydeck):** **extruded site footprints** (and optional **ScenegraphLayer**); **coverage halos** tied to coverage proxy + **coverage pressure**; violet **demand** radii ∝ **traffic_demand_score**; IF disks/footprints ∝ **max coexistence** across anchors; orange **propagation stress**; gNB / links (**proxies**); view **centered on anchor bbox**.
+- **3D wireless scene (pydeck):** **extruded site footprints** (and optional **ScenegraphLayer**); **people + device HeatmapLayers** (aggregated samples); **PathLayer** foot-traffic **proxies**; **cluster disks** for cohorts / device load; **summary text** per site; **coverage halos**; violet **demand** radii ∝ **traffic_demand_score**; IF + propagation + gNB (**proxies**); view **centered on anchor bbox**.
 - **Triple legend:** glyph · wireless-layer stack · O-RAN **conceptual** mapping (**RIC-style controller**, not “full RT RIC”).
 - **Propagation / Coverage:** proxy table + bar chart; driven by scenario **pressures** + RF slider.
 - **Closed-loop controller:** explicit **state vector** → **`select_closed_loop_action`** → **`apply_action_to_kpis`** (six candidate actions including **rebalance service**).
@@ -77,9 +77,11 @@ KPI feedback: apply_action_to_kpis (coverage, coexistence, fairness, energy, con
 ## References
 
 - `src/edge_ran_gary/gary_site_geometry.py` — built-in footprints, JSON merge, optional GLB resolution  
+- `src/edge_ran_gary/gary_occupancy_visualization.py` — occupancy / device / foot-traffic pydeck payloads  
 - `src/edge_ran_gary/gary_scenario_engine.py` — scenario math + controller policy helpers  
 - `src/edge_ran_gary/simulation_integration_hooks.py` — drop-zone status + JSON summary loaders  
 - `docs/SCENARIO_ENGINE_ASSUMPTIONS.md` — sourced vs assumed counts  
 - `docs/SITE_MODELING_PLAN.md` — footprint / 3D asset config  
+- `docs/OCCUPANCY_VISUALIZATION_PLAN.md` — aggregated people/device/movement visualization  
 - `docs/SIMULATION_BACKBONE_PLAN.md` — backbone detail + future compute/accounts  
 - `docs/INDUSTRY_GRADE_EXTENSION_PLAN.md` — capabilities summary  
