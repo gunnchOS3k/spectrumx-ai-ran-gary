@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "documentation": "Optional overrides for anchor polygons and heights. Omit a site key to keep the built-in outline from src/edge_ran_gary/gary_site_geometry.py. See docs/SITE_MODELING_PLAN.md.",
+  "sites": {}
+}

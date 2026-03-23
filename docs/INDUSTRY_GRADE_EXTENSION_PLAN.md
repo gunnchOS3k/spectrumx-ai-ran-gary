@@ -17,11 +17,21 @@ Three buckets:
 
 **Sourced vs assumed defaults:** `docs/SCENARIO_ENGINE_ASSUMPTIONS.md`.
 
+## Site modeling (recognizable anchors)
+
+| Capability | Type |
+|------------|------|
+| **Multi-vertex extruded footprints** per anchor (City Hall, Library, WSLA) | **Built-in** in `gary_site_geometry.py`; optional override via `configs/wireless_scene/site_footprints.json` |
+| **Site outline accents** + **emoji labels** | Distinguishes civic vs library vs school at a glance |
+| **Optional `.glb` + ScenegraphLayer** | `configs/wireless_scene/site_models.json` + `assets/models/`; **not required**; falls back to footprints |
+
+**Default behavior:** extruded **footprint model** for all three sites. **Optional 3D asset model** when a valid GLB path loads successfully.
+
 ## Current capabilities
 
 | Capability | Type |
 |------------|------|
-| Multi-layer **radio scene** (buildings, gNB, halos, demand, IF, propagation stress, links) | **Proxies**; **demand / IF** scale with **engine** outputs |
+| Multi-layer **radio scene** (buildings, gNB, halos, demand, IF, propagation stress, links) | **Proxies**; **demand / IF** scale with **engine** outputs; building masses use **realistic outlines** (not single rectangles) |
 | **Triple legend** (glyph / wireless stack / O-RAN mapping) | **Implemented** |
 | **Propagation / Coverage** table + **Plotly bar chart** | **Proxy**; inputs include **coverage_pressure** / coexistence |
 | **Closed-loop controller** | **Computed** action + KPI shift; **not** a live RIC |
@@ -39,6 +49,7 @@ Three buckets:
 - `docs/SIMULATION_BACKBONE_PLAN.md` — pillar detail + future compute/accounts  
 - `docs/MICROTWIN_REALISM_PLAN.md` — UI behavior + loop diagram  
 - `docs/SCENARIO_ENGINE_ASSUMPTIONS.md` — public defaults vs scenario assumptions  
+- `docs/SITE_MODELING_PLAN.md` — footprint JSON, GLB paths, fallback rules  
 
 ## Run locally
 
