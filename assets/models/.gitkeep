@@ -1,0 +1,2 @@
+# Place optional site-specific .glb models here and reference them from configs/wireless_scene/site_models.json
+# Example filenames (not bundled): gary_city_hall.glb, gary_library.glb, west_side_leadership_academy.glb

@@ -58,6 +58,15 @@ except Exception:
     _SIM_INTEGRATION_HOOKS_OK = False
 
 try:
+    from src.edge_ran_gary.gary_site_geometry import apply_risk_colors_to_buildings, build_anchor_buildings
+
+    _GARY_GEOM_OK = True
+except Exception:
+    apply_risk_colors_to_buildings = None  # type: ignore
+    build_anchor_buildings = None  # type: ignore
+    _GARY_GEOM_OK = False
+
+try:
     from src.edge_ran_gary.gary_scenario_engine import (
         ScenarioInputs,
         apply_action_to_kpis,
@@ -1042,69 +1051,14 @@ def _render_judge_gary_micro_twin_3d():
             unsafe_allow_html=True,
         )
 
-    # Anchor sites: enriched for conference-demo clarity
-    buildings = [
-        {
-            "id": "city_hall",
-            "name": "Gary City Hall",
-            "building_type": "Municipal civic",
-            "role": "Civic command center",
-            "why_matters": "Services, hearings, and emergency coordination need dependable links when residents need government most.",
-            "height_m": 60,
-            "footprint_approx_m2": 4200,
-            "polygon": [
-                [-87.3379, 41.5841],
-                [-87.3374, 41.5841],
-                [-87.3374, 41.5837],
-                [-87.3379, 41.5837],
-            ],
-            "risk_bias": 0.55,
-            "users": ["Residents (services)", "Civic staff", "Visitors / filers"],
-            "gnb_offset_lon": 0.00022,
-            "gnb_offset_lat": 0.00012,
-            "demand_base_radius_m": 200,
-        },
-        {
-            "id": "public_library",
-            "name": "Gary Public Library & Cultural Center",
-            "building_type": "Public library & cultural venue",
-            "role": "Learning & inclusion hub",
-            "why_matters": "Patrons rely on Wi‑Fi and future cellular for homework, job search, and digital literacy.",
-            "height_m": 45,
-            "footprint_approx_m2": 5100,
-            "polygon": [
-                [-87.3338, 41.5846],
-                [-87.3333, 41.5846],
-                [-87.3333, 41.5842],
-                [-87.3338, 41.5842],
-            ],
-            "risk_bias": 0.40,
-            "users": ["Patrons", "Study-room users", "Public-access learners"],
-            "gnb_offset_lon": -0.00018,
-            "gnb_offset_lat": 0.00015,
-            "demand_base_radius_m": 240,
-        },
-        {
-            "id": "west_side_leadership",
-            "name": "West Side Leadership Academy",
-            "building_type": "K–12 school campus",
-            "role": "Education & workforce pipeline",
-            "why_matters": "Students and teachers need consistent access for instruction, safety comms, and take-home equity.",
-            "height_m": 35,
-            "footprint_approx_m2": 3800,
-            "polygon": [
-                [-87.3482, 41.5852],
-                [-87.3477, 41.5852],
-                [-87.3477, 41.5848],
-                [-87.3482, 41.5848],
-            ],
-            "risk_bias": 0.65,
-            "users": ["Students", "Teachers", "Staff"],
-            "gnb_offset_lon": 0.0002,
-            "gnb_offset_lat": -0.00014,
-            "demand_base_radius_m": 260,
-        },
-    ]
+    # Anchor sites: recognizable footprints (built-in or configs/wireless_scene/site_footprints.json)
+    if not _GARY_GEOM_OK or build_anchor_buildings is None:
+        st.error(
+            "Site geometry module missing (`src/edge_ran_gary/gary_site_geometry.py`). "
+            "Install the repo from root so `src` is importable."
+        )
+        return
+    buildings, _gary_geom_meta = build_anchor_buildings(_repo_root())
 
     # --- Scenario controls + scenario engine (population / devices / load) ---
     st.markdown("### Scenario & site (simulation-backed load model)")
@@ -1249,13 +1203,10 @@ def _render_judge_gary_micro_twin_3d():
         b["risk_score"] = float(max(0.0, min(1.0, risk)))
         if b["risk_score"] < 0.50:
             b["risk_label"] = "Lower coexistence stress (engine+RF proxy)"
-            b["fill_color"] = [46, 204, 113, 210]
         elif b["risk_score"] < 0.70:
             b["risk_label"] = "Moderate coexistence stress (engine+RF proxy)"
-            b["fill_color"] = [241, 196, 15, 210]
         else:
             b["risk_label"] = "Higher coexistence stress (engine+RF proxy)"
-            b["fill_color"] = [231, 76, 60, 210]
         b["label"] = b["name"]
         b["tip"] = (
             f"{b['building_type']} · {b['risk_label']} · people≈{st_local.people_count:.0f} · "
@@ -1269,7 +1220,28 @@ def _render_judge_gary_micro_twin_3d():
             st_local.coexistence_pressure,
         )
 
+    if apply_risk_colors_to_buildings:
+        apply_risk_colors_to_buildings(buildings)
+
     focus_state = all_site_states[selected_site_id]
+
+    st.caption(
+        f"**Building geometry:** extruded **footprint** outlines (simplified civic / campus shapes). "
+        f"Source: **`{_gary_geom_meta.get('geometry_source', 'builtin')}`** · "
+        f"optional overrides: `{_gary_geom_meta.get('footprints_config_path', '')}` · "
+        f"optional GLB: `{_gary_geom_meta.get('models_config_path', '')}`."
+    )
+    _any_sg = any(b.get("render_mode") == "scenegraph" and b.get("_model_spec") for b in buildings)
+    if _any_sg:
+        st.success(
+            "**3D asset mode (where configured):** at least one site uses a local **.glb** via `site_models.json` + `ScenegraphLayer`; "
+            "other sites remain **extruded footprints**."
+        )
+    else:
+        st.info(
+            "**Using footprint model (default):** all anchors render as **extruded polygons** — add `assets/models/*.glb` + "
+            "`configs/wireless_scene/site_models.json` to enable optional **ScenegraphLayer** (see `docs/SITE_MODELING_PLAN.md`)."
+        )
 
     st.markdown("#### Extension evidence — scenario engine output (focus site)")
     ev1, ev2, ev3 = st.columns(3)
@@ -1305,10 +1277,27 @@ def _render_judge_gary_micro_twin_3d():
     if focus_state.assumption_notes:
         st.caption("**Assumptions:** " + " ".join(focus_state.assumption_notes))
 
+    # --- Site identity strip (all anchors — nontechnical recognition) ---
+    st.markdown("#### Anchor sites at a glance")
+    _id_cols = st.columns(3)
+    for _col, _b in zip(_id_cols, buildings):
+        with _col:
+            st.markdown(
+                f"**{_b.get('map_label', _b['name'])}**  \n"
+                f"<span style='font-size:12px;color:#495057'>{_b.get('site_type', 'site').replace('_', ' ')} · "
+                f"{_b.get('role', '')}</span>",
+                unsafe_allow_html=True,
+            )
+            st.caption(_b.get("community_function", _b["why_matters"])[:220])
+    st.caption(
+        "**Visual distinction:** each site has a **colored outline** (civic blue / library violet / school green) "
+        "in addition to coexistence tinting."
+    )
+
     # --- Central 3D canvas ---
     st.markdown("### Interactive 3D — wireless radio scene (Gary anchors)")
     st.caption(
-        "Hover layers: **buildings** (coexistence tint) · **light-green halo** = **coverage-quality proxy** · **blue** gNB · **cyan** serving link · "
+        "Hover layers: **buildings** (footprint extrusion + coexistence tint) · **light-green halo** = **coverage-quality proxy** · **blue** gNB · **cyan** serving link · "
         "**violet** demand · **orange** propagation stress · **red** interference."
     )
 
@@ -1438,21 +1427,65 @@ def _render_judge_gary_micro_twin_3d():
             }
         )
 
+    _scenegraph_layers: list = []
+    _scenegraph_ok_ids: set[str] = set()
+    for _b in buildings:
+        if _b.get("render_mode") != "scenegraph" or not _b.get("_model_spec"):
+            continue
+        _spec = _b["_model_spec"]
+        try:
+            from pathlib import Path as _Path
+
+            _uri = _Path(_spec["scenegraph_path"]).as_uri()
+            _clon, _clat = _b["centroid"]
+            _off = _spec["anchor_offset_lonlat"]
+            _sx = float(_spec["scale"][0]) if len(_spec["scale"]) > 0 else 1.0
+            _row = [
+                {
+                    "position": [_clon + _off[0], _clat + _off[1], 0.0],
+                    "label": _b.get("map_label", _b["name"]),
+                    "tip": f"3D asset (proxy) · {_b['name'][:40]} — not photogrammetry; optional GLB.",
+                }
+            ]
+            _scenegraph_layers.append(
+                pdk.Layer(
+                    "ScenegraphLayer",
+                    id=f"layer-scenegraph-{_b['id']}",
+                    data=_row,
+                    scenegraph=_uri,
+                    get_position="position",
+                    size_scale=max(8.0, min(120.0, 18.0 * _sx)),
+                    pickable=True,
+                    opacity=0.95,
+                )
+            )
+            _scenegraph_ok_ids.add(str(_b["id"]))
+        except Exception:
+            pass
+
+    buildings_poly = [
+        b
+        for b in buildings
+        if not (b.get("render_mode") == "scenegraph" and b.get("_model_spec") and b["id"] in _scenegraph_ok_ids)
+    ]
+
     try:
-        poly_layer = pdk.Layer(
-            "PolygonLayer",
-            id="layer-buildings",
-            data=buildings,
-            get_polygon="polygon",
-            get_fill_color="fill_color",
-            get_line_color=[20, 20, 20, 140],
-            get_line_width=2,
-            extruded=True,
-            get_elevation="height_m",
-            pickable=True,
-            auto_highlight=True,
-            opacity=0.92,
-        )
+        poly_layer = None
+        if buildings_poly:
+            poly_layer = pdk.Layer(
+                "PolygonLayer",
+                id="layer-buildings-footprints",
+                data=buildings_poly,
+                get_polygon="polygon",
+                get_fill_color="fill_color",
+                get_line_color="line_color",
+                get_line_width=2,
+                extruded=True,
+                get_elevation="height_m",
+                pickable=True,
+                auto_highlight=True,
+                opacity=0.92,
+            )
         if_poly_layer = pdk.Layer(
             "PolygonLayer",
             id="layer-if-footprints",
@@ -1534,14 +1567,17 @@ def _render_judge_gary_micro_twin_3d():
             id="layer-labels",
             data=buildings,
             get_position="centroid",
-            get_text="name",
+            get_text="map_label",
             get_color=[25, 25, 25, 255],
             get_size=15,
             pickable=False,
         )
-        deck = pdk.Deck(
-            layers=[
-                poly_layer,
+        _layer_list = []
+        if poly_layer is not None:
+            _layer_list.append(poly_layer)
+        _layer_list.extend(_scenegraph_layers)
+        _layer_list.extend(
+            [
                 if_poly_layer,
                 path_layer,
                 coverage_halo_layer,
@@ -1550,11 +1586,23 @@ def _render_judge_gary_micro_twin_3d():
                 if_layer,
                 gnb_layer,
                 text_layer,
-            ],
+            ]
+        )
+        # Fit view to anchor footprints (slightly wider than default)
+        _all_lons: list[float] = []
+        _all_lats: list[float] = []
+        for _b in buildings:
+            for _p in _b["polygon"]:
+                _all_lons.append(_p[0])
+                _all_lats.append(_p[1])
+        _mid_lat = sum(_all_lats) / max(len(_all_lats), 1)
+        _mid_lon = sum(_all_lons) / max(len(_all_lons), 1)
+        deck = pdk.Deck(
+            layers=_layer_list,
             initial_view_state=pdk.ViewState(
-                latitude=41.58425,
-                longitude=-87.3398,
-                zoom=12.65,
+                latitude=_mid_lat,
+                longitude=_mid_lon,
+                zoom=12.35,
                 pitch=56,
                 bearing=-28,
                 max_pitch=85,
@@ -1602,7 +1650,8 @@ def _render_judge_gary_micro_twin_3d():
         st.markdown("**Wireless-layer legend (semantics)**")
         st.markdown(
             "<div style='font-size:12px;line-height:1.65;color:#212529'>"
-            "<b>L1 Anchor geometry</b> — extruded footprints (digital-twin anchor; approx. GIS).<br/>"
+            "<b>L1 Anchor geometry</b> — **site-specific extruded footprints** (multi-vertex outlines); optional **.glb** replaces footprint when configured. "
+            "Outline color hints: **civic blue** · **library violet** · **school green** (plus coexistence tint).<br/>"
             "<b>L2 Access / serving</b> — hypothetical gNB + serving segment (not a carrier asset DB).<br/>"
             "<b>L3 Traffic demand</b> — violet disks = **engine-driven** load hotspots (radius ∝ traffic demand score).<br/>"
             "<b>L4 Propagation abstraction</b> — green halos + orange stress = <b>proxy</b> until Sionna / DeepMIMO / Aerial feeds replace them.<br/>"
@@ -1620,16 +1669,26 @@ def _render_judge_gary_micro_twin_3d():
             unsafe_allow_html=True,
         )
 
-    # --- Site identity card (selected) ---
-    sc1, sc2, sc3 = st.columns([1.1, 1.1, 1.2])
+    # --- Site identity card (selected) — strong Gary / community context ---
+    st.markdown("#### Focus site — identity & community role")
+    sc1, sc2, sc3 = st.columns([1.15, 1.0, 1.15])
     with sc1:
-        st.metric("Building type", selected_building["building_type"])
+        st.metric("Site", selected_building.get("map_label", selected_building["name"]))
+        st.caption(f"**Type:** {selected_building['building_type']}")
         st.caption(f"**Role:** {selected_building['role']}")
+        st.caption(f"**Community function:** {selected_building.get('community_function', '—')}")
     with sc2:
         st.metric("Approx. height", f"{selected_building['height_m']} m")
         st.metric("Footprint (approx.)", f"{selected_building['footprint_approx_m2']:,} m²")
+        _geom_mode = (
+            "3D asset (.glb) + ScenegraphLayer"
+            if selected_building.get("render_mode") == "scenegraph" and selected_building.get("_model_spec")
+            else "Extruded footprint (polygon)"
+        )
+        st.caption(f"**Geometry render:** {_geom_mode}")
+        st.caption(f"**Footprint note:** {selected_building.get('geometry_note', selected_building.get('footprint_source_note', '—'))}")
     with sc3:
-        st.success(f"**Why this site matters:** {selected_building['why_matters']}")
+        st.success(f"**Why this site matters to Gary:** {selected_building['why_matters']}")
         st.caption(
             f"**Scenario:** **{b_preset_ui}** · RF stress **{b_demand}** · coexistence prior **{b_occupancy}** · {b_signal_env} · **{b_time}** · **{b_event}**"
         )
@@ -1637,7 +1696,7 @@ def _render_judge_gary_micro_twin_3d():
             f"**Engine (focus):** people ≈ **{focus_state.people_count:.0f}** · active IP ≈ **{focus_state.active_ip_devices:.0f}** · "
             f"traffic demand **{focus_state.traffic_demand_score:.2f}**"
         )
-        st.caption("Implemented now — anchor-site model (approximate footprint + role) for the selected scenario.")
+        st.caption("Completed extension — **recognizable** anchor footprints + wireless-scene overlays (not raw competition data).")
 
     # --- Propagation / coverage (screenshot panel; honest proxy labeling) ---
     st.markdown("### Propagation / Coverage (implemented proxy abstraction)")

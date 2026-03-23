@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "documentation": "Optional glTF/GLB per site. glb_relative is relative to repo root. If file missing, app falls back to extruded footprint. See docs/SITE_MODELING_PLAN.md.",
+  "sites": {}
+}
