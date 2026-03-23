@@ -2,30 +2,43 @@
 
 Three buckets:
 
-1. **Core judged submission** — SpectrumX DAC detector on **official competition data** (offline; **not** loaded in Streamlit).
-2. **Completed extension** — Gary **digital-twin wireless scene** + **Near-RT RIC–style (xApp-like)** control abstraction in `_render_judge_gary_micro_twin_3d`.
-3. **Next realism scaling** — DeepMIMO, Sionna RT, **NVIDIA AI Aerial / Omniverse** — **integration-ready** drop dirs + stubs until parsers exist.
+1. **Core judged submission** — SpectrumX DAC detector evaluated **offline** on competition-style data; **raw competition IQ is not** shipped inside Streamlit.
+2. **Completed extension** — Gary **digital-twin wireless scene** + **`gary_scenario_engine`** (population/devices/pressures) + **closed-loop AI-RAN scene controller** (**RIC-style**, **Near-RT / Non-RT–inspired**) in `_render_judge_gary_micro_twin_3d`.
+3. **Next realism scaling** — DeepMIMO, Sionna RT, **NVIDIA AI Aerial / Omniverse** — optional **JSON summary manifests** under drop dirs; UI shows **loaded** vs **not loaded** honestly.
+
+## Scenario engine + controller (summary)
+
+| Piece | Role |
+|-------|------|
+| `ScenarioInputs` | Preset, calendar context, RF sliders, per-site overrides (staff, attendance, visitors, library mode). |
+| `SiteScenarioState` | People, IP/control devices (active), traffic demand, coexistence/coverage pressure, fairness score, sourcing/assumption notes. |
+| `select_closed_loop_action` | Discrete policy from **scenario state** + detector belief + RF stress (not narrative-only). |
+| `apply_action_to_kpis` | Transparent KPI nudges from chosen action on scenario-derived bases. |
+
+**Sourced vs assumed defaults:** `docs/SCENARIO_ENGINE_ASSUMPTIONS.md`.
 
 ## Current capabilities
 
 | Capability | Type |
 |------------|------|
-| Multi-layer **radio scene** (buildings, gNB, halos, demand, IF, propagation stress, links) | **Implemented proxies** (labeled) |
+| Multi-layer **radio scene** (buildings, gNB, halos, demand, IF, propagation stress, links) | **Proxies**; **demand / IF** scale with **engine** outputs |
 | **Triple legend** (glyph / wireless stack / O-RAN mapping) | **Implemented** |
-| **Propagation / Coverage** table + **Plotly bar chart** | **Implemented proxy abstraction** |
-| **RIC loop** wording: ingestion → belief/policy → action → KPI feedback | **Demo**; not a live RIC |
+| **Propagation / Coverage** table + **Plotly bar chart** | **Proxy**; inputs include **coverage_pressure** / coexistence |
+| **Closed-loop controller** | **Computed** action + KPI shift; **not** a live RIC |
 | Detector in loop | **`evaluate()` on synthetic demo IQ** only |
-| Drop zones: `data/deepmimo/`, `data/sionna_rt/`, `data/aerial_omniverse/`, `configs/wireless_scene/`, `configs/ric/` (+ legacy `data/simulation/*`) | **Hooks** in `simulation_integration_hooks.py` |
+| Drop zones + **JSON summaries** | `load_deepmimo_scenario_summary`, `load_sionna_propagation_summary`, `load_aerial_overlay_summary` in `simulation_integration_hooks.py` |
 
 ## Proxy vs integration-ready
 
-- **Proxies:** halos, links, IF, orange stress disks, propagation scores, discrete actions, KPIs.
-- **Not claimed active:** DeepMIMO, Sionna RT, Aerial in the **judged** detector unless explicitly wired in code.
+- **Proxies:** halos, links, IF, orange stress disks, propagation scores, KPIs after heuristic action mapping.
+- **Optional external sim:** summaries load **only** if JSON files exist; otherwise UI states **not loaded** + expected paths/schema hints.
+- **Judged detector:** unchanged by extension hooks unless you explicitly integrate them into the submission package.
 
 ## Docs
 
 - `docs/SIMULATION_BACKBONE_PLAN.md` — pillar detail + future compute/accounts  
-- `docs/MICROTWIN_REALISM_PLAN.md` — UI behavior  
+- `docs/MICROTWIN_REALISM_PLAN.md` — UI behavior + loop diagram  
+- `docs/SCENARIO_ENGINE_ASSUMPTIONS.md` — public defaults vs scenario assumptions  
 
 ## Run locally
 

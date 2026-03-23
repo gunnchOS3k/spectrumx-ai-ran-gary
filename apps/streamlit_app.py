@@ -37,7 +37,10 @@ try:
         describe_extension_asset_status,
         describe_simulation_backbone_status,
         load_aerial_omniverse_overlay_stub,
+        load_aerial_overlay_summary,
         load_deepmimo_overlay_stub,
+        load_deepmimo_scenario_summary,
+        load_sionna_propagation_summary,
         load_sionna_rt_overlay_stub,
     )
 
@@ -47,9 +50,32 @@ except Exception:
     describe_extension_asset_status = None  # type: ignore
     describe_simulation_backbone_status = None  # type: ignore
     load_aerial_omniverse_overlay_stub = None  # type: ignore
+    load_aerial_overlay_summary = None  # type: ignore
     load_deepmimo_overlay_stub = None  # type: ignore
+    load_deepmimo_scenario_summary = None  # type: ignore
+    load_sionna_propagation_summary = None  # type: ignore
     load_sionna_rt_overlay_stub = None  # type: ignore
     _SIM_INTEGRATION_HOOKS_OK = False
+
+try:
+    from src.edge_ran_gary.gary_scenario_engine import (
+        ScenarioInputs,
+        apply_action_to_kpis,
+        compute_all_anchor_states,
+        propagation_proxy_bundle,
+        public_defaults_summary,
+        select_closed_loop_action,
+    )
+
+    _GSE_OK = True
+except Exception:
+    ScenarioInputs = None  # type: ignore
+    apply_action_to_kpis = None  # type: ignore
+    compute_all_anchor_states = None  # type: ignore
+    propagation_proxy_bundle = None  # type: ignore
+    public_defaults_summary = None  # type: ignore
+    select_closed_loop_action = None  # type: ignore
+    _GSE_OK = False
 
 # Page config
 st.set_page_config(
@@ -62,7 +88,7 @@ st.set_page_config(
 st.title("📡 SpectrumX DAC — Winning Project Dashboard")
 st.caption(
     "Judge Mode highlights the **core SpectrumX DAC detector** (local metrics + live `evaluate()` on synthetic IQ). "
-    "**Completed Research Extension** (Gary digital twin + **Near-RT RIC–style** AI-RAN demo) is separate from the **core judged detector**. "
+    "**Completed Research Extension** (Gary digital twin + **closed-loop AI-RAN scene controller**, **RIC-style** / **Near-RT / Non-RT–inspired** abstraction) is separate from the **core judged detector**. "
     "**Next realism scaling:** DeepMIMO, Sionna RT, **NVIDIA AI Aerial / Omniverse** — integration-ready paths, **not** active in the judged model unless you add them."
 )
 
@@ -917,11 +943,12 @@ def _render_judge_oran_ai_ran_alignment_card():
         _judge_html_card(
             "Why this aligns with AI-RAN / O-RAN (extension demo)",
             "<ul style='margin:0;padding-left:18px;line-height:1.55'>"
-            "<li><b>O-RAN</b> separates RAN intelligence into rApps / xApps near a <b>Near-RT RIC</b>. This UI <b>abstracts</b> that loop: "
-            "<b>ingest</b> sensing + site state → <b>policy</b> → discrete <b>RIC-style actions</b> → <b>KPI</b> readout.</li>"
+            "<li><b>O-RAN</b> research uses <b>Near-RT RIC</b> and <b>Non-RT RIC</b> terminology for control timescales. This UI uses a <b>RIC-style</b>, "
+            "<b>Near-RT / Non-RT–inspired</b> <b>closed-loop scene controller</b> — <b>not</b> a claim of a deployed full RT RIC: "
+            "<b>ingest</b> sensing + site state → <b>policy</b> → discrete <b>actions</b> → <b>KPI</b> readout.</li>"
             "<li><b>AI-RAN</b> uses ML/AI on observations to adapt spectrum use; here the <b>SpectrumX detector</b> (separate tab) supplies "
             "<b>occupancy belief</b> on <b>synthetic demo IQ</b> — a stand-in for O1 / sensing interfaces.</li>"
-            "<li><b>Truthful scope</b>: no live E2 interface, no real RIC deployment — <b>conference-grade systems storytelling</b> on top of a real judged detector package.</li>"
+            "<li><b>Truthful scope</b>: no live E2 interface, no production RIC — <b>conference-grade systems storytelling</b> on top of a real judged detector package.</li>"
             "</ul>",
         ),
         unsafe_allow_html=True,
@@ -938,16 +965,29 @@ def _render_judge_gary_micro_twin_3d():
             "pydeck is not available in this runtime. Install `pydeck` locally to render the 3D Gary Micro-Twin building scene."
         )
         return
+    if (
+        not _GSE_OK
+        or ScenarioInputs is None
+        or compute_all_anchor_states is None
+        or propagation_proxy_bundle is None
+        or select_closed_loop_action is None
+        or apply_action_to_kpis is None
+    ):
+        st.error(
+            "The **Gary scenario engine** (`src/edge_ran_gary/gary_scenario_engine.py`) could not be imported. "
+            "Install the repo from root so `src` is on `PYTHONPATH`."
+        )
+        return
 
     # --- Separation banner (completed extension is not the judged detector) ---
     st.success(
         "**Completed Research Extension:** Not the judged SpectrumX detector. "
-        "**Gary site-aware digital twin** + **Near-RT RIC–style** (xApp-like) **AI-RAN control abstraction** — research prototype for judges."
+        "**Closed-loop AI-RAN scene controller** + **RIC-style** policy (Near-RT / Non-RT–**inspired** abstraction only — **not** a full RT RIC)."
     )
 
-    st.markdown("## Completed Gary Digital Twin Extension — digital twin + Near-RT RIC–style AI-RAN demo")
+    st.markdown("## Completed Gary Digital Twin Extension — simulation-backed scene + closed-loop AI-RAN controller")
     st.caption(
-        "**Wireless research artifact:** 3D **radio scene** (gNB, demand, interference, **coverage halos**, propagation stress — all **proxies** unless you add simulation outputs). "
+        "**Population / device scenario engine** drives demand & pressure; **RF environment** is still a **proxy** unless you load Sionna / DeepMIMO summaries. "
         "No official competition IQ in this app."
     )
 
@@ -955,12 +995,12 @@ def _render_judge_gary_micro_twin_3d():
     st.markdown("### Guided demo strip (main path)")
     w = st.columns(6)
     _steps = [
-        ("1", "Choose **site**", "Anchor civic / education footprint."),
-        ("2", "Choose **scenario**", "Demand, occupancy, RF stress, time."),
-        ("3", "**Wireless scene**", "Map: gNB, halos, hotspots, IF zones, links."),
-        ("4", "**Propagation / coverage**", "Proxy table + bar chart."),
-        ("5", "**RIC state → action**", "Near-RT xApp-style policy output."),
-        ("6", "**KPI impact**", "Coexistence, equity, energy, continuity."),
+        ("1", "Choose **site**", "Focus anchor + community context."),
+        ("2", "Choose **scenario preset**", "Normal / peak / after hours / emergency."),
+        ("3", "**Wireless scene**", "Hotspots & IF scale with **computed** load."),
+        ("4", "**Propagation / coverage**", "Tied to **coverage pressure** from scenario."),
+        ("5", "**Closed-loop controller**", "State → **computed** action → KPIs."),
+        ("6", "**KPI impact**", "Updated from chosen policy."),
     ]
     for col, (num, title, sub) in zip(w, _steps):
         with col:
@@ -979,10 +1019,10 @@ def _render_judge_gary_micro_twin_3d():
             _judge_html_card(
                 "Why this is research-grade now",
                 "<ul style='margin:0;padding-left:18px'>"
-                "<li><b>Real detector</b> on <b>official competition data</b> (offline) — core tab + structured submission workflow.</li>"
-                "<li><b>Completed extension</b>: Gary <b>digital-twin radio scene</b> + <b>O-RAN–aligned</b> Near-RT RIC <b>xApp-style</b> loop (demo).</li>"
-                "<li><b>Propagation / coverage</b>: explicit <b>proxy abstractions</b> + screenshot-ready charts — labeled honest.</li>"
-                "<li><b>Simulation backbone</b>: DeepMIMO, Sionna RT, **NVIDIA AI Aerial / Omniverse** drop zones — <b>integration-ready</b>, not pretending to run in-app.</li>"
+                "<li><b>Real detector</b> evaluated on competition-style data <b>offline</b> — <b>not</b> exposed as raw IQ in this app; core tab + submission workflow.</li>"
+                "<li><b>Completed extension</b>: <b>scenario engine</b> (people/devices/load) + <b>closed-loop AI-RAN scene controller</b> (RIC-style abstraction).</li>"
+                "<li><b>Propagation / coverage</b>: <b>scenario-driven</b> proxy metrics + charts — still <b>not</b> a ray-tracing solver.</li>"
+                "<li><b>Simulation backbone</b>: JSON summaries load when present; else honest <b>not loaded</b> + expected paths.</li>"
                 "</ul>",
             ),
             unsafe_allow_html=True,
@@ -992,7 +1032,7 @@ def _render_judge_gary_micro_twin_3d():
             _judge_html_card(
                 "Why this matters for 6G research & admissions",
                 "<ul style='margin:0;padding-left:18px'>"
-                "<li><b>AI-native RAN</b>: shows how <b>sensing</b> could feed a <b>Near-RT</b> control loop (the story faculty expect).</li>"
+                "<li><b>AI-native RAN</b>: <b>sensing → policy → action → KPI</b> loop aligned with **Near-RT / Non-RT RIC** research language (honest abstraction).</li>"
                 "<li><b>Digital twins</b>: ties ML to <b>place</b> and <b>propagation-aware</b> decisions — core 6G systems theme.</li>"
                 "<li><b>Equitable access</b>: KPIs encode <b>community benefit</b> vs <b>coexistence</b> — policy-relevant framing.</li>"
                 "<li><b>Simulation discipline</b>: clear path from <b>proxy demo</b> → <b>DeepMIMO / Sionna / Aerial</b> — reads as serious systems research.</li>"
@@ -1066,23 +1106,39 @@ def _render_judge_gary_micro_twin_3d():
         },
     ]
 
-    # --- Scenario controls (above map): compact toolbar ---
-    st.markdown("### Scenario & site")
-    tb1, tb2, tb3, tb4, tb5 = st.columns([1, 1, 1, 1, 1.2])
+    # --- Scenario controls + scenario engine (population / devices / load) ---
+    st.markdown("### Scenario & site (simulation-backed load model)")
+    _preset_labels = ["Normal day", "Peak day / event", "After hours", "Emergency / special ops"]
+    _preset_keys = {
+        "Normal day": "normal_day",
+        "Peak day / event": "peak_day",
+        "After hours": "after_hours",
+        "Emergency / special ops": "emergency_special",
+    }
+    tb0, tb1, tb2, tb3, tb4, tb5 = st.columns([1.1, 1, 1, 1, 1, 1.1])
+    with tb0:
+        b_preset_ui = st.selectbox(
+            "Scenario preset",
+            options=_preset_labels,
+            index=0,
+            key="judge_mt_scenario_preset",
+            help="Drives attendance, concurrency, and emergency-style control traffic (engine).",
+        )
     with tb1:
         b_demand = st.selectbox(
-            "Demand",
+            "RF traffic stress",
             options=["Low", "Medium", "High"],
             index=1,
             key="judge_mt_demand",
-            help="Traffic / throughput stress (proxy).",
+            help="Manual modifier on top of computed device load (0–1).",
         )
     with tb2:
         b_occupancy = st.selectbox(
-            "Occupancy prior",
+            "RF coexistence prior",
             options=["Low", "Medium", "High"],
             index=1,
             key="judge_mt_occupancy_prior",
+            help="Biases coexistence pressure with the scenario engine.",
         )
     with tb3:
         b_signal_env = st.selectbox(
@@ -1093,10 +1149,11 @@ def _render_judge_gary_micro_twin_3d():
         )
     with tb4:
         b_time = st.selectbox(
-            "Time context",
+            "Calendar context",
             options=["School hours", "After hours", "Weekend"],
             index=0,
             key="judge_mt_time_context",
+            help="Modulates school/library presence with the preset.",
         )
     with tb5:
         b_event = st.selectbox(
@@ -1126,62 +1183,127 @@ def _render_judge_gary_micro_twin_3d():
         "Moderate interference": 0.55,
         "Noisier / high interference": 0.85,
     }[b_signal_env]
-
-    # Effective scenario weights (site + time + event)
     eff_demand = float(demand_w)
     eff_occ = float(occ_w)
     eff_env = float(env_w)
-    if b_event == "Special event (high load)":
-        eff_demand = min(0.95, eff_demand + 0.18)
-        eff_occ = min(0.95, eff_occ + 0.08)
-    if b_time == "School hours" and selected_site_id == "west_side_leadership":
-        eff_occ = min(0.95, eff_occ + 0.14)
-        eff_demand = min(0.95, eff_demand + 0.1)
-    elif b_time == "After hours":
-        eff_occ *= 0.88
-    if b_time == "Weekend" and selected_site_id == "public_library":
-        eff_demand = min(0.95, eff_demand + 0.1)
+
+    with st.expander("Sources, assumptions & overrides", expanded=False):
+        st.markdown("**Public-grounded vs assumption (defaults)**")
+        if public_defaults_summary:
+            for site, item, kind in public_defaults_summary():
+                if kind == "sourced_default":
+                    tag = "**sourced default**"
+                elif kind == "assumption_aggregate":
+                    tag = "**scenario aggregate (assumption)**"
+                else:
+                    tag = "**assumption**"
+                st.caption(f"• **{site}** — {item} ({tag})")
+        st.markdown("**Editable overrides (scenario parameters)**")
+        ov_wsla_staff = ov_wsla_att = ov_ch_emp = ov_ch_vis = ov_lib_occ = None
+        lib_simple = st.checkbox("Library: simple 1.0 device / occupant", value=False, key="judge_mt_lib_simple")
+        lib_ip = None
+        if not lib_simple:
+            lib_ip = st.slider("Library IP devices / occupant (assumption)", 1.0, 1.5, 1.4, 0.05, key="judge_mt_lib_ip")
+        if selected_site_id == "west_side_leadership":
+            ov_wsla_staff = st.number_input("WSLA staff FTE (assumption)", min_value=20, max_value=250, value=95, key="judge_mt_wsla_staff")
+            ov_wsla_att = st.slider("Student attendance ratio (scenario)", 0.05, 1.0, 0.90, 0.01, key="judge_mt_wsla_att")
+        elif selected_site_id == "city_hall":
+            ov_ch_emp = st.number_input("City Hall employees (assumption)", min_value=20, max_value=800, value=120, key="judge_mt_ch_emp")
+            ov_ch_vis = st.number_input("Visitor session baseline (assumption)", min_value=0, max_value=800, value=45, key="judge_mt_ch_vis")
+        elif selected_site_id == "public_library":
+            ov_lib_occ = st.slider("Library occupancy vs ~240 baseline (scenario)", 0.05, 1.0, 0.42, 0.01, key="judge_mt_lib_occ")
+
+    _preset_key = _preset_keys[b_preset_ui]
+    _event_high = b_event == "Special event (high load)"
+    _scenario_in = ScenarioInputs(
+        preset=_preset_key,  # type: ignore[arg-type]
+        rf_environment_stress=eff_env,
+        manual_traffic_stress=eff_demand,
+        manual_occ_prior=eff_occ,
+        time_context=b_time,
+        event_high_load=_event_high,
+        wsla_staff_count=ov_wsla_staff,
+        wsla_attendance_ratio=ov_wsla_att,
+        city_hall_employees=ov_ch_emp,
+        city_hall_visitors=ov_ch_vis,
+        library_occupancy_ratio=ov_lib_occ,
+        library_ip_per_occupant=lib_ip,
+        library_simple_device_mode=lib_simple,
+    )
+    all_site_states = compute_all_anchor_states(buildings, _scenario_in)
+    _max_coex = max(s.coexistence_pressure for s in all_site_states.values())
 
     for b in buildings:
-        risk = 0.34 * eff_demand + 0.33 * eff_occ + 0.33 * eff_env + 0.18 * b["risk_bias"]
-        b["risk_score"] = float(risk)
-        if risk < 0.50:
-            b["risk_label"] = "Lower coexistence stress (proxy)"
-            b["fill_color"] = [46, 204, 113, 210]
-        elif risk < 0.70:
-            b["risk_label"] = "Moderate coexistence stress (proxy)"
-            b["fill_color"] = [241, 196, 15, 210]
-        else:
-            b["risk_label"] = "Higher coexistence stress (proxy)"
-            b["fill_color"] = [231, 76, 60, 210]
         lons = [p[0] for p in b["polygon"]]
         lats = [p[1] for p in b["polygon"]]
         b["centroid"] = [sum(lons) / len(lons), sum(lats) / len(lats)]
-        # Tooltip fields (shared template with scatter overlays)
-        b["label"] = b["name"]
-        b["tip"] = f"{b['building_type']} · {b['role']} · {b['risk_label']}"
-
-    # Per-site propagation proxies (interpretable; not ray-traced / not DeepMIMO)
-    for b in buildings:
-        pen_db = 12 + 8 * eff_env + (4 if b["height_m"] > 40 else 0)
-        block_score = min(1.0, 0.25 + 0.45 * eff_env + 0.15 * (b["height_m"] / 70.0))
-        if b["height_m"] >= 55:
-            los_label = "NLOS-heavy proxy (tall civic mass)"
-        elif b["id"] == "west_side_leadership":
-            los_label = "Mixed LOS / NLOS proxy (campus + parking)"
-        else:
-            los_label = "Partial LOS proxy (suburban civic)"
-        cov = max(0.05, min(0.98, 0.55 + 0.22 * (1.0 - eff_env) + 0.10 * (1.0 - b["height_m"] / 70.0)))
-        p_challenge = max(
-            0.05, min(0.98, 0.38 * eff_env + 0.22 * (b["height_m"] / 70.0) + 0.28 * block_score)
+        st_local = all_site_states[b["id"]]
+        b["_scenario"] = st_local
+        risk = (
+            0.38 * st_local.coexistence_pressure
+            + 0.28 * eff_env
+            + 0.18 * b["risk_bias"]
+            + 0.10 * eff_occ
+            + 0.06 * st_local.traffic_demand_score
         )
-        b["_prop"] = {
-            "coverage_proxy": cov,
-            "challenge_proxy": p_challenge,
-            "los_nl_os": los_label,
-            "penetration_db_proxy": pen_db,
-            "blockage_proxy": block_score,
-        }
+        b["risk_score"] = float(max(0.0, min(1.0, risk)))
+        if b["risk_score"] < 0.50:
+            b["risk_label"] = "Lower coexistence stress (engine+RF proxy)"
+            b["fill_color"] = [46, 204, 113, 210]
+        elif b["risk_score"] < 0.70:
+            b["risk_label"] = "Moderate coexistence stress (engine+RF proxy)"
+            b["fill_color"] = [241, 196, 15, 210]
+        else:
+            b["risk_label"] = "Higher coexistence stress (engine+RF proxy)"
+            b["fill_color"] = [231, 76, 60, 210]
+        b["label"] = b["name"]
+        b["tip"] = (
+            f"{b['building_type']} · {b['risk_label']} · people≈{st_local.people_count:.0f} · "
+            f"active IP dev≈{st_local.active_ip_devices:.0f}"
+        )
+        b["_prop"] = propagation_proxy_bundle(
+            b["id"],
+            float(b["height_m"]),
+            eff_env,
+            st_local.coverage_pressure,
+            st_local.coexistence_pressure,
+        )
+
+    focus_state = all_site_states[selected_site_id]
+
+    st.markdown("#### Extension evidence — scenario engine output (focus site)")
+    ev1, ev2, ev3 = st.columns(3)
+    with ev1:
+        st.metric("People (scenario)", f"{focus_state.people_count:.0f}")
+        st.caption("Students/staff/visitors **modeled**, not census.")
+    with ev2:
+        st.metric("Active IP devices (est.)", f"{focus_state.active_ip_devices:.0f}")
+    with ev3:
+        st.metric("Traffic demand score", f"{focus_state.traffic_demand_score:.2f}")
+    if pd is not None:
+        st.dataframe(
+            pd.DataFrame(
+                [
+                    {
+                        "Site": s.site_name[:36],
+                        "People": round(s.people_count, 1),
+                        "Active IP": round(s.active_ip_devices, 1),
+                        "Active control": round(s.active_control_devices, 1),
+                        "Traffic demand": round(s.traffic_demand_score, 3),
+                        "Coexistence": round(s.coexistence_pressure, 3),
+                        "Coverage pressure": round(s.coverage_pressure, 3),
+                        "Fairness priority": round(s.fairness_community_priority, 3),
+                    }
+                    for s in all_site_states.values()
+                ]
+            ),
+            use_container_width=True,
+            hide_index=True,
+        )
+    if focus_state.sourcing_notes:
+        st.info("**Sourcing:** " + " ".join(focus_state.sourcing_notes))
+    if focus_state.assumption_notes:
+        st.caption("**Assumptions:** " + " ".join(focus_state.assumption_notes))
 
     # --- Central 3D canvas ---
     st.markdown("### Interactive 3D — wireless radio scene (Gary anchors)")
@@ -1190,15 +1312,18 @@ def _render_judge_gary_micro_twin_3d():
         "**violet** demand · **orange** propagation stress · **red** interference."
     )
 
-    demand_scale = 0.75 + 0.55 * eff_demand
     gnb_rows = []
     demand_rows = []
     for b in buildings:
         clon, clat = b["centroid"]
+        _sc = b["_scenario"]
+        td_site = float(_sc.traffic_demand_score)
+        # Hotspot size from **scenario engine** traffic score + manual RF stress (transparent blend)
+        demand_scale_b = 0.62 + 0.78 * td_site + 0.12 * eff_demand
         gnb_rows.append(
             {
                 "position": [clon + b["gnb_offset_lon"], clat + b["gnb_offset_lat"]],
-                "label": f"gNB proxy · {b['name'][:28]}",
+                "label": f"Access node (proxy) · {b['name'][:28]}",
                 "tip": f"Hypothetical macro/small-cell (not measured). Serves {b['building_type']}.",
             }
         )
@@ -1206,8 +1331,11 @@ def _render_judge_gary_micro_twin_3d():
             {
                 "position": [clon, clat],
                 "label": f"Demand zone · {b['name'][:24]}",
-                "radius": int(b["demand_base_radius_m"] * demand_scale),
-                "tip": f"User demand hotspot (proxy). Radius scales with scenario demand.",
+                "radius": int(b["demand_base_radius_m"] * demand_scale_b),
+                "tip": (
+                    f"User demand hotspot (**proxy**). Engine traffic score **{td_site:.2f}**; "
+                    f"coexistence **{_sc.coexistence_pressure:.2f}**."
+                ),
             }
         )
 
@@ -1216,27 +1344,35 @@ def _render_judge_gary_micro_twin_3d():
     for b in buildings:
         clon, clat = b["centroid"]
         cov = float(b["_prop"]["coverage_proxy"])
+        cp = float(b["_scenario"].coverage_pressure)
         coverage_halo_rows.append(
             {
                 "position": [clon, clat],
-                "radius": int(95 + 400 * cov),
+                "radius": int(85 + 420 * cov * (0.92 + 0.12 * (1.0 - cp))),
                 "label": f"Coverage halo (proxy) · {b['name'][:20]}",
-                "tip": f"**Implemented proxy:** halo size ∝ coverage abstraction {cov:.2f}. Not measured SINR / not ray-traced.",
+                "tip": (
+                    f"**Proxy:** halo ∝ coverage score **{cov:.2f}**; **coverage pressure** {cp:.2f} from scenario engine. "
+                    "Not measured SINR / not ray-traced."
+                ),
             }
         )
 
+    _if_scale = 0.55 + 0.55 * _max_coex + 0.15 * eff_env
     interference_rows = [
         {
             "position": [-87.3392, 41.5844],
-            "label": "Ambient interference proxy",
-            "radius": 200 + int(120 * eff_env),
-            "tip": "Aggregated external RF activity (proxy). **Next realism scaling:** Sionna RT / measured traces.",
+            "label": "Ambient coexistence / IF proxy",
+            "radius": 200 + int(120 * eff_env * _if_scale),
+            "tip": (
+                f"Aggregated coexistence (**proxy**). Scales with max engine coexistence **{_max_coex:.2f}** × RF env. "
+                "**Next scaling:** Sionna RT / measured traces."
+            ),
         },
         {
             "position": [-87.3355, 41.5839],
-            "label": "Secondary clutter source (proxy)",
-            "radius": 140 + int(80 * eff_env),
-            "tip": "Low-7 GHz coexistence stressor — not a real identified emitter.",
+            "label": "Secondary clutter / IF proxy",
+            "radius": 140 + int(95 * eff_env * (0.85 + 0.35 * _max_coex)),
+            "tip": "Low-7 GHz coexistence stressor — **not** a real identified emitter.",
         },
     ]
 
@@ -1269,7 +1405,7 @@ def _render_judge_gary_micro_twin_3d():
         lons = [x[0] for x in p["polygon"]]
         lats = [x[1] for x in p["polygon"]]
         p["centroid"] = [sum(lons) / len(lons), sum(lats) / len(lats)]
-        p["fill_color"] = [231, 76, 60, 55 + int(40 * eff_env)]
+        p["fill_color"] = [231, 76, 60, 50 + int(55 * max(eff_env, _max_coex * 0.92))]
 
     link_rows = []
     for b in buildings:
@@ -1468,7 +1604,7 @@ def _render_judge_gary_micro_twin_3d():
             "<div style='font-size:12px;line-height:1.65;color:#212529'>"
             "<b>L1 Anchor geometry</b> — extruded footprints (digital-twin anchor; approx. GIS).<br/>"
             "<b>L2 Access / serving</b> — hypothetical gNB + serving segment (not a carrier asset DB).<br/>"
-            "<b>L3 Traffic demand</b> — violet disks = narrative load hotspots.<br/>"
+            "<b>L3 Traffic demand</b> — violet disks = **engine-driven** load hotspots (radius ∝ traffic demand score).<br/>"
             "<b>L4 Propagation abstraction</b> — green halos + orange stress = <b>proxy</b> until Sionna / DeepMIMO / Aerial feeds replace them.<br/>"
             "<b>L5 Coexistence / risk</b> — red IF proxies = aggregated interference story, not identified emitters.</div>",
             unsafe_allow_html=True,
@@ -1479,7 +1615,7 @@ def _render_judge_gary_micro_twin_3d():
             "<div style='font-size:12px;line-height:1.65;color:#212529'>"
             "<b>RU / O-DU (abstracted)</b> — gNB marker + link geometry.<br/>"
             "<b>O1 / sensing stand-in</b> — SpectrumX <code>evaluate()</code> on <b>synthetic</b> IQ (Judge tab).<br/>"
-            "<b>Near-RT RIC / xApp</b> — policy panel below maps state → discrete RAN action → KPIs.<br/>"
+            "<b>RIC-style controller</b> — policy panel maps **closed-loop state** → discrete action → KPIs (Near-RT / Non-RT–<b>inspired</b>).<br/>"
             "<em>No live E2 / E1 interfaces in this demo.</em></div>",
             unsafe_allow_html=True,
         )
@@ -1495,7 +1631,11 @@ def _render_judge_gary_micro_twin_3d():
     with sc3:
         st.success(f"**Why this site matters:** {selected_building['why_matters']}")
         st.caption(
-            f"**Scenario:** {b_demand} demand · {b_occupancy} occ. prior · {b_signal_env} · **{b_time}** · **{b_event}**"
+            f"**Scenario:** **{b_preset_ui}** · RF stress **{b_demand}** · coexistence prior **{b_occupancy}** · {b_signal_env} · **{b_time}** · **{b_event}**"
+        )
+        st.caption(
+            f"**Engine (focus):** people ≈ **{focus_state.people_count:.0f}** · active IP ≈ **{focus_state.active_ip_devices:.0f}** · "
+            f"traffic demand **{focus_state.traffic_demand_score:.2f}**"
         )
         st.caption("Implemented now — anchor-site model (approximate footprint + role) for the selected scenario.")
 
@@ -1592,7 +1732,12 @@ def _render_judge_gary_micro_twin_3d():
         st.caption(f"Proxy coords: {gnb_lat:.5f}, {gnb_lon:.5f}")
     with r2:
         st.markdown("**User hotspot**")
-        st.caption(f"Radius ~{int(selected_building['demand_base_radius_m'] * demand_scale)} m (scales with demand).")
+        _fs_td = float(focus_state.traffic_demand_score)
+        _fs_dscale = 0.62 + 0.78 * _fs_td + 0.12 * eff_demand
+        st.caption(
+            f"Radius ~{int(selected_building['demand_base_radius_m'] * _fs_dscale)} m "
+            f"(engine traffic **{_fs_td:.2f}** + RF stress)."
+        )
     with r3:
         st.markdown("**Interference regions**")
         st.caption("Red disks + hatched footprints = coexistence **proxies** only.")
@@ -1621,70 +1766,67 @@ def _render_judge_gary_micro_twin_3d():
     )
     st.caption("Implemented now — site-specific user personas for this completed extension demo.")
 
-    # --- Near-RT RIC / xApp-style control loop (AI-RAN abstraction; demo only) ---
-    st.markdown("### Near-RT RIC–style control loop (xApp abstraction)")
+    # --- Closed-loop AI-RAN scene controller (RIC-style; demo only) ---
+    st.markdown("### Closed-loop AI-RAN scene controller (RIC-style abstraction)")
     st.caption(
-        "**O-RAN-aligned story (conceptual):** **state ingestion** (sensing + site + propagation proxies) → **belief / policy prior** → **action selection** "
-        "(discrete RAN-style commands) → **KPI feedback** (coverage, coexistence, equity, energy, continuity). "
-        "This is an **AI-RAN research demo** in Streamlit — **not** a deployed xApp on a live Near-RT RIC. **Core judged** detector remains the SpectrumX submission path."
+        "**Layers (honest):** **Policy / context** (preset + site + RF sliders) · **Sensing / belief** (detector on **synthetic** demo IQ + scenario engine state) · "
+        "**Action** (`select_closed_loop_action`) · **KPI feedback** (`apply_action_to_kpis`). "
+        "**Near-RT / Non-RT–inspired** — **not** a deployed full RT RIC or live E2."
     )
 
     pred = st.session_state.get("judge_live_pred")
     conf = st.session_state.get("judge_live_conf")
+    try:
+        conf_f = float(conf) if conf is not None else None
+    except (TypeError, ValueError):
+        conf_f = None
+
     occ_word = "occupied (1)" if pred == 1 else ("noise-only (0)" if pred == 0 else "unknown")
-    belief_hi = eff_env > 0.62 or eff_demand > 0.72
     occ_belief = "High occupancy / demand pressure" if eff_occ > 0.65 else "Moderate occupancy belief"
     if eff_occ < 0.42:
         occ_belief = "Lower occupancy belief"
 
     det_belief_line = (
         f"Detector label **{occ_word}**"
-        + (f" · conf {float(conf):.2f}" if conf is not None else "")
-        + " (demo IQ only; not competition data)."
+        + (f" · conf {conf_f:.2f}" if conf_f is not None else "")
+        + " (**synthetic** demo IQ only; **no** competition IQ in this app)."
     )
     radio_env_favorability = max(0.0, min(1.0, 1.0 - 0.85 * eff_env + 0.08 * (1.0 - _sp["challenge_proxy"])))
     coexistence_risk = float(selected_building["risk_score"])
 
-    st.markdown("#### RIC state observation — ingested inputs (proxies + sensing)")
+    st.markdown("#### Controller observation — scenario engine + proxies + sensing")
     s1, s2, s3, s4, s5 = st.columns(5)
     s1.metric("Detector belief", occ_word.replace(" (1)", "").replace(" (0)", "")[:14])
     s2.metric("Site context", selected_building["id"].replace("_", " ")[:16])
-    s3.metric("Demand level (proxy)", f"{eff_demand:.2f}")
-    s4.metric("Radio env. score (proxy)", f"{radio_env_favorability:.2f}")
+    s3.metric("Traffic demand (engine)", f"{focus_state.traffic_demand_score:.2f}")
+    s4.metric("Radio env. (proxy)", f"{radio_env_favorability:.2f}")
     s5.metric("Coexistence risk (proxy)", f"{coexistence_risk:.2f}")
     st.caption(det_belief_line)
 
-    st.markdown("##### State vector (xApp policy input — structured)")
+    st.markdown("##### Closed-loop state vector (explicit policy input)")
+    _state_row = {
+        "site": selected_building["name"][:48],
+        "preset": b_preset_ui,
+        "calendar": b_time,
+        "people_count": round(focus_state.people_count, 1),
+        "active_ip_devices": round(focus_state.active_ip_devices, 1),
+        "active_control_devices": round(focus_state.active_control_devices, 1),
+        "traffic_demand_score": round(focus_state.traffic_demand_score, 4),
+        "detector_belief": occ_word,
+        "detector_conf": conf_f,
+        "propagation_challenge": round(float(_sp["challenge_proxy"]), 4),
+        "coexistence_pressure": round(focus_state.coexistence_pressure, 4),
+        "coverage_pressure": round(focus_state.coverage_pressure, 4),
+        "rf_environment_stress": round(eff_env, 3),
+        "manual_traffic_stress": round(eff_demand, 3),
+    }
     if pd is not None:
-        st.dataframe(
-            pd.DataFrame(
-                [
-                    {
-                        "Site": selected_building["name"][:48],
-                        "Demand (proxy)": round(eff_demand, 3),
-                        "Occupancy belief": occ_belief,
-                        "Interference risk (proxy)": round(eff_env, 3),
-                        "Propagation challenge": round(float(_sp["challenge_proxy"]), 3),
-                        "Detector output": occ_word,
-                        "Coexistence (site proxy)": round(coexistence_risk, 3),
-                    }
-                ]
-            ),
-            use_container_width=True,
-            hide_index=True,
-        )
+        st.dataframe(pd.DataFrame([_state_row]), use_container_width=True, hide_index=True)
     else:
-        st.json(
-            {
-                "site": selected_building["name"],
-                "demand_proxy": eff_demand,
-                "occupancy_belief": occ_belief,
-                "interference_risk_proxy": eff_env,
-                "propagation_challenge": float(_sp["challenge_proxy"]),
-                "detector_output": occ_word,
-                "coexistence_site_proxy": coexistence_risk,
-            }
-        )
+        st.json(_state_row)
+
+    pred_for_policy = int(pred) if pred in (0, 1) else None
+    chosen_key, action_reason = select_closed_loop_action(focus_state, pred_for_policy, conf_f, eff_env)
 
     candidates = [
         ("hold", "Hold", "Wait / sense / avoid adding energy."),
@@ -1692,38 +1834,25 @@ def _render_judge_gary_micro_twin_3d():
         ("power", "Reduce power", "Protect neighbors while maintaining a link."),
         ("channel", "Change channel", "Avoid overlapping interference (proxy)."),
         ("prioritize", "Prioritize site", "Steer capacity toward focus-site equity."),
+        ("rebalance", "Rebalance service", "Spread load across resources (proxy)."),
     ]
 
-    if pred is None:
-        chosen_key = "hold"
-        action_reason = "No live detector output — open **Core Submission** to run `evaluate()` on demo IQ."
-    elif pred == 1 and belief_hi:
-        chosen_key = "cautious"
-        action_reason = (
-            f"**High demand + stressed RF + {selected_building['name']}** → cautious transmission to protect coexistence."
-        )
-    elif pred == 1:
-        chosen_key = "channel" if eff_env > 0.5 else "cautious"
-        action_reason = "Structured energy detected; moderate stress → balance throughput and neighbor protection."
-    elif pred == 0 and belief_hi:
-        chosen_key = "hold"
-        action_reason = "Vacancy belief but noisy environment → hold and scan before occupying spectrum."
-    else:
-        chosen_key = "prioritize" if eff_demand > 0.6 else "hold"
-        action_reason = "Vacancy belief with capacity opportunity → prioritize equitable service at the focus site."
-
     _chosen_title = next(c[1] for c in candidates if c[0] == chosen_key)
-    st.markdown("##### Policy output — selected RAN-style action (proxy xApp)")
+    st.markdown("##### Action layer — selected command (**computed** from scenario + belief)")
     st.success(f"**{_chosen_title}**  \n{action_reason}")
 
-    st.markdown("#### Control loop trace (ingest → belief/policy → act → KPI feedback)")
+    st.markdown("#### Control loop trace (ingest → belief → act → KPI feedback)")
     pipe = st.columns(5)
     stages = [
-        ("1 · State ingestion", f"**{occ_word}**", "Sensing: `evaluate()` on **synthetic** demo IQ (O1-style stand-in)."),
-        ("2 · Belief / policy", occ_belief, f"RF + load belief: **{'elevated' if belief_hi else 'moderate'}** stress."),
-        ("3 · Site context", selected_building["name"][:20] + "…", f"{b_time} · {b_event} · demand **{b_demand}**"),
-        ("4 · Action selection", f"**{_chosen_title}**", "Discrete **xApp-style** command (hold / TX / power / channel / prioritize)."),
-        ("5 · KPI feedback", "Metrics below →", "Closed-loop readout for coexistence & equity."),
+        ("1 · Sensing / belief", f"**{occ_word}**", "Detector `evaluate()` on **synthetic** IQ (O1-style stand-in)."),
+        ("2 · Context / policy", occ_belief, f"Preset **{b_preset_ui}** · engine traffic **{focus_state.traffic_demand_score:.2f}**."),
+        (
+            "3 · Site + occupancy",
+            selected_building["name"][:18] + "…",
+            f"People ≈ **{focus_state.people_count:.0f}** · active IP ≈ **{focus_state.active_ip_devices:.0f}**.",
+        ),
+        ("4 · Action", f"**{_chosen_title}**", "`select_closed_loop_action` (state + RF + detector)."),
+        ("5 · KPI feedback", "Metrics below →", "`apply_action_to_kpis` on scenario bases."),
     ]
     for col, (title, headline, sub) in zip(pipe, stages):
         with col:
@@ -1736,8 +1865,8 @@ def _render_judge_gary_micro_twin_3d():
                 unsafe_allow_html=True,
             )
 
-    st.markdown("**Candidate action space (proxy xApp)** — hold · cautious transmit · reduce power · change channel · prioritize site")
-    ca = st.columns(5)
+    st.markdown("**Candidate actions (RIC-style set)**")
+    ca = st.columns(6)
     for i, (k, title, blurb) in enumerate(candidates):
         with ca[i]:
             if k == chosen_key:
@@ -1748,30 +1877,91 @@ def _render_judge_gary_micro_twin_3d():
 
     st.markdown(
         "<div style='border-left:5px solid #5b21b6;padding:12px 16px;background:#e9e3f5;border:1px solid #212529;border-radius:0 12px 12px 0;margin:10px 0'>"
-        "<strong style='color:#212529'>Why this is AI-RAN / Near-RT RIC (in this demo)</strong><br/>"
+        "<strong style='color:#212529'>Why this reads as AI-RAN (honest scope)</strong><br/>"
         "<span style='font-size:13px;color:#212529;line-height:1.55'>"
-        "Mirrors how a <b>Near-RT RIC xApp</b> would close the loop: <b>observations</b> (here: detector + twin state) → <b>policy</b> → <b>actions</b> → <b>KPIs</b>. "
-        "Fits <b>AI-native RAN</b> narratives for <b>6G systems</b> and faculty review — with explicit <b>proxy</b> labeling and <b>no</b> false claim of a production RIC.</span></div>",
+        "A <b>closed-loop</b> <b>RIC-style</b> narrative (<b>Near-RT / Non-RT–inspired</b>): <b>observations</b> (detector + scenario engine + propagation proxies) → "
+        "<b>policy</b> → <b>discrete actions</b> → <b>KPI</b> readout. Explicit <b>proxy</b> labeling; <b>no</b> claim of a production RIC or full RT stack.</span></div>",
         unsafe_allow_html=True,
     )
 
-    kpi_cov = max(0.0, min(1.0, 0.52 + 0.28 * (1.0 - eff_env) + (0.14 if pred == 1 else -0.04)))
-    kpi_coex = max(0.0, min(1.0, 0.64 - 0.22 * eff_env + (0.08 if pred == 0 else -0.04)))
-    kpi_fair = max(0.0, min(1.0, 0.48 + 0.18 * eff_occ - 0.12 * (1.0 - eff_demand)))
-    kpi_energy = max(0.0, min(1.0, 0.78 - 0.12 * eff_demand + (0.06 if chosen_key in ("hold", "power") else -0.04)))
-    kpi_reliab = max(0.0, min(1.0, 0.5 + 0.22 * kpi_cov - 0.18 * eff_env + 0.08 * (1.0 if pred is not None else 0.0)))
-
-    st.markdown("### Outcome & impact (current proxy KPIs)")
-    k1, k2, k3, k4, k5 = st.columns(5)
-    k1.metric("Coverage proxy", f"{kpi_cov:.2f}", help="Not measured on-air.")
-    k2.metric("Coexistence score", f"{kpi_coex:.2f}", help="Neighbor-friendly spectrum use (proxy).")
-    k3.metric("Fairness / community benefit", f"{kpi_fair:.2f}", help="Equity storytelling proxy (not measured QoE).")
-    k4.metric("Energy / efficiency", f"{kpi_energy:.2f}", help="Hold/low-power favors efficiency (proxy).")
-    k5.metric("Service continuity", f"{kpi_reliab:.2f}", help="Reliability proxy vs scenario stress.")
-    st.caption(
-        "**Honest labeling:** KPIs are **deterministic scenario proxies** implemented in this extension for screenshots and research storytelling — "
-        "**not** empirical network measurements."
+    base_coverage = float(_sp["coverage_proxy"])
+    base_coex = float(focus_state.coexistence_pressure)
+    base_fair = float(focus_state.fairness_community_priority)
+    base_energy = max(
+        0.0,
+        min(1.0, 0.80 - 0.16 * float(focus_state.traffic_demand_score) + 0.06 * (1.0 - eff_env)),
     )
+    base_cont = max(
+        0.0,
+        min(
+            1.0,
+            0.52 + 0.22 * base_coverage - 0.14 * eff_env + (0.06 if pred is not None else 0.0),
+        ),
+    )
+    kpi_dict = apply_action_to_kpis(chosen_key, base_coverage, base_coex, base_fair, base_energy, base_cont)
+
+    st.markdown("### Outcome & impact (KPI proxies **after** chosen action)")
+    k1, k2, k3, k4, k5 = st.columns(5)
+    k1.metric("Coverage proxy", f"{kpi_dict['coverage']:.2f}", help="Scenario base + action delta; not measured on-air.")
+    k2.metric("Coexistence score", f"{kpi_dict['coexistence']:.2f}", help="Neighbor-friendly spectrum use (proxy).")
+    k3.metric("Fairness / community benefit", f"{kpi_dict['fairness']:.2f}", help="From engine + action; not measured QoE.")
+    k4.metric("Energy / efficiency", f"{kpi_dict['energy']:.2f}", help="Heuristic vs traffic + action.")
+    k5.metric("Service continuity", f"{kpi_dict['continuity']:.2f}", help="Continuity proxy vs scenario stress.")
+    st.caption(
+        "**Honest labeling:** KPIs start from **scenario engine + propagation proxy**, then **`apply_action_to_kpis`** — **not** drive-test or ray-traced truth."
+    )
+
+    st.markdown("#### Judge / research evidence (core vs extension)")
+    _ev_repo = _repo_root()
+    _ev_best = _default_best_pkg(_ev_repo) if _SUBMISSION_ADAPTER_OK else None
+    _ev_active = st.session_state.get("judge_active_submission_folder") or _ev_best
+    ev_a, ev_b = st.columns(2)
+    with ev_a:
+        st.markdown(
+            _judge_html_card(
+                "Core judged path (SpectrumX detector)",
+                "<ul style='margin:0;padding-left:18px;line-height:1.55'>"
+                "<li><b>Final / best-known package</b> (repo discovery): <code>"
+                + str(_ev_best or "—")
+                + "</code></li>"
+                "<li><b>Active app model path</b> (Judge sidebar when set): <code>"
+                + str(_ev_active or "—")
+                + "</code></li>"
+                "<li><b>Truthfulness</b>: no official competition IQ is embedded in Streamlit; use <b>synthetic</b> demo IQ in-app.</li>"
+                "</ul>",
+            ),
+            unsafe_allow_html=True,
+        )
+    with ev_b:
+        st.markdown(
+            _judge_html_card(
+                "Completed extension + controller I/O (this tab)",
+                "<ul style='margin:0;padding-left:18px;line-height:1.55'>"
+                "<li><b>Scenario engine inputs</b>: preset <b>"
+                + str(b_preset_ui)
+                + "</b> · calendar <b>"
+                + str(b_time)
+                + "</b> · RF stress sliders.</li>"
+                "<li><b>Focus site state</b>: people ≈ <b>"
+                + f"{focus_state.people_count:.0f}"
+                + "</b> · active IP ≈ <b>"
+                + f"{focus_state.active_ip_devices:.0f}"
+                + "</b> · traffic <b>"
+                + f"{focus_state.traffic_demand_score:.2f}"
+                + "</b>.</li>"
+                "<li><b>Controller</b>: action <b>"
+                + str(_chosen_title)
+                + "</b> · KPI coverage <b>"
+                + f"{kpi_dict['coverage']:.2f}"
+                + "</b> · coexistence <b>"
+                + f"{kpi_dict['coexistence']:.2f}"
+                + "</b>.</li>"
+                "<li><b>Simulation backbone</b>: DeepMIMO / Sionna / Aerial summaries — see expander above (loaded vs <b>not loaded</b>).</li>"
+                "</ul>",
+                tone="gray",
+            ),
+            unsafe_allow_html=True,
+        )
 
     # --- Plain-language RF × place ---
     st.markdown("### How low-7 GHz 5G-like signals interact with this site")
@@ -1786,23 +1976,27 @@ def _render_judge_gary_micro_twin_3d():
     # --- Simulation backbone (three integration pillars + honest status) ---
     st.markdown("### Simulation backbone")
     st.caption(
-        "**Active in this UI:** digital-twin **radio scene** + **proxy** propagation/coverage abstractions + **Near-RT RIC–style** policy demo. "
-        "**Integration-ready / next scaling:** DeepMIMO, Sionna RT, NVIDIA AI Aerial / Omniverse — **stubs + drop dirs**; **none** are claimed to run the **judged** detector."
+        "**Active in this UI:** digital-twin **radio scene** + **proxy** propagation/coverage + **closed-loop AI-RAN scene controller** (RIC-style). "
+        "**Next scaling:** DeepMIMO / Sionna RT / Aerial — **JSON summary loaders** below; **not** claimed to run the **judged** detector unless you wire them in."
     )
 
     _repo = _repo_root()
-    _dm_stub = _sn_stub = _ae_stub = None
-    if _SIM_INTEGRATION_HOOKS_OK and load_deepmimo_overlay_stub and load_sionna_rt_overlay_stub:
+    _dm_status = _sn_status = _ae_status = None
+    if _SIM_INTEGRATION_HOOKS_OK and load_deepmimo_scenario_summary and load_sionna_propagation_summary:
         try:
-            _dm_stub = load_deepmimo_overlay_stub(_repo)
-            _sn_stub = load_sionna_rt_overlay_stub(_repo)
+            _dm_status = load_deepmimo_scenario_summary(_repo)
+            _sn_status = load_sionna_propagation_summary(_repo)
         except Exception:
-            _dm_stub = _sn_stub = None
-    if _SIM_INTEGRATION_HOOKS_OK and load_aerial_omniverse_overlay_stub:
+            _dm_status = _sn_status = None
+    if _SIM_INTEGRATION_HOOKS_OK and load_aerial_overlay_summary:
         try:
-            _ae_stub = load_aerial_omniverse_overlay_stub(_repo)
+            _ae_status = load_aerial_overlay_summary(_repo)
         except Exception:
-            _ae_stub = None
+            _ae_status = None
+
+    _dm_loaded = bool(_dm_status and _dm_status.get("loaded"))
+    _sn_loaded = bool(_sn_status and _sn_status.get("loaded"))
+    _ae_loaded = bool(_ae_status and _ae_status.get("loaded"))
 
     sb1, sb2, sb3 = st.columns(3)
     with sb1:
@@ -1811,9 +2005,9 @@ def _render_judge_gary_micro_twin_3d():
                 "DeepMIMO",
                 "<ul style='margin:0;padding-left:18px;line-height:1.5'>"
                 "<li><b>Contributes</b>: reproducible <b>site-specific MIMO channels</b>, CSI summaries, scenario matrices for ML + controller replay.</li>"
-                "<li><b>Connects here</b>: feeds <b>propagation / SINR panels</b> and map overlays when NPZ/JSON parsers land.</li>"
-                "<li><b>Status</b>: <b>Integration-ready</b> — drop under <code>data/deepmimo/</code> (also <code>data/simulation/deepmimo/</code>). "
-                f"UI overlay active: **{'yes' if _dm_stub else 'no — stub only'}**.</li></ul>",
+                "<li><b>Connects here</b>: feeds <b>propagation / SINR panels</b> and map overlays when parsers land.</li>"
+                "<li><b>Summary JSON</b>: <code>scenario_summary.json</code> or <code>scenario_meta.json</code> under <code>data/deepmimo/</code> (legacy <code>data/simulation/deepmimo/</code>). "
+                f"<b>Loaded:</b> **{'yes — ' + str(_dm_status.get('path', ''))[:48] + '…' if _dm_loaded else 'no — not loaded'}**.</li></ul>",
             ),
             unsafe_allow_html=True,
         )
@@ -1822,10 +2016,10 @@ def _render_judge_gary_micro_twin_3d():
             _judge_html_card(
                 "Sionna RT",
                 "<ul style='margin:0;padding-left:18px;line-height:1.5'>"
-                "<li><b>Contributes</b>: <b>ray-traced propagation</b>, materials, diffraction — replaces straight links & disk <b>proxies</b> with physics-backed maps.</li>"
+                "<li><b>Contributes</b>: <b>ray-traced propagation</b>, materials, diffraction — replaces disk <b>proxies</b> with physics-backed maps.</li>"
                 "<li><b>Connects here</b>: GeoJSON / JSON → pydeck coverage heatmaps + panel metrics.</li>"
-                "<li><b>Status</b>: <b>Next scaling path</b> — <code>data/sionna_rt/</code> (legacy <code>data/simulation/sionna_rt/</code>). "
-                f"UI overlay active: **{'yes' if _sn_stub else 'no — stub only'}**.</li></ul>",
+                "<li><b>Summary JSON</b>: <code>propagation_summary.json</code> or <code>path_loss_summary.json</code> under <code>data/sionna_rt/</code> (legacy <code>data/simulation/sionna_rt/</code>). "
+                f"<b>Loaded:</b> **{'yes — ' + str(_sn_status.get('path', ''))[:48] + '…' if _sn_loaded else 'no — not loaded'}**.</li></ul>",
             ),
             unsafe_allow_html=True,
         )
@@ -1834,13 +2028,37 @@ def _render_judge_gary_micro_twin_3d():
             _judge_html_card(
                 "NVIDIA AI Aerial / Omniverse (AODT)",
                 "<ul style='margin:0;padding-left:18px;line-height:1.5'>"
-                "<li><b>Contributes</b>: <b>large-scale digital twin</b> + RF visualization workflows (when you run their toolchain separately).</li>"
-                "<li><b>Connects here</b>: exports (e.g. USD scene refs, twin manifest, RF overlay meta) under <code>data/aerial_omniverse/</code> for future loaders.</li>"
-                "<li><b>Status</b>: <b>Next scaling path</b> — requires <b>external accounts / GPU / Omniverse</b> outside this repo. "
-                f"UI integration active: **{'yes' if _ae_stub else 'no — stub only'}**.</li></ul>",
+                "<li><b>Contributes</b>: <b>large-scale digital twin</b> + RF visualization workflows (external toolchain).</li>"
+                "<li><b>Connects here</b>: exports under <code>data/aerial_omniverse/</code> for future loaders.</li>"
+                "<li><b>Summary JSON</b>: <code>overlay_summary.json</code> or <code>twin_manifest.json</code>. "
+                f"<b>Loaded:</b> **{'yes — ' + str(_ae_status.get('path', ''))[:48] + '…' if _ae_loaded else 'no — not loaded'}**.</li></ul>",
             ),
             unsafe_allow_html=True,
         )
+
+    with st.expander("Simulation summary loader details (honest status + expected schema)", expanded=False):
+        st.caption("If files are **absent**, the app shows **not loaded** — it does **not** pretend external sims are active.")
+        for label, st_obj in (
+            ("DeepMIMO scenario summary", _dm_status),
+            ("Sionna RT propagation summary", _sn_status),
+            ("Aerial / Omniverse overlay summary", _ae_status),
+        ):
+            st.markdown(f"**{label}**")
+            if st_obj is None:
+                st.warning("Integration hooks unavailable.")
+                continue
+            if st_obj.get("loaded"):
+                st.success(f"**Loaded:** `{st_obj.get('path')}`")
+                st.json(st_obj.get("data", {}))
+            else:
+                st.info("**Not loaded**")
+                st.caption(f"Expected path hint: `{st_obj.get('path', '')}`")
+                if st_obj.get("expected_files"):
+                    st.caption("**Look for files:** " + ", ".join(st_obj["expected_files"]))
+                if st_obj.get("expected_schema"):
+                    st.caption(f"**Schema hint:** {st_obj['expected_schema']}")
+                if st_obj.get("error"):
+                    st.caption(f"Last error: {st_obj['error']}")
 
     st.markdown("**Optional config stubs (graceful if missing)**")
     st.caption(
@@ -1866,7 +2084,7 @@ def _render_judge_gary_micro_twin_3d():
     st.info(
         "**O-RAN-style** deployment would attach this abstraction to real **E2**/**O1** interfaces; today it remains a **simulation-ready** artifact. "
         "**DeepMIMO** → channels. **Sionna RT** → propagation realism. **AI Aerial / AODT** → twin-scale scenes. "
-        "**Judged SpectrumX detector** stays on **official data** offline — unchanged by these hooks."
+        "**Judged SpectrumX detector** is evaluated **offline** on competition-style data — **not** shipped as raw IQ in this app; unchanged by these hooks."
     )
 
     with st.expander("Optional local assets & expected paths (graceful if missing)", expanded=False):
