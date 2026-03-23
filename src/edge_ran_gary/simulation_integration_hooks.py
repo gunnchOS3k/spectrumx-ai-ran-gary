@@ -11,6 +11,7 @@ Truthfulness:
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -52,6 +53,11 @@ RIC_CONFIG_SUGGESTED = (
     "xapp_policy_stub.yaml",
     "near_rt_ric_endpoints.example.yaml",
 )
+
+# Optional **summary manifests** (JSON) — if present, UI shows “loaded” cards.
+DEEPMIMO_SUMMARY_FILES = ("scenario_summary.json", "scenario_meta.json")
+SIONNA_SUMMARY_FILES = ("propagation_summary.json", "path_loss_summary.json")
+AERIAL_SUMMARY_FILES = ("overlay_summary.json", "twin_manifest.json")
 
 
 def _dir_status(d: Path) -> Dict[str, Any]:
@@ -198,28 +204,77 @@ def describe_extension_asset_status(repo_root: Path) -> Dict[str, Any]:
     }
 
 
+def _try_load_first_json(directories: List[Path], filenames: tuple[str, ...]) -> Dict[str, Any]:
+    """Return a status dict: loaded bool, path, data or error/schema hint."""
+    for d in directories:
+        if not d.is_dir():
+            continue
+        for fn in filenames:
+            p = d / fn
+            if not p.is_file():
+                continue
+            try:
+                data = json.loads(p.read_text(encoding="utf-8"))
+                return {
+                    "loaded": True,
+                    "path": str(p.resolve()),
+                    "data": data if isinstance(data, dict) else {"value": data},
+                }
+            except json.JSONDecodeError as e:
+                return {
+                    "loaded": False,
+                    "path": str(p.resolve()),
+                    "error": f"JSON decode: {e}",
+                    "expected_schema": "JSON object with keys such as sites, version, generated_at (your pipeline).",
+                }
+            except OSError as e:
+                return {"loaded": False, "path": str(p.resolve()), "error": str(e)}
+    return {
+        "loaded": False,
+        "path": str(directories[0].resolve()) if directories else "",
+        "expected_files": list(filenames),
+        "expected_schema": "JSON summary produced by your DeepMIMO / export script (extension-only).",
+    }
+
+
+def load_deepmimo_scenario_summary(repo_root: Path) -> Dict[str, Any]:
+    """Load first matching JSON summary under DeepMIMO drop dirs, or honest not-loaded status."""
+    r = repo_root.resolve()
+    dirs = deepmimo_drop_dirs(r)
+    out = _try_load_first_json(dirs, DEEPMIMO_SUMMARY_FILES)
+    out["integration"] = "deepmimo"
+    return out
+
+
+def load_sionna_propagation_summary(repo_root: Path) -> Dict[str, Any]:
+    r = repo_root.resolve()
+    dirs = sionna_rt_drop_dirs(r)
+    out = _try_load_first_json(dirs, SIONNA_SUMMARY_FILES)
+    out["integration"] = "sionna_rt"
+    return out
+
+
+def load_aerial_overlay_summary(repo_root: Path) -> Dict[str, Any]:
+    d = aerial_drop_dir(repo_root)
+    out = _try_load_first_json([d], AERIAL_SUMMARY_FILES)
+    out["integration"] = "aerial_omniverse"
+    return out
+
+
 def load_deepmimo_overlay_stub(repo_root: Path) -> Optional[Dict[str, Any]]:
-    """Future: load from data/deepmimo or data/simulation/deepmimo."""
-    for d in deepmimo_drop_dirs(repo_root):
-        if d.is_dir():
-            return None
-    return None
+    """Backward compat: return summary dict if loaded, else None."""
+    s = load_deepmimo_scenario_summary(repo_root)
+    return s if s.get("loaded") else None
 
 
 def load_sionna_rt_overlay_stub(repo_root: Path) -> Optional[Dict[str, Any]]:
-    """Future: load GeoJSON / JSON from data/sionna_rt or legacy path."""
-    for d in sionna_rt_drop_dirs(repo_root):
-        if d.is_dir():
-            return None
-    return None
+    s = load_sionna_propagation_summary(repo_root)
+    return s if s.get("loaded") else None
 
 
 def load_aerial_omniverse_overlay_stub(repo_root: Path) -> Optional[Dict[str, Any]]:
-    """Future: load Aerial / Omniverse digital-twin RF overlay metadata."""
-    d = aerial_drop_dir(repo_root)
-    if d.is_dir():
-        return None
-    return None
+    s = load_aerial_overlay_summary(repo_root)
+    return s if s.get("loaded") else None
 
 
 # Back-compat names used by older docs
