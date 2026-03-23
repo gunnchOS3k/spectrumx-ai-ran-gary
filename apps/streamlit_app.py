@@ -67,6 +67,14 @@ except Exception:
     _GARY_GEOM_OK = False
 
 try:
+    from src.edge_ran_gary.gary_occupancy_visualization import build_pydeck_occupancy_bundle
+
+    _OCC_VIZ_OK = True
+except Exception:
+    build_pydeck_occupancy_bundle = None  # type: ignore
+    _OCC_VIZ_OK = False
+
+try:
     from src.edge_ran_gary.gary_scenario_engine import (
         ScenarioInputs,
         apply_action_to_kpis,
@@ -1223,6 +1231,15 @@ def _render_judge_gary_micro_twin_3d():
     if apply_risk_colors_to_buildings:
         apply_risk_colors_to_buildings(buildings)
 
+    _occ_bundle: dict = {}
+    if _OCC_VIZ_OK and build_pydeck_occupancy_bundle is not None:
+        try:
+            _occ_bundle = build_pydeck_occupancy_bundle(
+                buildings, _preset_key, b_time, _event_high, _repo_root()
+            )
+        except Exception:
+            _occ_bundle = {}
+
     focus_state = all_site_states[selected_site_id]
 
     st.caption(
@@ -1297,18 +1314,32 @@ def _render_judge_gary_micro_twin_3d():
     # --- Central 3D canvas ---
     st.markdown("### Interactive 3D — wireless radio scene (Gary anchors)")
     st.caption(
-        "Hover layers: **buildings** (footprint extrusion + coexistence tint) · **light-green halo** = **coverage-quality proxy** · **blue** gNB · **cyan** serving link · "
-        "**violet** demand · **orange** propagation stress · **red** interference."
+        "Hover layers: **people/device heatmaps** (aggregated) · **foot-traffic paths** (proxy) · **cluster disks** (aggregate counts) · **buildings** · "
+        "**coverage halos** · **blue** gNB · **cyan** serving link · **violet** demand · **orange** propagation · **red** IF."
     )
+    if _occ_bundle.get("activity_mode"):
+        st.caption(
+            f"**Foot-traffic / activity mode (proxy):** `{_occ_bundle['activity_mode']}` — paths and heat weighting follow **scenario preset + calendar**, "
+            "not GPS data."
+        )
 
     gnb_rows = []
     demand_rows = []
+    # Slight positional bias (ingress / flow emphasis) — scales with traffic so load “follows” busy scenarios
+    _demand_flow_nudge = {
+        "west_side_leadership": (-0.00005, 0.000015),
+        "city_hall": (0.000025, -0.00004),
+        "public_library": (0.00002, 0.000045),
+    }
     for b in buildings:
         clon, clat = b["centroid"]
         _sc = b["_scenario"]
         td_site = float(_sc.traffic_demand_score)
         # Hotspot size from **scenario engine** traffic score + manual RF stress (transparent blend)
         demand_scale_b = 0.62 + 0.78 * td_site + 0.12 * eff_demand
+        ngx, ngy = _demand_flow_nudge.get(b["id"], (0.0, 0.0))
+        dlon = clon + ngx * (0.35 + 0.65 * td_site)
+        dlat = clat + ngy * (0.35 + 0.65 * td_site)
         gnb_rows.append(
             {
                 "position": [clon + b["gnb_offset_lon"], clat + b["gnb_offset_lat"]],
@@ -1318,12 +1349,12 @@ def _render_judge_gary_micro_twin_3d():
         )
         demand_rows.append(
             {
-                "position": [clon, clat],
+                "position": [dlon, dlat],
                 "label": f"Demand zone · {b['name'][:24]}",
                 "radius": int(b["demand_base_radius_m"] * demand_scale_b),
                 "tip": (
-                    f"User demand hotspot (**proxy**). Engine traffic score **{td_site:.2f}**; "
-                    f"coexistence **{_sc.coexistence_pressure:.2f}**."
+                    f"User demand hotspot (**proxy**). Engine traffic **{td_site:.2f}**; "
+                    f"position **nudged** toward ingress/flow side (visual link to foot-traffic story)."
                 ),
             }
         )
@@ -1469,6 +1500,113 @@ def _render_judge_gary_micro_twin_3d():
         if not (b.get("render_mode") == "scenegraph" and b.get("_model_spec") and b["id"] in _scenegraph_ok_ids)
     ]
 
+    _heat_people_layer = _heat_device_layer = None
+    _flow_traffic_layer = None
+    _occ_people_clusters_layer = _occ_device_clusters_layer = _occ_hero_layer = None
+    _occ_summary_text_layer = None
+    if _occ_bundle.get("heatmap_people"):
+        try:
+            _heat_people_layer = pdk.Layer(
+                "HeatmapLayer",
+                id="layer-occupancy-people-heatmap",
+                data=_occ_bundle["heatmap_people"],
+                get_position="position",
+                get_weight="weight",
+                radius_pixels=int(_occ_bundle.get("heatmap_people_radius", 58)),
+                intensity=1.15,
+                threshold=0.015,
+                pickable=False,
+            )
+        except Exception:
+            _heat_people_layer = None
+    if _occ_bundle.get("heatmap_devices"):
+        try:
+            _heat_device_layer = pdk.Layer(
+                "HeatmapLayer",
+                id="layer-occupancy-device-heatmap",
+                data=_occ_bundle["heatmap_devices"],
+                get_position="position",
+                get_weight="weight",
+                radius_pixels=int(_occ_bundle.get("heatmap_device_radius", 48)),
+                intensity=1.1,
+                threshold=0.02,
+                pickable=False,
+            )
+        except Exception:
+            _heat_device_layer = None
+    if _occ_bundle.get("flow_paths"):
+        try:
+            _flow_traffic_layer = pdk.Layer(
+                "PathLayer",
+                id="layer-foot-traffic-flows",
+                data=_occ_bundle["flow_paths"],
+                get_path="path",
+                get_color="color",
+                get_width="width",
+                pickable=True,
+            )
+        except Exception:
+            _flow_traffic_layer = None
+    if _occ_bundle.get("people_clusters"):
+        try:
+            _occ_people_clusters_layer = pdk.Layer(
+                "ScatterplotLayer",
+                id="layer-occupancy-people-clusters",
+                data=_occ_bundle["people_clusters"],
+                get_position="position",
+                get_radius="radius",
+                get_fill_color="fill_color",
+                get_line_color="line_color",
+                line_width_min_pixels=1,
+                pickable=True,
+            )
+        except Exception:
+            _occ_people_clusters_layer = None
+    if _occ_bundle.get("device_clusters"):
+        try:
+            _occ_device_clusters_layer = pdk.Layer(
+                "ScatterplotLayer",
+                id="layer-occupancy-device-clusters",
+                data=_occ_bundle["device_clusters"],
+                get_position="position",
+                get_radius="radius",
+                get_fill_color="fill_color",
+                get_line_color="line_color",
+                line_width_min_pixels=1,
+                pickable=True,
+            )
+        except Exception:
+            _occ_device_clusters_layer = None
+    if _occ_bundle.get("hero_markers"):
+        try:
+            _occ_hero_layer = pdk.Layer(
+                "ScatterplotLayer",
+                id="layer-occupancy-hero-markers",
+                data=_occ_bundle["hero_markers"],
+                get_position="position",
+                get_radius="radius",
+                get_fill_color="fill_color",
+                get_line_color="line_color",
+                line_width_min_pixels=1,
+                pickable=True,
+            )
+        except Exception:
+            _occ_hero_layer = None
+    if _occ_bundle.get("summary_labels"):
+        try:
+            _occ_summary_text_layer = pdk.Layer(
+                "TextLayer",
+                id="layer-occupancy-summary-labels",
+                data=_occ_bundle["summary_labels"],
+                get_position="position",
+                get_text="text",
+                get_color=[15, 15, 15, 255],
+                get_size=12,
+                pickable=True,
+            )
+        except Exception:
+            _occ_summary_text_layer = None
+
     try:
         poly_layer = None
         if buildings_poly:
@@ -1576,18 +1714,35 @@ def _render_judge_gary_micro_twin_3d():
         if poly_layer is not None:
             _layer_list.append(poly_layer)
         _layer_list.extend(_scenegraph_layers)
+        for _ly in (
+            _heat_people_layer,
+            _heat_device_layer,
+        ):
+            if _ly is not None:
+                _layer_list.append(_ly)
+        _layer_list.append(if_poly_layer)
+        _layer_list.append(path_layer)
+        if _flow_traffic_layer is not None:
+            _layer_list.append(_flow_traffic_layer)
+        _layer_list.append(coverage_halo_layer)
+        _layer_list.append(demand_layer)
+        for _ly in (
+            _occ_people_clusters_layer,
+            _occ_device_clusters_layer,
+            _occ_hero_layer,
+        ):
+            if _ly is not None:
+                _layer_list.append(_ly)
         _layer_list.extend(
             [
-                if_poly_layer,
-                path_layer,
-                coverage_halo_layer,
-                demand_layer,
                 prop_layer,
                 if_layer,
                 gnb_layer,
-                text_layer,
             ]
         )
+        if _occ_summary_text_layer is not None:
+            _layer_list.append(_occ_summary_text_layer)
+        _layer_list.append(text_layer)
         # Fit view to anchor footprints (slightly wider than default)
         _all_lons: list[float] = []
         _all_lats: list[float] = []
@@ -1643,7 +1798,17 @@ def _render_judge_gary_micro_twin_3d():
             "<span style='display:inline-block;width:14px;height:14px;background:rgba(155,89,182,0.5);border-radius:50%;vertical-align:middle;margin-right:6px'></span>User demand hotspot<br/>"
             "<span style='display:inline-block;width:14px;height:14px;background:rgba(230,126,34,0.55);border-radius:50%;vertical-align:middle;margin-right:6px'></span>Propagation-stress marker<br/>"
             "<span style='display:inline-block;width:14px;height:14px;background:rgba(231,76,60,0.45);border-radius:50%;vertical-align:middle;margin-right:6px'></span>IF disk · "
-            "<span style='display:inline-block;width:14px;height:14px;background:rgba(231,76,60,0.35);border:1px solid #a93226;vertical-align:middle;margin-right:6px'></span>IF footprint</div>",
+            "<span style='display:inline-block;width:14px;height:14px;background:rgba(231,76,60,0.35);border:1px solid #a93226;vertical-align:middle;margin-right:6px'></span>IF footprint<br/>"
+            "<span style='display:inline-block;width:22px;height:10px;background:linear-gradient(90deg,#2980b9,#2ecc71);border-radius:2px;vertical-align:middle;margin-right:6px'></span>"
+            "<b>People heatmap</b> (aggregated samples inside footprint)<br/>"
+            "<span style='display:inline-block;width:22px;height:10px;background:linear-gradient(90deg,#8e44ad,#e74c3c);border-radius:2px;vertical-align:middle;margin-right:6px'></span>"
+            "<b>Device heatmap</b> (active IP + control weighting)<br/>"
+            "<span style='display:inline-block;width:18px;height:3px;background:#2980b9;vertical-align:middle;margin-right:6px'></span>"
+            "<b>Foot-traffic paths</b> (static proxy polylines · preset-driven)<br/>"
+            "<span style='display:inline-block;width:16px;height:16px;background:rgba(52,152,219,0.45);border:1px solid #1f6187;border-radius:50%;vertical-align:middle;margin-right:6px'></span>"
+            "<b>People clusters</b> (disk ∝ cohort size — not individuals)<br/>"
+            "<span style='display:inline-block;width:16px;height:16px;background:rgba(142,68,173,0.45);border:1px solid #5b2c6f;border-radius:50%;vertical-align:middle;margin-right:6px'></span>"
+            "<b>Device clusters</b> (IP vs control emphasis)</div>",
             unsafe_allow_html=True,
         )
     with lg2:
@@ -1862,12 +2027,27 @@ def _render_judge_gary_micro_twin_3d():
     s5.metric("Coexistence risk (proxy)", f"{coexistence_risk:.2f}")
     st.caption(det_belief_line)
 
+    _total_dev = float(focus_state.ip_device_count + focus_state.control_device_count)
+    _active_dev = float(focus_state.active_ip_devices + focus_state.active_control_devices)
+    st.markdown("##### Scene-linked occupancy & devices (same numbers as map aggregates)")
+    oc1, oc2, oc3, oc4 = st.columns(4)
+    oc1.metric("People (scenario)", f"{focus_state.people_count:.0f}")
+    oc2.metric("Total devices (provisioned)", f"{_total_dev:.0f}")
+    oc3.metric("Active devices (IP + control)", f"{_active_dev:.0f}")
+    oc4.metric("Traffic demand score", f"{focus_state.traffic_demand_score:.2f}")
+    st.caption(
+        "Changing **sliders / preset** updates the **scenario engine**, which drives **heatmap weights**, **cluster sizes**, **demand disk radii**, "
+        "and **controller / KPI** inputs together."
+    )
+
     st.markdown("##### Closed-loop state vector (explicit policy input)")
     _state_row = {
         "site": selected_building["name"][:48],
         "preset": b_preset_ui,
         "calendar": b_time,
         "people_count": round(focus_state.people_count, 1),
+        "total_device_count": round(_total_dev, 1),
+        "active_device_count": round(_active_dev, 1),
         "active_ip_devices": round(focus_state.active_ip_devices, 1),
         "active_control_devices": round(focus_state.active_control_devices, 1),
         "traffic_demand_score": round(focus_state.traffic_demand_score, 4),

@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "documentation": "Optional tuning for people heatmap sampling. Omit keys to use code defaults.",
+  "heatmap_people_samples_per_site": 22,
+  "heatmap_people_radius_pixels": 58,
+  "sites": {}
+}
