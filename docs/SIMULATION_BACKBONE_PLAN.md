@@ -23,20 +23,20 @@ This document describes how the **Completed Research Extension** connects to **s
 | `configs/wireless_scene/` | Layer visibility, anchor overrides | — |
 | `configs/ric/` | Example **Near-RT RIC / xApp** YAML stubs (non-operational) | — |
 
-The Streamlit app **scans** these paths (via `simulation_integration_hooks.py`) and **fails gracefully** if empty. **Stub loaders** return no overlay until real parsers exist.
+The Streamlit app **scans** these paths (via `simulation_integration_hooks.py`) and **fails gracefully** if empty. **Summary loaders** validate JSON/GeoJSON when present; **stub overlay** helpers remain for future deck wiring beyond summaries.
 
 ## Pillar 1 — DeepMIMO
 
 - **Contributes:** Reproducible **site-specific MIMO channels**, CSI features, scenario matrices.
 - **Connects:** Propagation / SINR panels; optional map overlays; ML / controller replay.
-- **Status in repo:** **Integration-ready** — drop files; wire `load_deepmimo_overlay_stub` when ready.
+- **Status in repo:** **JSON + optional NPZ metadata** — drop `scenario_summary.json` / `scenario_meta.json`; see schema section below.
 - **Accounts / compute:** Typically **local or HPC** MATLAB/Python pipeline; no cloud account required for the **hook** itself.
 
 ## Pillar 2 — Sionna RT
 
 - **Contributes:** **Ray-traced** path loss, materials, diffraction; LOS maps.
 - **Connects:** Replace link + halo **proxies** with GeoJSON / grid layers in pydeck.
-- **Status:** **Next scaling path** — same as above; stub until adapter.
+- **Status:** **JSON + optional GeoJSON** — validated summaries + optional **`layer-sionna-coverage-geojson`** map overlay.
 - **Compute:** GPU helpful for large scenes; optional **NVIDIA** ecosystem alignment.
 
 ## Pillar 3 — NVIDIA AI Aerial / Omniverse (AODT)
@@ -62,3 +62,70 @@ streamlit run apps/streamlit_app.py
 ```
 
 **No new accounts** are required to run the app; **Aerial / Omniverse** are **optional future** dependencies for the scaling path only.
+
+---
+
+## Exact filenames & parser rules (`simulation_integration_hooks.py`)
+
+The UI shows **Loaded** only when the in-repo parser **accepts** the file (JSON decode + field validation, or GeoJSON geometry check). Empty JSON or wrong shape → **not loaded** + `parser_note`.
+
+### DeepMIMO — `data/deepmimo/` (legacy: `data/simulation/deepmimo/`)
+
+| File | Role |
+|------|------|
+| `scenario_summary.json` | Preferred summary (first match wins with `scenario_meta.json`) |
+| `scenario_meta.json` | Alternate summary name |
+| `channel_features.npz` | Optional sidecar — **metadata only** (array names/shapes), never marked “loaded” alone |
+
+**Minimum accepted signal (any one):** `scenario_name`, or `num_bs` / `num_users`, or `los_links` / `nlos_links`, or `deepmimo_export_version` / `deepmimo_version`, or non-empty `channel_statistics`, or non-empty `sites` (under `deepmimo` wrapper or root). Nested `deepmimo: { ... }` is supported.
+
+**Example minimal JSON:**
+
+```json
+{
+  "deepmimo_export_version": "1.0",
+  "deepmimo": {
+    "scenario_name": "my_scene",
+    "num_bs": 4,
+    "num_users": 200
+  }
+}
+```
+
+### Sionna RT — `data/sionna_rt/` (legacy: `data/simulation/sionna_rt/`)
+
+| File | Role |
+|------|------|
+| `propagation_summary.json` | Primary JSON (first match with `path_loss_summary.json`) |
+| `path_loss_summary.json` | Alternate JSON name |
+| `coverage_grid.geojson` | Optional coverage grid (also `coverage.geojson`, `sionna_coverage.geojson`) |
+
+**Loaded if:** JSON validates **or** GeoJSON is a `FeatureCollection` / `Feature` with geometry. GeoJSON-only loads show `parser_note` suggesting adding JSON for richer metrics.
+
+**Map:** Valid GeoJSON is passed to pydeck as **`GeoJsonLayer`** id **`layer-sionna-coverage-geojson`**. Per-site proxy **tables/charts** stay scenario-driven unless you extend mapping.
+
+**Example JSON keys:** `scenario_name`, `mean_path_loss_db`, `los_fraction`, `frequency_ghz`, nested `sionna: { ... }`, or `cells` list, or `sionna_export_version` / `solver`.
+
+### NVIDIA AI Aerial / Omniverse — `data/aerial_omniverse/`
+
+| File | Role |
+|------|------|
+| `overlay_summary.json` | Manifest-style JSON |
+| `twin_manifest.json` | Alternate name |
+
+**Minimum accepted signal:** `scene_name` or `usd_path`, or `aerial_export_version` / `omniverse_kit_version`, or non-empty `assets` list.
+
+**Honesty:** This repo does **not** ship Omniverse Kit, Aerial sim binaries, or USD scene geometry. **Loaded** means **only** that a small JSON manifest on disk validated — **not** that the twin is interactively running. Full workflows typically need **external program access**, **GPU**, and often a **NVIDIA account** / **6G Developer Program** enrollment.
+
+### Copy-paste examples
+
+See `examples/simulation_exports/` — rename `.example` files into the `data/...` paths above to test locally (defaults stay **not loaded** on a clean clone).
+
+---
+
+## UI surfaces
+
+- **Simulation status (evidence)** — paths, loaded flags, `extracted_summary` table, NPZ metadata (DeepMIMO).
+- **Simulation backbone** — reuses the same load results (no second disk read).
+- **Propagation / coverage** — success callout when Sionna/DeepMIMO validated; still labels table/chart proxies honestly.
+- **Closed-loop controller** — caption distinguishes **simulation-backed metadata** vs **proxy KPI** inputs.
