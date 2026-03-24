@@ -41,7 +41,7 @@ Implemented in `src/edge_ran_gary/gary_scenario_engine.py`:
 - **Propagation / Coverage:** proxy table + bar chart; driven by scenario **pressures** + RF slider.
 - **Closed-loop controller:** explicit **state vector** → **`select_closed_loop_action`** → **`apply_action_to_kpis`** (six candidate actions including **rebalance service**).
 - **Simulation backbone:** cards + expander reuse the **same** early **`load_*_summary`** results — **`status_label`** (**Loaded (simulation export)** vs **Loaded (demo summary)** vs **Not loaded**), paths, optional JSON in expander (see **`docs/SIMULATION_BACKBONE_PLAN.md`**).
-- **Simulation data sources + summaries:** buttons for **demo-only** (`examples/simulation_exports/*` only) vs **data/ first** with demo fallback; concise Cloud note (runtime `data/` not persistent); Sionna **coverage overlay** called out when GeoJSON validates.
+- **Simulation data sources + summaries:** buttons for **demo-only** (`examples/simulation_exports/*` only) vs **data/ first** with demo fallback; concise Cloud note (runtime `data/` not persistent); Sionna **coverage overlay** called out when GeoJSON validates; **Aerial** can show **Access confirmed / installer-ready** from `access_summary.json` (no secrets) via `scripts/check_ngc_access.py` — see `docs/APPLIED_SIMULATION_BRIDGE_RUNBOOK.md`.
 - **Map text:** building **TextLayer** uses short **plain names** (`map_label_scene`, no emoji) at **higher Z**; occupancy summary glyphs shortened (`Np · Nd` style) and elevated **Z** to reduce ground clutter.
 - **Drop zones:** `data/deepmimo/`, `data/sionna_rt/`, `data/aerial_omniverse/`, `configs/wireless_scene/`, `configs/ric/` (+ legacy `data/simulation/*`). See `docs/SIMULATION_BACKBONE_PLAN.md`.
 

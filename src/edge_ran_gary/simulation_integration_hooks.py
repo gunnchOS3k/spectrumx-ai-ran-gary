@@ -1,8 +1,11 @@
 """
 Integration hooks for simulation-backed realism (completed extension only).
 
-This module does **not** run DeepMIMO, Sionna RT, or NVIDIA AI Aerial / Omniverse.
+This module does **not** run full DeepMIMO, Sionna RT, or NVIDIA AI Aerial / Omniverse solvers.
 It **loads and parses** optional on-disk summaries and artifacts when present.
+
+See ``scripts/export_*`` and ``docs/APPLIED_SIMULATION_BRIDGE_RUNBOOK.md`` for generating ``data/*`` exports;
+``export_provenance.simulation_grade`` controls **demo vs simulation** labeling for ``data/`` JSON.
 
 Truthfulness:
 - ``loaded: True`` only when a **recognized** JSON/GeoJSON parse succeeds — never faked.
@@ -58,6 +61,8 @@ RIC_CONFIG_SUGGESTED = (
 DEEPMIMO_SUMMARY_FILES = ("scenario_summary.json", "scenario_meta.json")
 SIONNA_SUMMARY_FILES = ("propagation_summary.json", "path_loss_summary.json")
 AERIAL_SUMMARY_FILES = ("overlay_summary.json", "twin_manifest.json")
+# Written by scripts/check_ngc_access.py — never contains secret values
+AERIAL_ACCESS_SUMMARY_FILE = "access_summary.json"
 
 SIONNA_GEOJSON_NAMES = ("coverage_grid.geojson", "coverage.geojson", "sionna_coverage.geojson")
 
@@ -68,6 +73,8 @@ EXAMPLES_AERIAL_OMNIVERSE_REL = Path("examples/simulation_exports/aerial_omniver
 
 
 def _status_label_for_sim(loaded: bool, source_kind: str) -> str:
+    if source_kind == "access":
+        return "Access confirmed / installer-ready"
     if not loaded or source_kind == "absent":
         return "Not loaded"
     if source_kind == "demo":
@@ -75,6 +82,48 @@ def _status_label_for_sim(loaded: bool, source_kind: str) -> str:
     if source_kind == "simulation":
         return "Loaded (simulation export)"
     return "Not loaded"
+
+
+def _tier_source_after_provenance(tier_kind: str, raw: Optional[Dict[str, Any]]) -> Tuple[str, Optional[str]]:
+    """
+    ``data/`` tier files without provenance count as **simulation** (operator-provided export).
+
+    Repo export scripts should set ``export_provenance.simulation_grade``:
+    - ``full_solver`` — Sionna / DeepMIMO (or equivalent) actually ran.
+    - ``analytic_fallback`` / ``synthetic_template`` — downgraded to **demo** in the UI.
+    """
+    if tier_kind != "simulation":
+        return tier_kind, None
+    if not isinstance(raw, dict):
+        return "simulation", None
+    prov = raw.get("export_provenance")
+    if not isinstance(prov, dict):
+        return "simulation", None
+    grade = str(prov.get("simulation_grade") or "").strip()
+    if grade in ("analytic_fallback", "synthetic_template", "export_script_template"):
+        return "demo", (
+            "Treated as **demo summary**: `export_provenance.simulation_grade` is not `full_solver`."
+        )
+    if grade == "full_solver":
+        return "simulation", None
+    eng = str(prov.get("engine") or "").lower()
+    if eng in ("sionna", "sionna_rt", "sionna_tensorflow", "sionna_jax", "deepmimo_matlab", "deepmimo_python"):
+        return "simulation", None
+    if eng in ("analytic", "numpy", "none", ""):
+        if prov.get("script"):
+            return "demo", "Treated as **demo summary**: analytic / non-solver `export_provenance.engine`."
+    return "simulation", None
+
+
+def _aerial_access_summary_valid(obj: Dict[str, Any]) -> bool:
+    if not isinstance(obj, dict):
+        return False
+    if not obj.get("access_summary_version"):
+        return False
+    checks = obj.get("checks")
+    if not isinstance(checks, dict):
+        return False
+    return True
 
 
 def _deepmimo_tiers(repo_root: Path, demo_only: bool) -> List[Tuple[List[Path], str]]:
@@ -403,6 +452,7 @@ def load_deepmimo_scenario_summary(repo_root: Path, demo_only: bool = False) -> 
                 npz_meta = m
                 break
         extracted = _normalize_deepmimo_dict(raw_data)
+        sk_eff, prov_note = _tier_source_after_provenance(source_kind, raw_data)
         return {
             "loaded": True,
             "path": str(json_path.resolve()),
@@ -411,11 +461,11 @@ def load_deepmimo_scenario_summary(repo_root: Path, demo_only: bool = False) -> 
             "extracted_summary": extracted,
             "npz_channel_meta": npz_meta,
             "integration": "deepmimo",
-            "parser": "deepmimo_v2",
-            "source_kind": source_kind,
-            "status_label": _status_label_for_sim(True, source_kind),
+            "parser": "deepmimo_v3",
+            "source_kind": sk_eff,
+            "status_label": _status_label_for_sim(True, sk_eff),
             "load_mode": "demo_only" if demo_only else "data_first_with_demo_fallback",
-            "parser_note": None,
+            "parser_note": prov_note,
             "error": None,
         }
 
@@ -430,7 +480,7 @@ def load_deepmimo_scenario_summary(repo_root: Path, demo_only: bool = False) -> 
         ),
         "error": last_err,
         "integration": "deepmimo",
-        "parser": "deepmimo_v2",
+        "parser": "deepmimo_v3",
         "source_kind": "absent",
         "status_label": "Not loaded",
         "load_mode": "demo_only" if demo_only else "data_first_with_demo_fallback",
@@ -579,6 +629,14 @@ def _load_sionna_bundle_from_dirs(
         else (str(gj_path.resolve()) if gj_path else primary_fallback)
     )
 
+    eff_sk = source_kind if loaded else "absent"
+    prov_adj: Optional[str] = None
+    if loaded and isinstance(raw_data, dict) and json_ok:
+        eff_sk, prov_adj = _tier_source_after_provenance(source_kind, raw_data)
+    merged_note = parser_note
+    if prov_adj:
+        merged_note = f"{merged_note} {prov_adj}" if merged_note else prov_adj
+
     return {
         "loaded": loaded,
         "path": path_shown,
@@ -590,11 +648,11 @@ def _load_sionna_bundle_from_dirs(
         "geojson_for_deck": geojson_inline if loaded and geo_ok else None,
         "coverage_overlay_active": bool(loaded and geo_ok and geojson_inline is not None),
         "integration": "sionna_rt",
-        "parser": "sionna_rt_v2",
-        "parser_note": parser_note,
+        "parser": "sionna_rt_v3",
+        "parser_note": merged_note,
         "error": None if loaded else (last_err or geo_err or "not_found"),
-        "source_kind": source_kind if loaded else "absent",
-        "status_label": _status_label_for_sim(loaded, source_kind if loaded else "absent"),
+        "source_kind": eff_sk if loaded else "absent",
+        "status_label": _status_label_for_sim(loaded, eff_sk if loaded else "absent"),
     }
 
 
@@ -635,7 +693,7 @@ def load_sionna_propagation_summary(repo_root: Path, demo_only: bool = False) ->
         "geojson_for_deck": None,
         "coverage_overlay_active": False,
         "integration": "sionna_rt",
-        "parser": "sionna_rt_v2",
+        "parser": "sionna_rt_v3",
         "parser_note": last_note or "No valid Sionna summary JSON and no valid coverage GeoJSON found.",
         "error": "not_found",
         "expected_files": list(SIONNA_SUMMARY_FILES) + list(SIONNA_GEOJSON_NAMES),
@@ -675,6 +733,43 @@ def _aerial_parse_valid(extracted: Dict[str, Any], raw: Dict[str, Any]) -> bool:
     return False
 
 
+def _merge_aerial_access_and_tier(hit: Dict[str, Any], repo_root: Path) -> Dict[str, Any]:
+    """Attach ``access_summary.json`` (if present) and compute ``aerial_status_tier`` / headline status."""
+    acc_path = repo_root / DATA_AERIAL_OMNIVERSE_REL / AERIAL_ACCESS_SUMMARY_FILE
+    hit["manifest_loaded"] = bool(hit.get("loaded"))
+    hit["access_confirmed"] = False
+    hit["access_summary_path"] = None
+    hit["access_summary_excerpt"] = {}
+    if acc_path.is_file():
+        try:
+            ad = json.loads(acc_path.read_text(encoding="utf-8"))
+            if _aerial_access_summary_valid(ad):
+                hit["access_confirmed"] = True
+                hit["access_summary_path"] = str(acc_path.resolve())
+                hit["access_summary_excerpt"] = {
+                    "access_summary_version": ad.get("access_summary_version"),
+                    "generated_at": ad.get("generated_at"),
+                    "checks": ad.get("checks"),
+                    "env_presence": ad.get("env_presence"),
+                }
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    if hit.get("loaded"):
+        hit["aerial_status_tier"] = "manifest"
+    elif hit.get("access_confirmed"):
+        hit["aerial_status_tier"] = "access_confirmed"
+        hit["status_label"] = "Access confirmed / installer-ready"
+        hit["source_kind"] = "access"
+    else:
+        hit["aerial_status_tier"] = "none"
+        if not hit.get("status_label"):
+            hit["status_label"] = "Not loaded"
+        if hit.get("source_kind") is None:
+            hit["source_kind"] = "absent"
+    return hit
+
+
 def _try_aerial_in_dir(d: Path, source_kind: str) -> Optional[Dict[str, Any]]:
     raw_data: Optional[Dict[str, Any]] = None
     json_path: Optional[Path] = None
@@ -706,7 +801,7 @@ def _try_aerial_in_dir(d: Path, source_kind: str) -> Optional[Dict[str, Any]]:
             "data": raw_data,
             "extracted_summary": extracted,
             "integration": "aerial_omniverse",
-            "parser": "aerial_v2",
+            "parser": "aerial_v3",
             "external_tooling_required": True,
             "parser_note": "JSON present but missing expected manifest fields — not marked loaded.",
             "error": "validation_failed",
@@ -722,7 +817,7 @@ def _try_aerial_in_dir(d: Path, source_kind: str) -> Optional[Dict[str, Any]]:
         "data": raw_data,
         "extracted_summary": extracted,
         "integration": "aerial_omniverse",
-        "parser": "aerial_v2",
+        "parser": "aerial_v3",
         "external_tooling_required": True,
         "parser_note": None,
         "error": None,
@@ -737,6 +832,9 @@ def load_aerial_overlay_summary(repo_root: Path, demo_only: bool = False) -> Dic
 
     Priority: ``data/aerial_omniverse/`` then ``examples/simulation_exports/aerial_omniverse/``
     unless ``demo_only`` is True (examples only).
+
+    Also reads ``data/aerial_omniverse/access_summary.json`` (from ``check_ngc_access``) to surface
+    **Access confirmed / installer-ready** when no manifest is loaded — **without** implying a twin export.
     """
     r = repo_root.resolve()
     tiers = _aerial_tiers(r, demo_only)
@@ -749,28 +847,31 @@ def load_aerial_overlay_summary(repo_root: Path, demo_only: bool = False) -> Dic
             continue
         if hit["loaded"]:
             hit["load_mode"] = "demo_only" if demo_only else "data_first_with_demo_fallback"
-            return hit
+            return _merge_aerial_access_and_tier(hit, r)
         last_err = hit.get("error")
 
-    return {
+    base = {
         "loaded": False,
         "path": default_path,
         "summary_json_path": None,
-        "expected_files": list(AERIAL_SUMMARY_FILES),
+        "expected_files": list(AERIAL_SUMMARY_FILES) + [AERIAL_ACCESS_SUMMARY_FILE],
         "expected_schema": (
-            "JSON with scene_name / usd_path or aerial_export_version — "
-            "**NVIDIA AI Aerial / Omniverse** runs **outside** this repo; "
-            "full fidelity needs **external program access**, **GPU**, and often **NVIDIA account** / **6G Developer Program**."
+            "Manifest: scene_name / usd_path or aerial_export_version — "
+            "**NVIDIA AI Aerial / Omniverse** runs **outside** this repo. "
+            "Optional: access_summary.json from scripts/check_ngc_access.py (no secrets)."
         ),
         "integration": "aerial_omniverse",
-        "parser": "aerial_v2",
+        "parser": "aerial_v3",
         "external_tooling_required": True,
         "error": last_err,
         "source_kind": "absent",
         "status_label": "Not loaded",
         "load_mode": "demo_only" if demo_only else "data_first_with_demo_fallback",
         "demo_fallback_dir": str((r / EXAMPLES_AERIAL_OMNIVERSE_REL).resolve()),
+        "data": {},
+        "extracted_summary": {},
     }
+    return _merge_aerial_access_and_tier(base, r)
 
 
 def load_deepmimo_overlay_stub(repo_root: Path) -> Optional[Dict[str, Any]]:

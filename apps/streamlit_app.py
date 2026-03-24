@@ -1296,6 +1296,10 @@ def _render_judge_gary_micro_twin_3d():
             "path": str((_repo_mt / "data" / "aerial_omniverse").resolve()),
             "source_kind": "absent",
             "status_label": "Not loaded",
+            "access_confirmed": False,
+            "aerial_status_tier": "none",
+            "access_summary_path": None,
+            "access_summary_excerpt": {},
             "parser_note": "`simulation_integration_hooks` failed to import — cannot load summaries.",
         }
     if _SIM_INTEGRATION_HOOKS_OK:
@@ -1341,6 +1345,10 @@ def _render_judge_gary_micro_twin_3d():
                     "path": str((_repo_mt / "data" / "aerial_omniverse").resolve()),
                     "source_kind": "absent",
                     "status_label": "Not loaded",
+                    "access_confirmed": False,
+                    "aerial_status_tier": "none",
+                    "access_summary_path": None,
+                    "access_summary_excerpt": {},
                     "expected_files": ["overlay_summary.json", "twin_manifest.json"],
                     "integration": "aerial_omniverse",
                     "parser_note": "Loader raised an exception — check terminal logs; not marked loaded.",
@@ -1384,9 +1392,11 @@ def _render_judge_gary_micro_twin_3d():
 
     st.markdown("#### Simulation summaries")
     st.caption(
-        "**Loaded (simulation export)** = validated JSON/GeoJSON under `data/*` (or legacy `data/simulation/*`). "
-        "**Loaded (demo summary)** = validated bundled files under `examples/simulation_exports/*`. "
-        "No silent upgrades — parser must succeed."
+        "**Loaded (simulation export)** = validated `data/*` export **without** analytic-downgrade provenance "
+        "(operator or full_solver pipeline). "
+        "**Loaded (demo summary)** = `examples/simulation_exports/*` **or** `data/*` files whose "
+        "`export_provenance.simulation_grade` is `analytic_fallback` / synthetic (export scripts). "
+        "**Access confirmed / installer-ready** (Aerial) = `access_summary.json` only — **not** a twin export."
     )
     st.markdown(
         "<div style='background:#f8f9fa;border:2px solid #212529;border-radius:10px;padding:12px 14px;color:#111827;"
@@ -1398,9 +1408,11 @@ def _render_judge_gary_micro_twin_3d():
 
     def _sim_source_type_label(sk: str) -> str:
         if sk == "demo":
-            return "Demo (repo bundle)"
+            return "Demo / analytic (bundle or `data/` script)"
         if sk == "simulation":
-            return "Simulation (`data/`) "
+            return "Simulation export (`data/`)"
+        if sk == "access":
+            return "Env / NGC probe (`access_summary.json`)"
         return "Absent"
 
     ss1, ss2, ss3 = st.columns(3)
@@ -1453,10 +1465,17 @@ def _render_judge_gary_micro_twin_3d():
         _a_sl = str(_sim_ae.get("status_label") or ("Not loaded" if not _sim_ae.get("loaded") else "Loaded"))
         if _sim_ae.get("loaded"):
             st.success(f"**{_a_sl}**")
+        elif _sim_ae.get("access_confirmed"):
+            st.success(f"**{_a_sl}**")
+            st.caption("**Not** a loaded twin — credentials / Docker / NGC probe summary only.")
         else:
-            st.info(f"**{_a_sl}** — manifest optional; not a live twin.")
+            st.info(f"**{_a_sl}** — add manifest or run `scripts/check_ngc_access.py`.")
+        st.caption(f"**Tier:** `{_sim_ae.get('aerial_status_tier', '—')}`")
         st.caption(f"**Source:** {_sim_source_type_label(str(_sim_ae.get('source_kind', 'absent')))}")
-        st.caption(f"**File:** `{_sim_ae.get('summary_json_path') or _sim_ae.get('path', '')}`")
+        st.caption(
+            f"**Manifest file:** `{_sim_ae.get('summary_json_path') or '—'}` · "
+            f"**Access file:** `{_sim_ae.get('access_summary_path') or '—'}`"
+        )
         st.caption(f"**Load mode:** `{_sim_ae.get('load_mode', '—')}`")
         if _sim_ae.get("loaded") and _sim_ae.get("extracted_summary"):
             _aex = _sim_ae["extracted_summary"]
@@ -1488,12 +1507,16 @@ def _render_judge_gary_micro_twin_3d():
                 st.dataframe(pd.DataFrame([_sim_ae["extracted_summary"]]), use_container_width=True, hide_index=True)
             else:
                 st.json(_sim_ae["extracted_summary"])
+        if _sim_ae.get("access_confirmed") and _sim_ae.get("access_summary_excerpt"):
+            st.markdown("**Aerial — access probe excerpt (no secrets)**")
+            st.json(_sim_ae["access_summary_excerpt"])
         if not (
             (_sim_dm.get("loaded") and _sim_dm.get("extracted_summary"))
             or (_sim_sn.get("loaded") and _sim_sn.get("extracted_summary"))
             or (_sim_ae.get("loaded") and _sim_ae.get("extracted_summary"))
+            or _sim_ae.get("access_confirmed")
         ):
-            st.caption("Nothing loaded with extractable summary rows — use bundled demo or add files under `data/*`.")
+            st.caption("Nothing loaded — use bundled demo, export scripts, or add files under `data/*`.")
 
     st.markdown("#### Extension evidence — scenario engine output (focus site)")
     ev1, ev2, ev3 = st.columns(3)
@@ -2338,8 +2361,18 @@ def _render_judge_gary_micro_twin_3d():
         _ctrl_sim_bits.append(f"DeepMIMO ({_lbl2}, validated)")
     _ctrl_proxy_bits = "scenario engine · RF sliders · propagation **proxy** table/chart · synthetic detector IQ"
     if _ctrl_sim_bits:
+        _has_sim_exp = (_sim_dm.get("source_kind") == "simulation") or (_sim_sn.get("source_kind") == "simulation")
+        _has_demo_exp = (_sim_dm.get("source_kind") == "demo") or (_sim_sn.get("source_kind") == "demo")
+        _mix = []
+        if _has_sim_exp:
+            _mix.append("**simulation export** (DeepMIMO/Sionna)")
+        if _has_demo_exp:
+            _mix.append("**demo / analytic** summaries")
+        _mix_s = " + ".join(_mix) if _mix else "extension hooks"
         st.caption(
-            "**Controller input mix (honest):** **Simulation-backed metadata:** "
+            "**Controller input mix (honest):** **Backbone:** "
+            + _mix_s
+            + ". **Metadata lines:** "
             + "; ".join(_ctrl_sim_bits)
             + ". **Still proxy-driven for closed-loop KPIs:** "
             + _ctrl_proxy_bits
