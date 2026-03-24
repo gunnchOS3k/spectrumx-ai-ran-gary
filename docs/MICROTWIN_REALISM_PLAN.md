@@ -40,8 +40,9 @@ Implemented in `src/edge_ran_gary/gary_scenario_engine.py`:
 - **Triple legend:** glyph · wireless-layer stack · O-RAN **conceptual** mapping (**RIC-style controller**, not “full RT RIC”) — each column wrapped in a **light contrast card** for dark Streamlit themes.
 - **Propagation / Coverage:** proxy table + bar chart; driven by scenario **pressures** + RF slider.
 - **Closed-loop controller:** explicit **state vector** → **`select_closed_loop_action`** → **`apply_action_to_kpis`** (six candidate actions including **rebalance service**).
-- **Simulation backbone:** cards + expander reuse the **same** early **`load_*_summary`** results — **loaded** path + JSON preview, or **not loaded** + expected filenames/schema hint (see **`docs/SIMULATION_BACKBONE_PLAN.md`** for exact schemas).
-- **Simulation status (evidence):** compact judge/report panel — exact paths, summary file used, parsed metadata rows, honest **Aerial** “not bundled” note.
+- **Simulation backbone:** cards + expander reuse the **same** early **`load_*_summary`** results — **`status_label`** (**Loaded (simulation export)** vs **Loaded (demo summary)** vs **Not loaded**), paths, optional JSON in expander (see **`docs/SIMULATION_BACKBONE_PLAN.md`**).
+- **Simulation data sources + summaries:** buttons for **demo-only** (`examples/simulation_exports/*` only) vs **data/ first** with demo fallback; concise Cloud note (runtime `data/` not persistent); Sionna **coverage overlay** called out when GeoJSON validates.
+- **Map text:** building **TextLayer** uses short **plain names** (`map_label_scene`, no emoji) at **higher Z**; occupancy summary glyphs shortened (`Np · Nd` style) and elevated **Z** to reduce ground clutter.
 - **Drop zones:** `data/deepmimo/`, `data/sionna_rt/`, `data/aerial_omniverse/`, `configs/wireless_scene/`, `configs/ric/` (+ legacy `data/simulation/*`). See `docs/SIMULATION_BACKBONE_PLAN.md`.
 
 ### Judge Mode (tour-level)

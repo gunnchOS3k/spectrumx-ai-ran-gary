@@ -25,6 +25,21 @@ This document describes how the **Completed Research Extension** connects to **s
 
 The Streamlit app **scans** these paths (via `simulation_integration_hooks.py`) and **fails gracefully** if empty. **Summary loaders** validate JSON/GeoJSON when present; **stub overlay** helpers remain for future deck wiring beyond summaries.
 
+## Repo-bundled demo summaries + load priority
+
+| Location | UI label when parser succeeds |
+|----------|-------------------------------|
+| `data/deepmimo/`, `data/sionna_rt/`, `data/aerial_omniverse/` (and legacy `data/simulation/*`) | **Loaded (simulation export)** |
+| `examples/simulation_exports/deepmimo/`, `.../sionna_rt/`, `.../aerial_omniverse/` | **Loaded (demo summary)** |
+
+**Default loader behavior** (`demo_only=False`): try **simulation** directories first; if nothing **valid** is found, try **demo** directories. **Real exports always win** when they validate.
+
+**Demo-only mode** (`demo_only=True`, Streamlit button *Use bundled demo summaries*): scan **only** `examples/simulation_exports/*` — ignores `data/` (for consistent cloud demos).
+
+**Streamlit Cloud:** runtime-created files under `data/` usually **do not persist** across app restarts. Committed files under `examples/simulation_exports/` **do** persist with the deployment.
+
+Loader return dict keys (among others): `loaded`, `source_kind` (`simulation` \| `demo` \| `absent`), `status_label` (`Loaded (simulation export)` \| `Loaded (demo summary)` \| `Not loaded`), `load_mode`, `path` / `summary_json_path`.
+
 ## Pillar 1 — DeepMIMO
 
 - **Contributes:** Reproducible **site-specific MIMO channels**, CSI features, scenario matrices.
@@ -69,7 +84,7 @@ streamlit run apps/streamlit_app.py
 
 The UI shows **Loaded** only when the in-repo parser **accepts** the file (JSON decode + field validation, or GeoJSON geometry check). Empty JSON or wrong shape → **not loaded** + `parser_note`.
 
-### DeepMIMO — `data/deepmimo/` (legacy: `data/simulation/deepmimo/`)
+### DeepMIMO — `data/deepmimo/` (legacy: `data/simulation/deepmimo/`) **then** `examples/simulation_exports/deepmimo/`
 
 | File | Role |
 |------|------|
@@ -92,7 +107,7 @@ The UI shows **Loaded** only when the in-repo parser **accepts** the file (JSON 
 }
 ```
 
-### Sionna RT — `data/sionna_rt/` (legacy: `data/simulation/sionna_rt/`)
+### Sionna RT — `data/sionna_rt/` (legacy: `data/simulation/sionna_rt/`) **then** `examples/simulation_exports/sionna_rt/`
 
 | File | Role |
 |------|------|
@@ -106,7 +121,7 @@ The UI shows **Loaded** only when the in-repo parser **accepts** the file (JSON 
 
 **Example JSON keys:** `scenario_name`, `mean_path_loss_db`, `los_fraction`, `frequency_ghz`, nested `sionna: { ... }`, or `cells` list, or `sionna_export_version` / `solver`.
 
-### NVIDIA AI Aerial / Omniverse — `data/aerial_omniverse/`
+### NVIDIA AI Aerial / Omniverse — `data/aerial_omniverse/` **then** `examples/simulation_exports/aerial_omniverse/`
 
 | File | Role |
 |------|------|
@@ -117,15 +132,16 @@ The UI shows **Loaded** only when the in-repo parser **accepts** the file (JSON 
 
 **Honesty:** This repo does **not** ship Omniverse Kit, Aerial sim binaries, or USD scene geometry. **Loaded** means **only** that a small JSON manifest on disk validated — **not** that the twin is interactively running. Full workflows typically need **external program access**, **GPU**, and often a **NVIDIA account** / **6G Developer Program** enrollment.
 
-### Copy-paste examples
+### Bundled demo files (validated names)
 
-See `examples/simulation_exports/` — rename `.example` files into the `data/...` paths above to test locally (defaults stay **not loaded** on a clean clone).
+Shipped under `examples/simulation_exports/<pillar>/` with final filenames (`scenario_summary.json`, `propagation_summary.json`, `coverage_grid.geojson`, `twin_manifest.json`). They load automatically as **fallback** when `data/*` has no valid summary, or as **only** source when Streamlit **demo-only** mode is on.
 
 ---
 
 ## UI surfaces
 
-- **Simulation status (evidence)** — paths, loaded flags, `extracted_summary` table, NPZ metadata (DeepMIMO).
+- **Simulation data sources** — buttons: bundled demo-only vs data-first; Cloud persistence note.
+- **Simulation summaries** — compact cards (`status_label`, source type, file path, load mode); expander for tables/JSON.
 - **Simulation backbone** — reuses the same load results (no second disk read).
 - **Propagation / coverage** — success callout when Sionna/DeepMIMO validated; still labels table/chart proxies honestly.
 - **Closed-loop controller** — caption distinguishes **simulation-backed metadata** vs **proxy KPI** inputs.

@@ -1,7 +1,7 @@
 {
   "aerial_export_version": "example-0.1",
-  "scene_name": "gary_twin_placeholder",
+  "scene_name": "gary_twin_demo_bundle",
   "usd_path": "usd://external/export/scene.usd",
   "generated_at": "2026-01-28T00:00:00Z",
-  "notes": "Example manifest only — real path points to assets produced outside this repo."
+  "notes": "Bundled demo manifest only — not a live Omniverse session."
 }

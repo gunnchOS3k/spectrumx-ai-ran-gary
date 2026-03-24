@@ -1,7 +1,7 @@
 {
   "deepmimo_export_version": "example-0.1",
   "deepmimo": {
-    "scenario_name": "gary_civic_example",
+    "scenario_name": "gary_civic_demo_bundle",
     "num_bs": 3,
     "num_users": 120,
     "los_links": 200,

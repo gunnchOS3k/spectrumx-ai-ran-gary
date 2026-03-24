@@ -1,7 +1,7 @@
 {
   "sionna_export_version": "example-0.1",
   "sionna": {
-    "scenario_name": "gary_raytrace_example",
+    "scenario_name": "gary_raytrace_demo_bundle",
     "frequency_ghz": 3.5,
     "mean_path_loss_db": 121.0,
     "median_path_loss_db": 119.5,
