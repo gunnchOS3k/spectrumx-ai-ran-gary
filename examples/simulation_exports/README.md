@@ -1,14 +1,31 @@
-# Simulation export examples (copy into `data/` to test loaders)
+# Simulation export examples (repo-bundled)
 
-These files are **not** loaded automatically from `examples/`. Copy or merge into the drop zones below, then restart Streamlit.
+## Bundled demo paths (loaded automatically as **fallback**)
 
-| Target directory | Example file | Purpose |
-|------------------|--------------|---------|
-| `data/deepmimo/` | `scenario_summary.example.json` | DeepMIMO-style summary — rename to `scenario_summary.json` |
-| `data/sionna_rt/` | `propagation_summary.example.json` | Sionna metrics — rename to `propagation_summary.json` |
-| `data/sionna_rt/` | `coverage_grid_minimal.example.geojson` | GeoJSON-only load test — rename to `coverage_grid.geojson` |
-| `data/aerial_omniverse/` | `twin_manifest.example.json` | Aerial/Omniverse manifest — rename to `twin_manifest.json` |
+If `data/deepmimo/`, `data/sionna_rt/`, and `data/aerial_omniverse/` have **no** valid summaries, the app can still load **validated** JSON/GeoJSON from:
 
-**Truthfulness:** The app sets **Loaded** only after JSON/GeoJSON **parses and validates** per `simulation_integration_hooks.py`.
+| Pillar | Path |
+|--------|------|
+| DeepMIMO | `examples/simulation_exports/deepmimo/scenario_summary.json` |
+| Sionna RT | `examples/simulation_exports/sionna_rt/propagation_summary.json` and/or `coverage_grid.geojson` |
+| Aerial / Omniverse | `examples/simulation_exports/aerial_omniverse/twin_manifest.json` |
 
-**Aerial / Omniverse:** Full fidelity requires **external** NVIDIA tooling, **GPU**, and often a **NVIDIA account** / **6G Developer Program** — not bundled here.
+The Streamlit UI labels these as **Loaded (demo summary)**. Files under `data/*` validate as **Loaded (simulation export)** when they parse successfully (priority over examples unless **Demo-only** mode is selected in the app).
+
+## Real exports
+
+Place your own outputs under:
+
+- `data/deepmimo/` — `scenario_summary.json` or `scenario_meta.json`
+- `data/sionna_rt/` — `propagation_summary.json`, `path_loss_summary.json`, `coverage_grid.geojson`, …
+- `data/aerial_omniverse/` — `overlay_summary.json` or `twin_manifest.json`
+
+## Streamlit Cloud
+
+Runtime writes under `data/` are **not persistent** across app restarts. Repo files (including this folder) **are** available after each deploy—use **bundled demo** or ship summaries in the repo.
+
+## Truthfulness
+
+**Loaded** only after JSON/GeoJSON **parses and validates** in `simulation_integration_hooks.py`. No fake loaded state.
+
+**Aerial / Omniverse:** Full fidelity requires external NVIDIA tooling, GPU, and often NVIDIA account / 6G Developer Program access—not bundled here.

@@ -61,6 +61,65 @@ AERIAL_SUMMARY_FILES = ("overlay_summary.json", "twin_manifest.json")
 
 SIONNA_GEOJSON_NAMES = ("coverage_grid.geojson", "coverage.geojson", "sionna_coverage.geojson")
 
+# Repo-bundled demo summaries (readable on Streamlit Cloud without writing to data/)
+EXAMPLES_DEEPMIMO_REL = Path("examples/simulation_exports/deepmimo")
+EXAMPLES_SIONNA_RT_REL = Path("examples/simulation_exports/sionna_rt")
+EXAMPLES_AERIAL_OMNIVERSE_REL = Path("examples/simulation_exports/aerial_omniverse")
+
+
+def _status_label_for_sim(loaded: bool, source_kind: str) -> str:
+    if not loaded or source_kind == "absent":
+        return "Not loaded"
+    if source_kind == "demo":
+        return "Loaded (demo summary)"
+    if source_kind == "simulation":
+        return "Loaded (simulation export)"
+    return "Not loaded"
+
+
+def _deepmimo_tiers(repo_root: Path, demo_only: bool) -> List[Tuple[List[Path], str]]:
+    r = repo_root.resolve()
+    sim_dirs = [p for p in (r / DATA_DEEPMIMO_REL, r / LEGACY_DEEPMIMO_REL) if p.is_dir()]
+    demo_p = r / EXAMPLES_DEEPMIMO_REL
+    demo_dirs = [demo_p] if demo_p.is_dir() else []
+    if demo_only:
+        return [(demo_dirs, "demo")] if demo_dirs else []
+    out: List[Tuple[List[Path], str]] = []
+    if sim_dirs:
+        out.append((sim_dirs, "simulation"))
+    if demo_dirs:
+        out.append((demo_dirs, "demo"))
+    return out
+
+
+def _sionna_tiers(repo_root: Path, demo_only: bool) -> List[Tuple[List[Path], str]]:
+    r = repo_root.resolve()
+    sim_dirs = [p for p in (r / DATA_SIONNA_RT_REL, r / LEGACY_SIONNA_RT_REL) if p.is_dir()]
+    demo_p = r / EXAMPLES_SIONNA_RT_REL
+    demo_dirs = [demo_p] if demo_p.is_dir() else []
+    if demo_only:
+        return [(demo_dirs, "demo")] if demo_dirs else []
+    out: List[Tuple[List[Path], str]] = []
+    if sim_dirs:
+        out.append((sim_dirs, "simulation"))
+    if demo_dirs:
+        out.append((demo_dirs, "demo"))
+    return out
+
+
+def _aerial_tiers(repo_root: Path, demo_only: bool) -> List[Tuple[Path, str]]:
+    r = repo_root.resolve()
+    data_d = r / DATA_AERIAL_OMNIVERSE_REL
+    demo_d = r / EXAMPLES_AERIAL_OMNIVERSE_REL
+    if demo_only:
+        return [(demo_d, "demo")] if demo_d.is_dir() else []
+    out: List[Tuple[Path, str]] = []
+    if data_d.is_dir():
+        out.append((data_d, "simulation"))
+    if demo_d.is_dir():
+        out.append((demo_d, "demo"))
+    return out
+
 
 def _dir_status(d: Path) -> Dict[str, Any]:
     exists = d.is_dir()
@@ -289,21 +348,11 @@ def _deepmimo_parse_valid(extracted: Dict[str, Any], raw: Dict[str, Any]) -> boo
     return False
 
 
-def load_deepmimo_scenario_summary(repo_root: Path) -> Dict[str, Any]:
-    """
-    Load and **validate** DeepMIMO JSON summary + optional ``channel_features.npz`` metadata.
-    ``loaded`` is True only if JSON parses and passes field validation.
-    """
-    r = repo_root.resolve()
-    dirs = deepmimo_drop_dirs(r)
-    primary_path = ""
-    if dirs:
-        primary_path = str(dirs[0].resolve())
-
-    raw_data: Optional[Dict[str, Any]] = None
-    json_path: Optional[Path] = None
+def _try_deepmimo_valid_in_dirs(
+    dirs: List[Path],
+) -> Tuple[Optional[Dict[str, Any]], Optional[Path], Optional[str]]:
+    """First JSON in dirs that decodes **and** passes DeepMIMO validation."""
     last_err: Optional[str] = None
-
     for d in dirs:
         if not d.is_dir():
             continue
@@ -314,52 +363,78 @@ def load_deepmimo_scenario_summary(repo_root: Path) -> Dict[str, Any]:
             try:
                 obj = json.loads(p.read_text(encoding="utf-8"))
                 raw_data = obj if isinstance(obj, dict) else {"value": obj}
-                json_path = p
-                break
             except json.JSONDecodeError as e:
                 last_err = f"JSON decode ({p.name}): {e}"
+                continue
             except OSError as e:
                 last_err = str(e)
-        if json_path:
-            break
+                continue
+            extracted = _normalize_deepmimo_dict(raw_data)
+            if _deepmimo_parse_valid(extracted, raw_data):
+                return raw_data, p, None
+            last_err = "validation_failed"
+    return None, None, last_err
 
-    npz_meta = None
-    if json_path is not None:
+
+def load_deepmimo_scenario_summary(repo_root: Path, demo_only: bool = False) -> Dict[str, Any]:
+    """
+    Load and **validate** DeepMIMO JSON summary + optional ``channel_features.npz`` metadata.
+    ``loaded`` is True only if JSON parses and passes field validation.
+
+    Priority (when ``demo_only`` is False): ``data/deepmimo/`` (and legacy path), then
+    ``examples/simulation_exports/deepmimo/``. When ``demo_only`` is True, only the examples path
+    is scanned (ignores ``data/``).
+    """
+    r = repo_root.resolve()
+    tiers = _deepmimo_tiers(r, demo_only)
+    primary_path = str((r / DATA_DEEPMIMO_REL).resolve())
+    last_err: Optional[str] = None
+
+    for dirs, source_kind in tiers:
+        raw_data, json_path, err = _try_deepmimo_valid_in_dirs(dirs)
+        last_err = err or last_err
+        if raw_data is None or json_path is None:
+            continue
+        npz_meta = None
         parent = json_path.parent
         for cand in ("channel_features.npz", "channels.npz", "deepmimo_channels.npz"):
             m = _scan_npz_metadata(parent / cand)
             if m and "arrays" in m:
                 npz_meta = m
                 break
-
-    if raw_data is None:
+        extracted = _normalize_deepmimo_dict(raw_data)
         return {
-            "loaded": False,
-            "path": primary_path,
-            "expected_files": list(DEEPMIMO_SUMMARY_FILES),
-            "expected_schema": (
-                "JSON object with e.g. scenario_name, num_bs, num_users, los_links/nlos_links, "
-                "or channel_statistics / sites — see docs/SIMULATION_BACKBONE_PLAN.md"
-            ),
-            "error": last_err,
+            "loaded": True,
+            "path": str(json_path.resolve()),
+            "summary_json_path": str(json_path.resolve()),
+            "data": raw_data,
+            "extracted_summary": extracted,
+            "npz_channel_meta": npz_meta,
             "integration": "deepmimo",
-            "parser": "deepmimo_v1",
+            "parser": "deepmimo_v2",
+            "source_kind": source_kind,
+            "status_label": _status_label_for_sim(True, source_kind),
+            "load_mode": "demo_only" if demo_only else "data_first_with_demo_fallback",
+            "parser_note": None,
+            "error": None,
         }
 
-    extracted = _normalize_deepmimo_dict(raw_data)
-    ok = _deepmimo_parse_valid(extracted, raw_data)
     return {
-        "loaded": ok,
-        "path": str(json_path.resolve()),
-        "data": raw_data,
-        "extracted_summary": extracted,
-        "npz_channel_meta": npz_meta,
+        "loaded": False,
+        "path": primary_path,
+        "summary_json_path": None,
+        "expected_files": list(DEEPMIMO_SUMMARY_FILES),
+        "expected_schema": (
+            "JSON object with e.g. scenario_name, num_bs, num_users, los_links/nlos_links, "
+            "or channel_statistics / sites — see docs/SIMULATION_BACKBONE_PLAN.md"
+        ),
+        "error": last_err,
         "integration": "deepmimo",
-        "parser": "deepmimo_v1",
-        "parser_note": None
-        if ok
-        else "File is valid JSON but missing expected DeepMIMO summary fields — not marked loaded.",
-        "error": None if ok else (last_err or "validation_failed"),
+        "parser": "deepmimo_v2",
+        "source_kind": "absent",
+        "status_label": "Not loaded",
+        "load_mode": "demo_only" if demo_only else "data_first_with_demo_fallback",
+        "demo_fallback_dir": str((r / EXAMPLES_DEEPMIMO_REL).resolve()),
     }
 
 
@@ -435,15 +510,10 @@ def _sionna_parse_valid(extracted: Dict[str, Any], raw: Dict[str, Any]) -> bool:
     return False
 
 
-def load_sionna_propagation_summary(repo_root: Path) -> Dict[str, Any]:
-    """
-    Load Sionna RT **propagation_summary** / **path_loss_summary** JSON and/or **coverage_grid.geojson**.
-    ``loaded`` is True if JSON validates **or** GeoJSON validates (coverage-only export).
-    """
-    r = repo_root.resolve()
-    dirs = sionna_rt_drop_dirs(r)
-    primary_path = str(dirs[0].resolve()) if dirs else ""
-
+def _load_sionna_bundle_from_dirs(
+    dirs: List[Path], source_kind: str, primary_fallback: str
+) -> Dict[str, Any]:
+    """Try JSON + GeoJSON only within ``dirs`` (one tier: simulation or demo)."""
     raw_data: Optional[Dict[str, Any]] = None
     json_path: Optional[Path] = None
     last_err: Optional[str] = None
@@ -457,13 +527,18 @@ def load_sionna_propagation_summary(repo_root: Path) -> Dict[str, Any]:
                 continue
             try:
                 obj = json.loads(p.read_text(encoding="utf-8"))
-                raw_data = obj if isinstance(obj, dict) else {"value": obj}
-                json_path = p
-                break
+                cand = obj if isinstance(obj, dict) else {"value": obj}
             except json.JSONDecodeError as e:
                 last_err = f"JSON decode ({p.name}): {e}"
+                continue
             except OSError as e:
                 last_err = str(e)
+                continue
+            extracted_try = _normalize_sionna_dict(cand)
+            if _sionna_parse_valid(extracted_try, cand):
+                raw_data = cand
+                json_path = p
+                break
         if json_path:
             break
 
@@ -492,30 +567,86 @@ def load_sionna_propagation_summary(repo_root: Path) -> Dict[str, Any]:
         combined_extracted["coverage_geojson_features"] = geo_stats.get("feature_count")
         combined_extracted["coverage_geojson_type"] = geo_stats.get("type")
 
-    parser_note = None
+    parser_note: Optional[str] = None
     if not loaded:
-        parser_note = "No valid Sionna summary JSON and no valid coverage GeoJSON found."
+        parser_note = "No valid Sionna summary JSON and no valid coverage GeoJSON in this search tier."
     elif not json_ok and geo_ok:
         parser_note = "Loaded from **GeoJSON only** — add propagation_summary.json for richer metrics."
 
+    path_shown = (
+        str(json_path.resolve())
+        if json_path
+        else (str(gj_path.resolve()) if gj_path else primary_fallback)
+    )
+
     return {
         "loaded": loaded,
-        "path": str(json_path.resolve()) if json_path else (str(gj_path.resolve()) if gj_path else primary_path),
+        "path": path_shown,
         "summary_json_path": str(json_path.resolve()) if json_path else None,
         "geojson_path": str(gj_path.resolve()) if gj_path and geo_ok else None,
         "data": raw_data if raw_data is not None else {},
         "extracted_summary": combined_extracted,
         "geojson_stats": geo_stats if geo_ok else {},
-        "geojson_for_deck": geojson_inline,
+        "geojson_for_deck": geojson_inline if loaded and geo_ok else None,
+        "coverage_overlay_active": bool(loaded and geo_ok and geojson_inline is not None),
         "integration": "sionna_rt",
-        "parser": "sionna_rt_v1",
+        "parser": "sionna_rt_v2",
         "parser_note": parser_note,
         "error": None if loaded else (last_err or geo_err or "not_found"),
+        "source_kind": source_kind if loaded else "absent",
+        "status_label": _status_label_for_sim(loaded, source_kind if loaded else "absent"),
+    }
+
+
+def load_sionna_propagation_summary(repo_root: Path, demo_only: bool = False) -> Dict[str, Any]:
+    """
+    Load Sionna RT **propagation_summary** / **path_loss_summary** JSON and/or **coverage_grid.geojson**.
+
+    Priority (when ``demo_only`` is False): ``data/sionna_rt/`` (and legacy), then
+    ``examples/simulation_exports/sionna_rt/``. When ``demo_only`` is True, only examples are scanned.
+    """
+    r = repo_root.resolve()
+    primary_path = str((r / DATA_SIONNA_RT_REL).resolve())
+    tiers = _sionna_tiers(r, demo_only)
+    last_note: Optional[str] = None
+
+    for dirs, source_kind in tiers:
+        if not dirs:
+            continue
+        out = _load_sionna_bundle_from_dirs(dirs, source_kind, primary_path)
+        last_note = out.get("parser_note") or last_note
+        if out["loaded"]:
+            out["load_mode"] = "demo_only" if demo_only else "data_first_with_demo_fallback"
+            out["expected_files"] = list(SIONNA_SUMMARY_FILES) + list(SIONNA_GEOJSON_NAMES)
+            out["expected_schema"] = (
+                "JSON: scenario_name / path loss / LOS fraction / coverage block; "
+                "or GeoJSON FeatureCollection for coverage_grid — see docs/SIMULATION_BACKBONE_PLAN.md"
+            )
+            return out
+
+    return {
+        "loaded": False,
+        "path": primary_path,
+        "summary_json_path": None,
+        "geojson_path": None,
+        "data": {},
+        "extracted_summary": {},
+        "geojson_stats": {},
+        "geojson_for_deck": None,
+        "coverage_overlay_active": False,
+        "integration": "sionna_rt",
+        "parser": "sionna_rt_v2",
+        "parser_note": last_note or "No valid Sionna summary JSON and no valid coverage GeoJSON found.",
+        "error": "not_found",
         "expected_files": list(SIONNA_SUMMARY_FILES) + list(SIONNA_GEOJSON_NAMES),
         "expected_schema": (
             "JSON: scenario_name / path loss / LOS fraction / coverage block; "
             "or GeoJSON FeatureCollection for coverage_grid — see docs/SIMULATION_BACKBONE_PLAN.md"
         ),
+        "source_kind": "absent",
+        "status_label": "Not loaded",
+        "load_mode": "demo_only" if demo_only else "data_first_with_demo_fallback",
+        "demo_fallback_dir": str((r / EXAMPLES_SIONNA_RT_REL).resolve()),
     }
 
 
@@ -544,9 +675,7 @@ def _aerial_parse_valid(extracted: Dict[str, Any], raw: Dict[str, Any]) -> bool:
     return False
 
 
-def load_aerial_overlay_summary(repo_root: Path) -> Dict[str, Any]:
-    """Load twin_manifest / overlay_summary JSON only if it passes validation."""
-    d = aerial_drop_dir(repo_root)
+def _try_aerial_in_dir(d: Path, source_kind: str) -> Optional[Dict[str, Any]]:
     raw_data: Optional[Dict[str, Any]] = None
     json_path: Optional[Path] = None
     last_err: Optional[str] = None
@@ -565,36 +694,82 @@ def load_aerial_overlay_summary(repo_root: Path) -> Dict[str, Any]:
         except OSError as e:
             last_err = str(e)
 
-    if raw_data is None:
-        return {
-            "loaded": False,
-            "path": str(d.resolve()),
-            "expected_files": list(AERIAL_SUMMARY_FILES),
-            "expected_schema": (
-                "JSON with scene_name / usd_path or aerial_export_version — "
-                "**NVIDIA AI Aerial / Omniverse** runs **outside** this repo; "
-                "full fidelity needs **external program access**, **GPU**, and often **NVIDIA account** / **6G Developer Program**."
-            ),
-            "integration": "aerial_omniverse",
-            "parser": "aerial_v1",
-            "external_tooling_required": True,
-            "error": last_err,
-        }
+    if raw_data is None or json_path is None:
+        return None
 
     extracted = _normalize_aerial_dict(raw_data)
     ok = _aerial_parse_valid(extracted, raw_data)
+    if not ok:
+        return {
+            "loaded": False,
+            "path": str(json_path.resolve()),
+            "data": raw_data,
+            "extracted_summary": extracted,
+            "integration": "aerial_omniverse",
+            "parser": "aerial_v2",
+            "external_tooling_required": True,
+            "parser_note": "JSON present but missing expected manifest fields — not marked loaded.",
+            "error": "validation_failed",
+            "source_kind": "absent",
+            "status_label": "Not loaded",
+            "summary_json_path": str(json_path.resolve()),
+        }
+
     return {
-        "loaded": ok,
-        "path": str(json_path.resolve()) if json_path else str(d.resolve()),
+        "loaded": True,
+        "path": str(json_path.resolve()),
+        "summary_json_path": str(json_path.resolve()),
         "data": raw_data,
         "extracted_summary": extracted,
         "integration": "aerial_omniverse",
-        "parser": "aerial_v1",
+        "parser": "aerial_v2",
         "external_tooling_required": True,
-        "parser_note": None
-        if ok
-        else "JSON present but missing expected manifest fields — not marked loaded.",
-        "error": None if ok else "validation_failed",
+        "parser_note": None,
+        "error": None,
+        "source_kind": source_kind,
+        "status_label": _status_label_for_sim(True, source_kind),
+    }
+
+
+def load_aerial_overlay_summary(repo_root: Path, demo_only: bool = False) -> Dict[str, Any]:
+    """
+    Load twin_manifest / overlay_summary JSON only if it passes validation.
+
+    Priority: ``data/aerial_omniverse/`` then ``examples/simulation_exports/aerial_omniverse/``
+    unless ``demo_only`` is True (examples only).
+    """
+    r = repo_root.resolve()
+    tiers = _aerial_tiers(r, demo_only)
+    default_path = str(aerial_drop_dir(r))
+    last_err: Optional[str] = None
+
+    for d, source_kind in tiers:
+        hit = _try_aerial_in_dir(d, source_kind)
+        if hit is None:
+            continue
+        if hit["loaded"]:
+            hit["load_mode"] = "demo_only" if demo_only else "data_first_with_demo_fallback"
+            return hit
+        last_err = hit.get("error")
+
+    return {
+        "loaded": False,
+        "path": default_path,
+        "summary_json_path": None,
+        "expected_files": list(AERIAL_SUMMARY_FILES),
+        "expected_schema": (
+            "JSON with scene_name / usd_path or aerial_export_version — "
+            "**NVIDIA AI Aerial / Omniverse** runs **outside** this repo; "
+            "full fidelity needs **external program access**, **GPU**, and often **NVIDIA account** / **6G Developer Program**."
+        ),
+        "integration": "aerial_omniverse",
+        "parser": "aerial_v2",
+        "external_tooling_required": True,
+        "error": last_err,
+        "source_kind": "absent",
+        "status_label": "Not loaded",
+        "load_mode": "demo_only" if demo_only else "data_first_with_demo_fallback",
+        "demo_fallback_dir": str((r / EXAMPLES_AERIAL_OMNIVERSE_REL).resolve()),
     }
 
 

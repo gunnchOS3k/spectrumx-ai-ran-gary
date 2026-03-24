@@ -402,7 +402,7 @@ def build_pydeck_occupancy_bundle(
         summary_labels.append(
             {
                 "position": [clon + 0.00028, clat + 0.00018],
-                "text": f"~{int(people)} people | {int(active_sum)} active dev",
+                "text": f"{int(people)}p · {int(active_sum)} dev",
                 "label": f"{b['name'][:28]} — aggregates",
                 "tip": (
                     f"**Scenario engine:** people **{people:.0f}**, active devices **{active_sum:.0f}** "

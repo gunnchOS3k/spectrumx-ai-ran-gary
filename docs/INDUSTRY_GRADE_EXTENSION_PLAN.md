@@ -49,7 +49,7 @@ Configs: `configs/wireless_scene/occupancy_profiles.json`, `device_profiles.json
 | **Closed-loop controller** | **Computed** action + KPI shift; **not** a live RIC |
 | Detector in loop | **`evaluate()` on synthetic demo IQ** only |
 | Drop zones + **JSON / GeoJSON summaries** | `load_deepmimo_scenario_summary`, `load_sionna_propagation_summary`, `load_aerial_overlay_summary` in `simulation_integration_hooks.py` — **Loaded** only after parse+validation; Sionna GeoJSON → optional **`layer-sionna-coverage-geojson`** on the map |
-| Example exports (not auto-loaded) | `examples/simulation_exports/*.example.json` — copy into `data/deepmimo/`, `data/sionna_rt/`, `data/aerial_omniverse/` per `docs/SIMULATION_BACKBONE_PLAN.md` |
+| Bundled demo exports | `examples/simulation_exports/deepmimo/`, `sionna_rt/`, `aerial_omniverse/` — **fallback** load when `data/*` empty/invalid; labeled **Loaded (demo summary)** in UI |
 
 ## Proxy vs integration-ready
 

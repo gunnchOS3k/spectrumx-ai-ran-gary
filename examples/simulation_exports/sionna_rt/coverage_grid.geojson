@@ -3,7 +3,7 @@
   "features": [
     {
       "type": "Feature",
-      "properties": { "label": "example_cell", "rsrp_dbm": -95 },
+      "properties": { "label": "demo_cell", "rsrp_dbm": -95 },
       "geometry": {
         "type": "Polygon",
         "coordinates": [
