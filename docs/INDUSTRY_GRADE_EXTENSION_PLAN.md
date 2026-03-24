@@ -59,6 +59,7 @@ Configs: `configs/wireless_scene/occupancy_profiles.json`, `device_profiles.json
 
 ## Docs
 
+- `docs/APPLIED_SIMULATION_BRIDGE_RUNBOOK.md` — export scripts, NGC env vars (**names only**), status semantics  
 - `docs/SIMULATION_BACKBONE_PLAN.md` — pillar detail + future compute/accounts  
 - `docs/MICROTWIN_REALISM_PLAN.md` — UI behavior + loop diagram  
 - `docs/SCENARIO_ENGINE_ASSUMPTIONS.md` — public defaults vs scenario assumptions  

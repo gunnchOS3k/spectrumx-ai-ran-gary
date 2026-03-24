@@ -2,6 +2,22 @@
 
 This document describes how the **Completed Research Extension** connects to **simulation-backed realism** without blurring the **core judged** SpectrumX detector.
 
+## Scripts & environment (no secrets in repo)
+
+- **Runbook:** `docs/APPLIED_SIMULATION_BRIDGE_RUNBOOK.md`
+- **Sionna-shaped export:** `scripts/export_sionna_rt_summary.py` → `data/sionna_rt/` (default **analytic** → UI **demo summary**)
+- **DeepMIMO-shaped export:** `scripts/export_deepmimo_summary.py` → `data/deepmimo/`
+- **NGC / Docker probe:** `scripts/check_ngc_access.py` → `data/aerial_omniverse/access_summary.json` (boolean presence + probe status only)
+- **AODT bootstrap (optional):** `scripts/bootstrap_aodt_access.py` (guarded by `ENABLE_AODT_BOOTSTRAP`, `ENABLE_DOCKER_PULLS`)
+
+**Environment variable names** (set in your environment; **never** commit values): `NGC_API_KEY_AODT`, `NGC_API_KEY_AERIAL_RAN`, optional `AWS_*` / `AZURE_*` presence flags in access summary, `ENABLE_AODT_BOOTSTRAP`, `ENABLE_DOCKER_PULLS`, `DEEPMIMO_FULL_SOLVER_OK`.
+
+## Provenance → UI label
+
+JSON under `data/` with `export_provenance.simulation_grade: analytic_fallback` (or related synthetic grades) is shown as **Loaded (demo summary)** even though the path is `data/`. Files without such downgrade in the simulation tier are **Loaded (simulation export)**.
+
+**Aerial:** `access_summary.json` alone yields **Access confirmed / installer-ready** — not a simulation export.
+
 ## Current proxy layers (always labeled in UI)
 
 | Layer | Role | Truth |
