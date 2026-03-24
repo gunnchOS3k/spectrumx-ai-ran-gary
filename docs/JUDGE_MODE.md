@@ -1,4 +1,4 @@
-## Judge Mode (Winning Project Dashboard)
+## Judge mode (competition-ready dashboard)
 
 This repo’s Streamlit app (`apps/streamlit_app.py`) includes a **Judge Mode** toggle intended for judges and report screenshot generation.
 
@@ -10,7 +10,7 @@ This repo’s Streamlit app (`apps/streamlit_app.py`) includes a **Judge Mode** 
 
 ### How Judge Mode works
 
-In the sidebar, enable **`Judge Mode`**. The dashboard switches to a 6-tab **Judge Tour**:
+In the sidebar, enable **Judge mode**. The dashboard switches to a six-tab **judge tour**:
 
 1. **Problem** (Figure 1 + Figure 2)
 2. **Core Submission** (Figure 4 + live inference)
@@ -19,16 +19,16 @@ In the sidebar, enable **`Judge Mode`**. The dashboard switches to a 6-tab **Jud
 5. **Completed Research Extension** (Figure 6 + Gary digital twin + **Near-RT RIC–style** AI-RAN demo)
 6. **Why It Matters for Gary**
 
-**Above the tabs:** **Why judges can trust this — evidence** (three buckets) and a compact **AI-RAN / O-RAN alignment** card (extension is demo-only; no live RIC).
+**Above the tabs:** **What reviewers can verify** (three buckets) and a compact **AI-RAN / O-RAN alignment** card (extension is demo-only; no live RIC).
 
 ### Final Submission (Best Known) vs Submission Explorer
 
 - **Final Submission (Best Known):** Highest-priority folder under `submissions/` with `main.py` (`src/edge_ran_gary/submission_adapter.py`; e.g. **`leaderboard_v9`** when present).
-- **Submission Explorer:** Any discovered package, including nested paths (e.g. `leaderboard_baseline_v1/test3k`). Repo root is resolved from the app file — **not** from process CWD.
+- **Submission Explorer:** Any discovered package, including nested paths (e.g. `leaderboard_baseline_v1/test3k`). Repo root is resolved from the app file, **not** from process CWD.
 
 **Diagnostic expander** in the sidebar lists discovered folders, `main.py` / artifacts, and **leaderboard_v9** visibility.
 
-**Live inference:** `evaluate()` on **synthetic Judge Mode demo IQ** only.
+**Live inference:** `evaluate()` on **synthetic judge-mode demo IQ** only.
 
 ### Authoritative metrics source
 
@@ -38,22 +38,23 @@ In the sidebar, enable **`Judge Mode`**. The dashboard switches to a 6-tab **Jud
 
 - **Core judged submission:** SpectrumX DAC detector; official data **offline**; CSVs + synthetic IQ in-app only.
 - **Completed extension:** Gary **digital-twin wireless scene** + **O-RAN–aligned Near-RT RIC xApp abstraction** (proxies; non-scoring).
-- **Next scaling:** **DeepMIMO** (channels), **Sionna RT** (ray-tracing), **NVIDIA AI Aerial / Omniverse** (twin-scale RF) — **integration-ready** paths in `data/*` and `configs/*`; **stubs** until wired; **do not** claim they run the judged detector.
+- **Next scaling:** **DeepMIMO** (channels), **Sionna RT** (ray-tracing), **NVIDIA AI Aerial / Omniverse** (twin-scale RF): **integration-ready** paths in `data/*` and `configs/*`; **stubs** until wired; **do not** claim they run the judged detector.
 
 ### Completed Research Extension (summary)
 
 - **Guided demo strip** → **3D radio scene** (coverage halos, gNB, demand, IF, propagation stress, links) + **triple legend**.
-- **Propagation / Coverage** — proxy table + **bar chart** for screenshots.
-- **Simulation backbone** — three pillars (DeepMIMO, Sionna RT, Aerial/AODT) + JSON drop-zone status.
+- **Propagation / coverage:** proxy table + **bar chart** for screenshots.
+- **Simulation backbone:** three pillars (DeepMIMO, Sionna RT, Aerial/AODT) + JSON drop-zone status.
 - **Optional paths** expander: `data/deepmimo/`, `data/sionna_rt/`, `data/aerial_omniverse/`, `configs/wireless_scene/`, `configs/ric/`, etc.
 
 If **`pydeck`** is missing, the extension shows a safe message.
 
 ### Documentation
 
-- `docs/MICROTWIN_REALISM_PLAN.md` — extension behavior  
-- `docs/SIMULATION_BACKBONE_PLAN.md` — simulation hooks + future compute  
-- `docs/INDUSTRY_GRADE_EXTENSION_PLAN.md` — capability matrix  
+- `docs/MICROTWIN_REALISM_PLAN.md`: extension behavior  
+- `docs/SIMULATION_BACKBONE_PLAN.md`: simulation hooks + future compute  
+- `docs/INDUSTRY_GRADE_EXTENSION_PLAN.md`: capability matrix  
+- `docs/STREAMLIT_TEXT_STYLE_GUIDE.md`: UI copy conventions  
 
 ### Run locally
 

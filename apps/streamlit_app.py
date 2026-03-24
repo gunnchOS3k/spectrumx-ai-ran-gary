@@ -9,7 +9,7 @@ import streamlit as st
 import io
 from pathlib import Path
 
-# Smoke check: optional heavy deps — show friendly message instead of crash
+# Smoke check: optional heavy deps - show friendly message instead of crash
 try:
     import numpy as np
     from scipy import signal
@@ -96,17 +96,17 @@ except Exception:
 
 # Page config
 st.set_page_config(
-    page_title="SpectrumX DAC — Project Dashboard",
+    page_title="SpectrumX DAC Dashboard",
     page_icon="📡",
     layout="wide",
 )
 
 # Title
-st.title("📡 SpectrumX DAC — Winning Project Dashboard")
+st.title("📡 SpectrumX DAC: Competition-ready dashboard")
 st.caption(
-    "Judge Mode highlights the **core SpectrumX DAC detector** (local metrics + live `evaluate()` on synthetic IQ). "
-    "**Completed Research Extension** (Gary digital twin + **closed-loop AI-RAN scene controller**, **RIC-style** / **Near-RT / Non-RT–inspired** abstraction) is separate from the **core judged detector**. "
-    "**Next realism scaling:** DeepMIMO, Sionna RT, **NVIDIA AI Aerial / Omniverse** — integration-ready paths, **not** active in the judged model unless you add them."
+    "**Judge mode** foregrounds the **SpectrumX DAC detector** (local CSV metrics and live `evaluate()` on **synthetic** demo IQ only). "
+    "The **Gary digital twin** and **AI-RAN-style controller demo** are a **completed research extension**, separate from the **judged detector**. "
+    "**Next scaling path:** DeepMIMO, Sionna RT, and **NVIDIA AI Aerial / Omniverse** are **integration-ready** in the repo; they are **not** wired into the judged model unless you add them."
 )
 
 # Safety banner: do not upload competition data to Cloud
@@ -146,6 +146,9 @@ except Exception:
 
 SUBMISSION_MODEL_FINAL = "Final Submission (Best Known)"
 SUBMISSION_MODEL_EXPLORER = "Submission Explorer"
+
+# Missing-value label for tables/metrics (see docs/STREAMLIT_TEXT_STYLE_GUIDE.md)
+UI_EMPTY = "N/A"
 
 
 def _discover_submissions_safe(repo_root: Path) -> list:
@@ -374,7 +377,7 @@ def _features_dataframe(iq: np.ndarray, sample_rate: float):
 
 
 def _repo_root() -> Path:
-    """Repository root — never uses process CWD; anchored to this file + adapter fallbacks."""
+    """Repository root - never uses process CWD; anchored to this file + adapter fallbacks."""
     if _SUBMISSION_ADAPTER_OK and _sa_resolve_repo_root is not None:
         try:
             return _sa_resolve_repo_root(Path(__file__))
@@ -392,7 +395,7 @@ def _submission_dir(repo_root: Path, folder_name: str | None) -> Path | None:
     return (repo_root / "submissions" / folder_name).resolve()
 
 
-# Contrast-safe custom HTML (explicit dark text on light gray — judge-safe in light & dark Streamlit themes).
+# Contrast-safe custom HTML (explicit dark text on light gray - judge-safe in light & dark Streamlit themes).
 def _judge_html_card(title: str, body_inner_html: str, *, tone: str = "gray") -> str:
     bg = "#ced4da" if tone == "gray" else "#b8c2cc"
     return (
@@ -807,16 +810,22 @@ def _render_synthetic_demo_metadata_callout(meta: dict | None, caption_prefix: s
     """UI block: explicit synthetic demo labeling (Judge / Standard / Figure)."""
     if not meta:
         return
-    st.markdown("**Synthetic demo IQ — what this sample is**")
+    st.markdown("**Synthetic demo IQ** (what this sample is)")
     rows = [
-        {"Field": "Demo class", "Value": meta.get("demo_class", "—")},
+        {"Field": "Demo class", "Value": meta.get("demo_class", UI_EMPTY)},
         {"Field": "Signal inserted", "Value": "yes" if meta.get("signal_inserted") else "no"},
         {
             "Field": "Burst interval (s)",
-            "Value": f"{meta.get('burst_time_start_s', '—'):.4f} – {meta.get('burst_time_end_s', '—'):.4f}",
+            "Value": (
+                lambda _bs, _be: (
+                    f"{float(_bs):.4f} to {float(_be):.4f}"
+                    if _bs is not None and _be is not None
+                    else str(UI_EMPTY)
+                )
+            )(meta.get("burst_time_start_s"), meta.get("burst_time_end_s")),
         },
         {"Field": "Burst duration (s)", "Value": f"{meta.get('burst_duration_s', 0):.4f}"},
-        {"Field": "Generator type", "Value": str(meta.get("generator_type", "—"))},
+        {"Field": "Generator type", "Value": str(meta.get("generator_type", UI_EMPTY))},
     ]
     if pd is not None:
         st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
@@ -825,13 +834,13 @@ def _render_synthetic_demo_metadata_callout(meta: dict | None, caption_prefix: s
     st.info(
         (caption_prefix + " ").strip()
         + "**How to interpret:** The waveform always includes **noise everywhere** and a **middle burst** of structured energy. "
-        "Do not treat quiet-looking edges as “official noise-only ground truth” — this is a **demo generator**, not competition data."
+        "Do not treat quiet-looking edges as “official noise-only ground truth” - this is a **demo generator**, not competition data."
     )
 
 
 def _micro_twin_landmark_name(zone_lookup: dict | None, zone_id) -> str:
     if not zone_lookup or zone_id is None:
-        return "—"
+        return UI_EMPTY
     z = zone_lookup.get(str(zone_id)) or zone_lookup.get(zone_id)
     if isinstance(z, dict):
         return str(z.get("name") or z.get("landmark_name") or zone_id)
@@ -840,23 +849,23 @@ def _micro_twin_landmark_name(zone_lookup: dict | None, zone_id) -> str:
 
 def _render_micro_twin_sample_card(meta: dict, sample_rate_hz: float, zone_lookup: dict | None):
     """Compact Micro-Twin metadata for judges (synthetic extension, not scored)."""
-    st.markdown("**Micro-Twin sample (synthetic) — metadata**")
+    st.markdown("**Micro-Twin sample (synthetic): metadata**")
     sig_type = meta.get("signal_type")
     if sig_type is None or (isinstance(sig_type, float) and np.isnan(sig_type)):
         sig_disp = "noise-only sample (no structured signal type)"
     else:
         sig_disp = str(sig_type)
     rows = [
-        {"Field": "label (ground truth for this synthetic row)", "Value": meta.get("label", "—")},
-        {"Field": "zone_id", "Value": meta.get("zone_id", "—")},
+        {"Field": "label (ground truth for this synthetic row)", "Value": meta.get("label", UI_EMPTY)},
+        {"Field": "zone_id", "Value": meta.get("zone_id", UI_EMPTY)},
         {"Field": "landmark_name", "Value": _micro_twin_landmark_name(zone_lookup, meta.get("zone_id"))},
         {"Field": "signal_type", "Value": sig_disp},
-        {"Field": "snr_db", "Value": meta.get("snr_db", "—")},
-        {"Field": "cfo_hz", "Value": meta.get("cfo_hz", "—")},
-        {"Field": "num_taps", "Value": meta.get("num_taps", "—")},
+        {"Field": "snr_db", "Value": meta.get("snr_db", UI_EMPTY)},
+        {"Field": "cfo_hz", "Value": meta.get("cfo_hz", UI_EMPTY)},
+        {"Field": "num_taps", "Value": meta.get("num_taps", UI_EMPTY)},
         {"Field": "sample_rate_hz", "Value": sample_rate_hz},
-        {"Field": "seed", "Value": meta.get("seed", "—")},
-        {"Field": "file (synthetic id)", "Value": meta.get("file", "—")},
+        {"Field": "seed", "Value": meta.get("seed", UI_EMPTY)},
+        {"Field": "file (synthetic id)", "Value": meta.get("file", UI_EMPTY)},
     ]
     if pd is not None:
         st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
@@ -865,7 +874,7 @@ def _render_micro_twin_sample_card(meta: dict, sample_rate_hz: float, zone_looku
     st.success(
         "**Plain-language note:** Stretches of IQ samples near **zero do not automatically mean “empty spectrum.”** "
         "For Micro-Twin data, the **label and metadata row** tell you whether the window was generated as **noise-only** "
-        "or **with structured signal** — use those fields, not the waveform shape alone."
+        "or **with structured signal** - use those fields, not the waveform shape alone."
     )
 
 
@@ -912,15 +921,15 @@ def _render_judge_trust_evidence_panel(
     inv_count: int,
 ):
     """Judge-facing: structured evidence + explicit judged / extension / scaling separation."""
-    st.markdown("### Why judges can trust this — evidence")
+    st.markdown("### What reviewers can verify")
     st.markdown(
         _judge_html_card(
             "Three buckets (do not blur)",
             "<ul style='margin:0;padding-left:20px'>"
-            "<li><b>Core judged submission</b> — SpectrumX DAC detector trained/evaluated on <b>official competition data</b> (offline). "
-            "This app loads <b>only local CSV summaries</b> and runs <code>evaluate()</code> on <b>synthetic demo IQ</b> — never official IQ in-cloud.</li>"
-            "<li><b>Completed research extension</b> — Gary site-aware digital twin + AI-RAN-style controller demo (non-scoring prototype in this UI).</li>"
-            "<li><b>Next realism scaling</b> — DeepMIMO (channels), Sionna RT (ray-tracing), **NVIDIA AI Aerial / Omniverse** (digital-twin RF visualization) — **drop zones + stubs** until pipelines land; **none** drive the judged detector in-app.</li>"
+            "<li><b>Core judged submission</b> - SpectrumX DAC detector trained/evaluated on <b>official competition data</b> (offline). "
+            "This app loads <b>only local CSV summaries</b> and runs <code>evaluate()</code> on <b>synthetic demo IQ</b> - never official IQ in-cloud.</li>"
+            "<li><b>Completed research extension</b> - Gary site-aware digital twin + AI-RAN-style controller demo (non-scoring prototype in this UI).</li>"
+            "<li><b>Next realism scaling</b> - DeepMIMO (channels), Sionna RT (ray-tracing), **NVIDIA AI Aerial / Omniverse** (digital-twin RF visualization) - **drop zones + stubs** until pipelines land; **none** drive the judged detector in-app.</li>"
             "</ul>",
         ),
         unsafe_allow_html=True,
@@ -928,11 +937,11 @@ def _render_judge_trust_evidence_panel(
     c1, c2 = st.columns(2)
     with c1:
         st.markdown("**Final submission card (from CSV)**")
-        if core_row and any(v not in (None, "", "—") for k, v in core_row.items() if k != "artifact_present"):
-            st.metric("Submission (CSV)", str(core_row.get("submission", "—")))
-            st.metric("Best rank (if in CSV)", str(core_row.get("leaderboard_rank", "—")))
-            st.metric("Best accuracy (if in CSV)", str(core_row.get("leaderboard_accuracy", "—")))
-            st.metric("Runtime (if in CSV)", str(core_row.get("runtime", core_row.get("runtime_per_sample", "—"))))
+        if core_row and any(v not in (None, "", UI_EMPTY) for k, v in core_row.items() if k != "artifact_present"):
+            st.metric("Submission (CSV)", str(core_row.get("submission", UI_EMPTY)))
+            st.metric("Best rank (if in CSV)", str(core_row.get("leaderboard_rank", UI_EMPTY)))
+            st.metric("Best accuracy (if in CSV)", str(core_row.get("leaderboard_accuracy", UI_EMPTY)))
+            st.metric("Runtime (if in CSV)", str(core_row.get("runtime", core_row.get("runtime_per_sample", UI_EMPTY))))
         else:
             st.warning(
                 "No populated row from `submissions/submission_metrics.csv`. **Expected columns** (flexible names): "
@@ -941,7 +950,7 @@ def _render_judge_trust_evidence_panel(
     with c2:
         st.markdown("**Active model path in this app**")
         st.metric("Submission packages discovered", str(inv_count))
-        st.metric("Package selected for live inference", str(active_pkg or "—"))
+        st.metric("Package selected for live inference", str(active_pkg or UI_EMPTY))
         if active_pkg and _SUBMISSION_ADAPTER_OK and _sa_submission_folder_info is not None:
             inf = _sa_submission_folder_info(repo_root, str(active_pkg))
             st.caption(
@@ -962,11 +971,11 @@ def _render_judge_oran_ai_ran_alignment_card():
             "Why this aligns with AI-RAN / O-RAN (extension demo)",
             "<ul style='margin:0;padding-left:18px;line-height:1.55'>"
             "<li><b>O-RAN</b> research uses <b>Near-RT RIC</b> and <b>Non-RT RIC</b> terminology for control timescales. This UI uses a <b>RIC-style</b>, "
-            "<b>Near-RT / Non-RT–inspired</b> <b>closed-loop scene controller</b> — <b>not</b> a claim of a deployed full RT RIC: "
+            "<b>Near-RT / Non-RT–inspired</b> <b>closed-loop scene controller</b> - <b>not</b> a claim of a deployed full RT RIC: "
             "<b>ingest</b> sensing + site state → <b>policy</b> → discrete <b>actions</b> → <b>KPI</b> readout.</li>"
             "<li><b>AI-RAN</b> uses ML/AI on observations to adapt spectrum use; here the <b>SpectrumX detector</b> (separate tab) supplies "
-            "<b>occupancy belief</b> on <b>synthetic demo IQ</b> — a stand-in for O1 / sensing interfaces.</li>"
-            "<li><b>Truthful scope</b>: no live E2 interface, no production RIC — <b>conference-grade systems storytelling</b> on top of a real judged detector package.</li>"
+            "<b>occupancy belief</b> on <b>synthetic demo IQ</b> - a stand-in for O1 / sensing interfaces.</li>"
+            "<li><b>Truthful scope</b>: no live E2 interface and no production RIC. The UI adds <b>a transparent demo narrative</b> on top of the real submission package.</li>"
             "</ul>",
         ),
         unsafe_allow_html=True,
@@ -1000,10 +1009,10 @@ def _render_judge_gary_micro_twin_3d():
     # --- Separation banner (completed extension is not the judged detector) ---
     st.success(
         "**Completed Research Extension:** Not the judged SpectrumX detector. "
-        "**Closed-loop AI-RAN scene controller** + **RIC-style** policy (Near-RT / Non-RT–**inspired** abstraction only — **not** a full RT RIC)."
+        "**Closed-loop AI-RAN scene controller** + **RIC-style** policy (Near-RT / Non-RT–**inspired** abstraction only - **not** a full RT RIC)."
     )
 
-    st.markdown("## Completed Gary Digital Twin Extension — simulation-backed scene + closed-loop AI-RAN controller")
+    st.markdown("## Completed Gary Digital Twin Extension - simulation-backed scene + closed-loop AI-RAN controller")
     st.caption(
         "**Population / device scenario engine** drives demand & pressure; **RF environment** is still a **proxy** unless you load Sionna / DeepMIMO summaries. "
         "No official competition IQ in this app."
@@ -1035,11 +1044,11 @@ def _render_judge_gary_micro_twin_3d():
     with ce1:
         st.markdown(
             _judge_html_card(
-                "Why this is research-grade now",
+                "Why this extension is technically grounded",
                 "<ul style='margin:0;padding-left:18px'>"
-                "<li><b>Real detector</b> evaluated on competition-style data <b>offline</b> — <b>not</b> exposed as raw IQ in this app; core tab + submission workflow.</li>"
+                "<li><b>Real detector</b> evaluated on competition-style data <b>offline</b> - <b>not</b> exposed as raw IQ in this app; core tab + submission workflow.</li>"
                 "<li><b>Completed extension</b>: <b>scenario engine</b> (people/devices/load) + <b>closed-loop AI-RAN scene controller</b> (RIC-style abstraction).</li>"
-                "<li><b>Propagation / coverage</b>: <b>scenario-driven</b> proxy metrics + charts — still <b>not</b> a ray-tracing solver.</li>"
+                "<li><b>Propagation / coverage</b>: <b>scenario-driven</b> proxy metrics + charts - still <b>not</b> a ray-tracing solver.</li>"
                 "<li><b>Simulation backbone</b>: JSON summaries load when present; else honest <b>not loaded</b> + expected paths.</li>"
                 "</ul>",
             ),
@@ -1051,9 +1060,9 @@ def _render_judge_gary_micro_twin_3d():
                 "Why this matters for 6G research & admissions",
                 "<ul style='margin:0;padding-left:18px'>"
                 "<li><b>AI-native RAN</b>: <b>sensing → policy → action → KPI</b> loop aligned with **Near-RT / Non-RT RIC** research language (honest abstraction).</li>"
-                "<li><b>Digital twins</b>: ties ML to <b>place</b> and <b>propagation-aware</b> decisions — core 6G systems theme.</li>"
-                "<li><b>Equitable access</b>: KPIs encode <b>community benefit</b> vs <b>coexistence</b> — policy-relevant framing.</li>"
-                "<li><b>Simulation discipline</b>: clear path from <b>proxy demo</b> → <b>DeepMIMO / Sionna / Aerial</b> — reads as serious systems research.</li>"
+                "<li><b>Digital twins</b>: ties ML to <b>place</b> and <b>propagation-aware</b> decisions - core 6G systems theme.</li>"
+                "<li><b>Equitable access</b>: KPIs encode <b>community benefit</b> vs <b>coexistence</b> - policy-relevant framing.</li>"
+                "<li><b>Simulation discipline</b>: clear path from <b>proxy demo</b> → <b>DeepMIMO / Sionna / Aerial</b> - supports a credible path to simulation-backed evaluation.</li>"
                 "</ul>",
                 tone="gray",
             ),
@@ -1160,7 +1169,7 @@ def _render_judge_gary_micro_twin_3d():
                     tag = "**scenario aggregate (assumption)**"
                 else:
                     tag = "**assumption**"
-                st.caption(f"• **{site}** — {item} ({tag})")
+                st.caption(f"• **{site}** - {item} ({tag})")
         st.markdown("**Editable overrides (scenario parameters)**")
         ov_wsla_staff = ov_wsla_att = ov_ch_emp = ov_ch_vis = ov_lib_occ = None
         lib_simple = st.checkbox("Library: simple 1.0 device / occupant", value=False, key="judge_mt_lib_simple")
@@ -1244,7 +1253,7 @@ def _render_judge_gary_micro_twin_3d():
     _demo_only = bool(st.session_state.get("sim_bundled_demo_only", False))
     st.markdown("##### Simulation data sources")
     st.caption(
-        "**Completed extension** — not the judged detector. On **Streamlit Cloud**, runtime writes under `data/` usually **do not persist** across restarts; "
+        "**Completed extension** - not the judged detector. On **Streamlit Cloud**, runtime writes under `data/` usually **do not persist** across restarts; "
         "files committed under `examples/simulation_exports/` stay available after each deploy."
     )
     _sdc1, _sdc2, _sdc3 = st.columns([1, 1, 2])
@@ -1270,7 +1279,7 @@ def _render_judge_gary_micro_twin_3d():
         else:
             st.caption("**Mode:** data/ first → examples fallback")
 
-    # Simulation summaries (once per run) — used by map, propagation, controller honesty, backbone
+    # Simulation summaries (once per run) - used by map, propagation, controller honesty, backbone
     _repo_mt = _repo_root()
     _sim_dm: dict = {}
     _sim_sn: dict = {}
@@ -1281,7 +1290,7 @@ def _render_judge_gary_micro_twin_3d():
             "path": str((_repo_mt / "data" / "deepmimo").resolve()),
             "source_kind": "absent",
             "status_label": "Not loaded",
-            "parser_note": "`simulation_integration_hooks` failed to import — cannot load summaries.",
+            "parser_note": "`simulation_integration_hooks` failed to import : cannot load summaries.",
         }
         _sim_sn = {
             "loaded": False,
@@ -1289,7 +1298,7 @@ def _render_judge_gary_micro_twin_3d():
             "source_kind": "absent",
             "status_label": "Not loaded",
             "coverage_overlay_active": False,
-            "parser_note": "`simulation_integration_hooks` failed to import — cannot load summaries.",
+            "parser_note": "`simulation_integration_hooks` failed to import : cannot load summaries.",
         }
         _sim_ae = {
             "loaded": False,
@@ -1300,7 +1309,7 @@ def _render_judge_gary_micro_twin_3d():
             "aerial_status_tier": "none",
             "access_summary_path": None,
             "access_summary_excerpt": {},
-            "parser_note": "`simulation_integration_hooks` failed to import — cannot load summaries.",
+            "parser_note": "`simulation_integration_hooks` failed to import : cannot load summaries.",
         }
     if _SIM_INTEGRATION_HOOKS_OK:
         if load_deepmimo_scenario_summary:
@@ -1314,7 +1323,7 @@ def _render_judge_gary_micro_twin_3d():
                     "status_label": "Not loaded",
                     "expected_files": ["scenario_summary.json", "scenario_meta.json"],
                     "integration": "deepmimo",
-                    "parser_note": "Loader raised an exception — check terminal logs; not marked loaded.",
+                    "parser_note": "Loader raised an exception : check terminal logs; not marked loaded.",
                     "error": "loader_exception",
                 }
         if load_sionna_propagation_summary:
@@ -1333,7 +1342,7 @@ def _render_judge_gary_micro_twin_3d():
                         "coverage_grid.geojson",
                     ],
                     "integration": "sionna_rt",
-                    "parser_note": "Loader raised an exception — check terminal logs; not marked loaded.",
+                    "parser_note": "Loader raised an exception : check terminal logs; not marked loaded.",
                     "error": "loader_exception",
                 }
         if load_aerial_overlay_summary:
@@ -1351,7 +1360,7 @@ def _render_judge_gary_micro_twin_3d():
                     "access_summary_excerpt": {},
                     "expected_files": ["overlay_summary.json", "twin_manifest.json"],
                     "integration": "aerial_omniverse",
-                    "parser_note": "Loader raised an exception — check terminal logs; not marked loaded.",
+                    "parser_note": "Loader raised an exception : check terminal logs; not marked loaded.",
                     "error": "loader_exception",
                 }
 
@@ -1386,7 +1395,7 @@ def _render_judge_gary_micro_twin_3d():
         )
     else:
         st.info(
-            "**Using footprint model (default):** all anchors render as **extruded polygons** — add `assets/models/*.glb` + "
+            "**Using footprint model (default):** all anchors render as **extruded polygons** . Add `assets/models/*.glb` + "
             "`configs/wireless_scene/site_models.json` to enable optional **ScenegraphLayer** (see `docs/SITE_MODELING_PLAN.md`)."
         )
 
@@ -1396,7 +1405,7 @@ def _render_judge_gary_micro_twin_3d():
         "(operator or full_solver pipeline). "
         "**Loaded (demo summary)** = `examples/simulation_exports/*` **or** `data/*` files whose "
         "`export_provenance.simulation_grade` is `analytic_fallback` / synthetic (export scripts). "
-        "**Access confirmed / installer-ready** (Aerial) = `access_summary.json` only — **not** a twin export."
+        "**Access confirmed / installer-ready** (Aerial) = `access_summary.json` only . This is **not** a twin export."
     )
     st.markdown(
         "<div style='background:#f8f9fa;border:2px solid #212529;border-radius:10px;padding:12px 14px;color:#111827;"
@@ -1425,12 +1434,12 @@ def _render_judge_gary_micro_twin_3d():
             st.warning(f"**{_d_sl}**")
         st.caption(f"**Source:** {_sim_source_type_label(str(_sim_dm.get('source_kind', 'absent')))}")
         st.caption(f"**File:** `{_sim_dm.get('summary_json_path') or _sim_dm.get('path', '')}`")
-        st.caption(f"**Load mode:** `{_sim_dm.get('load_mode', '—')}`")
+        st.caption(f"**Load mode:** `{_sim_dm.get('load_mode', UI_EMPTY)}`")
         if _sim_dm.get("loaded") and _sim_dm.get("extracted_summary"):
             _dex = _sim_dm["extracted_summary"]
             st.caption(
-                f"**Scenario:** {_dex.get('scenario_name', '—')} · BS {_dex.get('num_bs', '—')} · UE {_dex.get('num_users', '—')} · "
-                f"LOS/NLOS {_dex.get('los_links', '—')}/{_dex.get('nlos_links', '—')}"
+                f"**Scenario:** {_dex.get('scenario_name', UI_EMPTY)} · BS {_dex.get('num_bs', UI_EMPTY)} · UE {_dex.get('num_users', UI_EMPTY)} · "
+                f"LOS/NLOS {_dex.get('los_links', UI_EMPTY)}/{_dex.get('nlos_links', UI_EMPTY)}"
             )
         if _sim_dm.get("parser_note"):
             st.caption(_sim_dm["parser_note"])
@@ -1443,20 +1452,20 @@ def _render_judge_gary_micro_twin_3d():
             st.warning(f"**{_s_sl}**")
         st.caption(f"**Source:** {_sim_source_type_label(str(_sim_sn.get('source_kind', 'absent')))}")
         st.caption(f"**Primary path:** `{_sim_sn.get('path', '')}`")
-        st.caption(f"**Load mode:** `{_sim_sn.get('load_mode', '—')}`")
+        st.caption(f"**Load mode:** `{_sim_sn.get('load_mode', UI_EMPTY)}`")
         if _sim_sn.get("summary_json_path"):
             st.caption(f"**JSON:** `{_sim_sn['summary_json_path']}`")
         if _sim_sn.get("geojson_path"):
             st.caption(f"**GeoJSON:** `{_sim_sn['geojson_path']}`")
         if _sim_sn.get("loaded") and _sim_sn.get("coverage_overlay_active"):
-            st.caption("**Map:** **Coverage overlay ON** — `layer-sionna-coverage-geojson` is drawn in the 3D scene.")
+            st.caption("**Map:** **Coverage overlay ON** . Layer `layer-sionna-coverage-geojson` is drawn in the 3D scene.")
         elif _sim_sn.get("loaded"):
-            st.caption("**Map:** no validated GeoJSON in this load — halos remain scenario **proxies**.")
+            st.caption("**Map:** no validated GeoJSON in this load . Halos remain scenario **proxies**.")
         if _sim_sn.get("loaded") and _sim_sn.get("extracted_summary"):
             _sex = _sim_sn["extracted_summary"]
             st.caption(
-                f"**Scenario:** {_sex.get('scenario_name', '—')} · mean PL {_sex.get('mean_path_loss_db', '—')} dB · "
-                f"LOS frac. {_sex.get('los_fraction', '—')}"
+                f"**Scenario:** {_sex.get('scenario_name', UI_EMPTY)} · mean PL {_sex.get('mean_path_loss_db', UI_EMPTY)} dB · "
+                f"LOS frac. {_sex.get('los_fraction', UI_EMPTY)}"
             )
         if _sim_sn.get("parser_note"):
             st.caption(_sim_sn["parser_note"])
@@ -1467,19 +1476,19 @@ def _render_judge_gary_micro_twin_3d():
             st.success(f"**{_a_sl}**")
         elif _sim_ae.get("access_confirmed"):
             st.success(f"**{_a_sl}**")
-            st.caption("**Not** a loaded twin — credentials / Docker / NGC probe summary only.")
+            st.caption("**Not** a loaded twin . Shows credentials / Docker / NGC probe summary only.")
         else:
-            st.info(f"**{_a_sl}** — add manifest or run `scripts/check_ngc_access.py`.")
-        st.caption(f"**Tier:** `{_sim_ae.get('aerial_status_tier', '—')}`")
+            st.info(f"**{_a_sl}** . Add a manifest or run `scripts/check_ngc_access.py`.")
+        st.caption(f"**Tier:** `{_sim_ae.get('aerial_status_tier', UI_EMPTY)}`")
         st.caption(f"**Source:** {_sim_source_type_label(str(_sim_ae.get('source_kind', 'absent')))}")
         st.caption(
-            f"**Manifest file:** `{_sim_ae.get('summary_json_path') or '—'}` · "
-            f"**Access file:** `{_sim_ae.get('access_summary_path') or '—'}`"
+            f"**Manifest file:** `{_sim_ae.get('summary_json_path') or UI_EMPTY}` · "
+            f"**Access file:** `{_sim_ae.get('access_summary_path') or UI_EMPTY}`"
         )
-        st.caption(f"**Load mode:** `{_sim_ae.get('load_mode', '—')}`")
+        st.caption(f"**Load mode:** `{_sim_ae.get('load_mode', UI_EMPTY)}`")
         if _sim_ae.get("loaded") and _sim_ae.get("extracted_summary"):
             _aex = _sim_ae["extracted_summary"]
-            st.caption(f"**Scene:** {_aex.get('scene_name', '—')}")
+            st.caption(f"**Scene:** {_aex.get('scene_name', UI_EMPTY)}")
         if _sim_ae.get("external_tooling_required"):
             st.caption(
                 "**External:** NVIDIA AI Aerial / Omniverse tooling + GPU; often **NVIDIA account** / **6G Developer Program**."
@@ -1487,7 +1496,7 @@ def _render_judge_gary_micro_twin_3d():
 
     with st.expander("Simulation details (tables & raw JSON)", expanded=False):
         if _sim_dm.get("loaded") and _sim_dm.get("extracted_summary"):
-            st.markdown("**DeepMIMO — parsed fields**")
+            st.markdown("**DeepMIMO - parsed fields**")
             if pd is not None:
                 st.dataframe(pd.DataFrame([_sim_dm["extracted_summary"]]), use_container_width=True, hide_index=True)
             else:
@@ -1496,19 +1505,19 @@ def _render_judge_gary_micro_twin_3d():
                 st.caption("**NPZ sidecar (metadata only)**")
                 st.json(_sim_dm["npz_channel_meta"])
         if _sim_sn.get("loaded") and _sim_sn.get("extracted_summary"):
-            st.markdown("**Sionna RT — parsed fields**")
+            st.markdown("**Sionna RT - parsed fields**")
             if pd is not None:
                 st.dataframe(pd.DataFrame([_sim_sn["extracted_summary"]]), use_container_width=True, hide_index=True)
             else:
                 st.json(_sim_sn["extracted_summary"])
         if _sim_ae.get("loaded") and _sim_ae.get("extracted_summary"):
-            st.markdown("**Aerial / Omniverse — manifest fields**")
+            st.markdown("**Aerial / Omniverse - manifest fields**")
             if pd is not None:
                 st.dataframe(pd.DataFrame([_sim_ae["extracted_summary"]]), use_container_width=True, hide_index=True)
             else:
                 st.json(_sim_ae["extracted_summary"])
         if _sim_ae.get("access_confirmed") and _sim_ae.get("access_summary_excerpt"):
-            st.markdown("**Aerial — access probe excerpt (no secrets)**")
+            st.markdown("**Aerial - access probe excerpt (no secrets)**")
             st.json(_sim_ae["access_summary_excerpt"])
         if not (
             (_sim_dm.get("loaded") and _sim_dm.get("extracted_summary"))
@@ -1516,9 +1525,9 @@ def _render_judge_gary_micro_twin_3d():
             or (_sim_ae.get("loaded") and _sim_ae.get("extracted_summary"))
             or _sim_ae.get("access_confirmed")
         ):
-            st.caption("Nothing loaded — use bundled demo, export scripts, or add files under `data/*`.")
+            st.caption("Nothing loaded . Use bundled demo, export scripts, or add files under `data/*`.")
 
-    st.markdown("#### Extension evidence — scenario engine output (focus site)")
+    st.markdown("#### Extension evidence - scenario engine output (focus site)")
     ev1, ev2, ev3 = st.columns(3)
     with ev1:
         st.metric("People (scenario)", f"{focus_state.people_count:.0f}")
@@ -1552,7 +1561,7 @@ def _render_judge_gary_micro_twin_3d():
     if focus_state.assumption_notes:
         st.caption("**Assumptions:** " + " ".join(focus_state.assumption_notes))
 
-    # --- Site identity strip (all anchors — nontechnical recognition) ---
+    # --- Site identity strip (all anchors - nontechnical recognition) ---
     st.markdown("#### Anchor sites at a glance")
     _id_cols = st.columns(3)
     for _col, _b in zip(_id_cols, buildings):
@@ -1570,20 +1579,20 @@ def _render_judge_gary_micro_twin_3d():
     )
 
     # --- Central 3D canvas ---
-    st.markdown("### Interactive 3D — wireless radio scene (Gary anchors)")
+    st.markdown("### Interactive 3D - wireless radio scene (Gary anchors)")
     st.caption(
         "Hover layers: **people/device heatmaps** (aggregated) · **foot-traffic paths** (proxy) · **cluster disks** (aggregate counts) · **buildings** · "
         "**coverage halos** · **blue** gNB · **cyan** serving link · **violet** demand · **orange** propagation · **red** IF."
     )
     if _occ_bundle.get("activity_mode"):
         st.caption(
-            f"**Foot-traffic / activity mode (proxy):** `{_occ_bundle['activity_mode']}` — paths and heat weighting follow **scenario preset + calendar**, "
+            f"**Foot-traffic / activity mode (proxy):** `{_occ_bundle['activity_mode']}` - paths and heat weighting follow **scenario preset + calendar**, "
             "not GPS data."
         )
 
     gnb_rows = []
     demand_rows = []
-    # Slight positional bias (ingress / flow emphasis) — scales with traffic so load “follows” busy scenarios
+    # Slight positional bias (ingress / flow emphasis) - scales with traffic so load “follows” busy scenarios
     _demand_flow_nudge = {
         "west_side_leadership": (-0.00005, 0.000015),
         "city_hall": (0.000025, -0.00004),
@@ -1617,7 +1626,7 @@ def _render_judge_gary_micro_twin_3d():
             }
         )
 
-    # Coverage-quality halo (large translucent disk) — simple heat-style proxy, not a solver grid
+    # Coverage-quality halo (large translucent disk) - simple heat-style proxy, not a solver grid
     coverage_halo_rows = []
     for b in buildings:
         clon, clat = b["centroid"]
@@ -1650,11 +1659,11 @@ def _render_judge_gary_micro_twin_3d():
             "position": [-87.3355, 41.5839],
             "label": "Secondary clutter / IF proxy",
             "radius": 140 + int(95 * eff_env * (0.85 + 0.35 * _max_coex)),
-            "tip": "Low-7 GHz coexistence stressor — **not** a real identified emitter.",
+            "tip": "Low-7 GHz coexistence stressor - **not** a real identified emitter.",
         },
     ]
 
-    # Hypothetical interference *footprints* (polygon proxies) — visible on map, not only disks
+    # Hypothetical interference *footprints* (polygon proxies) - visible on map, not only disks
     if_polygons = [
         {
             "polygon": [
@@ -1690,7 +1699,7 @@ def _render_judge_gary_micro_twin_3d():
         clon, clat = b["centroid"]
         glon = clon + b["gnb_offset_lon"]
         glat = clat + b["gnb_offset_lat"]
-        # LOS / blockage proxy along link (for tooltip — not physical simulation)
+        # LOS / blockage proxy along link (for tooltip - not physical simulation)
         _bh = b["height_m"] / 70.0
         _los_frac = max(0.15, min(0.95, 0.72 - 0.35 * eff_env - 0.12 * _bh))
         link_rows.append(
@@ -1701,7 +1710,7 @@ def _render_judge_gary_micro_twin_3d():
             }
         )
 
-    # Low-7 GHz propagation / coupling stress markers (site centroids — explicit proxy layer)
+    # Low-7 GHz propagation / coupling stress markers (site centroids - explicit proxy layer)
     prop_rows = []
     for b in buildings:
         clon, clat = b["centroid"]
@@ -1733,7 +1742,7 @@ def _render_judge_gary_micro_twin_3d():
                 {
                     "position": [_clon + _off[0], _clat + _off[1], 0.0],
                     "label": _b.get("map_label", _b["name"]),
-                    "tip": f"3D asset (proxy) · {_b['name'][:40]} — not photogrammetry; optional GLB.",
+                    "tip": f"3D asset (proxy) · {_b['name'][:40]} - not photogrammetry; optional GLB.",
                 }
             ]
             _scenegraph_layers.append(
@@ -2065,7 +2074,7 @@ def _render_judge_gary_micro_twin_3d():
         return
 
     st.caption(
-        "**Figure: community impact at City Hall / Library / West Side** — building height & tint encode **coexistence stress proxy** "
+        "**Figure: community impact at City Hall / Library / West Side** - building height & tint encode **coexistence stress proxy** "
         "under your scenario (not calibrated field data)."
     )
 
@@ -2093,7 +2102,7 @@ def _render_judge_gary_micro_twin_3d():
             "<span style='display:inline-block;width:18px;height:3px;background:#2980b9;vertical-align:middle;margin-right:6px'></span>"
             "<b>Foot-traffic paths</b> (static proxy polylines · preset-driven)<br/>"
             "<span style='display:inline-block;width:16px;height:16px;background:rgba(52,152,219,0.45);border:1px solid #1f6187;border-radius:50%;vertical-align:middle;margin-right:6px'></span>"
-            "<b>People clusters</b> (disk ∝ cohort size — not individuals)<br/>"
+            "<b>People clusters</b> (disk ∝ cohort size - not individuals)<br/>"
             "<span style='display:inline-block;width:16px;height:16px;background:rgba(142,68,173,0.45);border:1px solid #5b2c6f;border-radius:50%;vertical-align:middle;margin-right:6px'></span>"
             "<b>Device clusters</b> (IP vs control emphasis)</div>",
             unsafe_allow_html=True,
@@ -2104,12 +2113,12 @@ def _render_judge_gary_micro_twin_3d():
         st.markdown("**Wireless-layer legend (semantics)**")
         st.markdown(
             "<div style='font-size:12px;line-height:1.65;color:#111827'>"
-            "<b>L1 Anchor geometry</b> — **site-specific extruded footprints** (multi-vertex outlines); optional **.glb** replaces footprint when configured. "
+            "<b>L1 Anchor geometry</b> - **site-specific extruded footprints** (multi-vertex outlines); optional **.glb** replaces footprint when configured. "
             "Outline color hints: **civic blue** · **library violet** · **school green** (plus coexistence tint).<br/>"
-            "<b>L2 Access / serving</b> — hypothetical gNB + serving segment (not a carrier asset DB).<br/>"
-            "<b>L3 Traffic demand</b> — violet disks = **engine-driven** load hotspots (radius ∝ traffic demand score).<br/>"
-            "<b>L4 Propagation abstraction</b> — green halos + orange stress = <b>proxy</b> until Sionna / DeepMIMO / Aerial feeds replace them.<br/>"
-            "<b>L5 Coexistence / risk</b> — red IF proxies = aggregated interference story, not identified emitters.</div>",
+            "<b>L2 Access / serving</b> - hypothetical gNB + serving segment (not a carrier asset DB).<br/>"
+            "<b>L3 Traffic demand</b> - violet disks = **engine-driven** load hotspots (radius ∝ traffic demand score).<br/>"
+            "<b>L4 Propagation abstraction</b> - green halos + orange stress = <b>proxy</b> until Sionna / DeepMIMO / Aerial feeds replace them.<br/>"
+            "<b>L5 Coexistence / risk</b> - red IF proxies = aggregated interference story, not identified emitters.</div>",
             unsafe_allow_html=True,
         )
         st.markdown("</div>", unsafe_allow_html=True)
@@ -2118,22 +2127,22 @@ def _render_judge_gary_micro_twin_3d():
         st.markdown("**O-RAN mapping (conceptual)**")
         st.markdown(
             "<div style='font-size:12px;line-height:1.65;color:#111827'>"
-            "<b>RU / O-DU (abstracted)</b> — gNB marker + link geometry.<br/>"
-            "<b>O1 / sensing stand-in</b> — SpectrumX <code>evaluate()</code> on <b>synthetic</b> IQ (Judge tab).<br/>"
-            "<b>RIC-style controller</b> — policy panel maps **closed-loop state** → discrete action → KPIs (Near-RT / Non-RT–<b>inspired</b>).<br/>"
+            "<b>RU / O-DU (abstracted)</b> - gNB marker + link geometry.<br/>"
+            "<b>O1 / sensing stand-in</b> - SpectrumX <code>evaluate()</code> on <b>synthetic</b> IQ (Judge tab).<br/>"
+            "<b>RIC-style controller</b> - policy panel maps **closed-loop state** → discrete action → KPIs (Near-RT / Non-RT–<b>inspired</b>).<br/>"
             "<em>No live E2 / E1 interfaces in this demo.</em></div>",
             unsafe_allow_html=True,
         )
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # --- Site identity card (selected) — strong Gary / community context ---
-    st.markdown("#### Focus site — identity & community role")
+    # --- Site identity card (selected) - strong Gary / community context ---
+    st.markdown("#### Focus site - identity & community role")
     sc1, sc2, sc3 = st.columns([1.15, 1.0, 1.15])
     with sc1:
         st.metric("Site", selected_building.get("map_label", selected_building["name"]))
         st.caption(f"**Type:** {selected_building['building_type']}")
         st.caption(f"**Role:** {selected_building['role']}")
-        st.caption(f"**Community function:** {selected_building.get('community_function', '—')}")
+        st.caption(f"**Community function:** {selected_building.get('community_function', UI_EMPTY)}")
     with sc2:
         st.metric("Approx. height", f"{selected_building['height_m']} m")
         st.metric("Footprint (approx.)", f"{selected_building['footprint_approx_m2']:,} m²")
@@ -2143,7 +2152,7 @@ def _render_judge_gary_micro_twin_3d():
             else "Extruded footprint (polygon)"
         )
         st.caption(f"**Geometry render:** {_geom_mode}")
-        st.caption(f"**Footprint note:** {selected_building.get('geometry_note', selected_building.get('footprint_source_note', '—'))}")
+        st.caption(f"**Footprint note:** {selected_building.get('geometry_note', selected_building.get('footprint_source_note', UI_EMPTY))}")
     with sc3:
         st.success(f"**Why this site matters to Gary:** {selected_building['why_matters']}")
         st.caption(
@@ -2153,26 +2162,26 @@ def _render_judge_gary_micro_twin_3d():
             f"**Engine (focus):** people ≈ **{focus_state.people_count:.0f}** · active IP ≈ **{focus_state.active_ip_devices:.0f}** · "
             f"traffic demand **{focus_state.traffic_demand_score:.2f}**"
         )
-        st.caption("Completed extension — **recognizable** anchor footprints + wireless-scene overlays (not raw competition data).")
+        st.caption("Completed extension - **recognizable** anchor footprints + wireless-scene overlays (not raw competition data).")
         if _sim_dm.get("loaded") and (_sim_dm.get("extracted_summary") or {}):
             _dex = _sim_dm["extracted_summary"]
             _dm_src = "demo bundle" if _sim_dm.get("source_kind") == "demo" else "simulation export"
             st.info(
                 f"**DeepMIMO** ({_dm_src}): `{_dex.get('scenario_name') or 'scenario'}` · "
-                f"BS {_dex.get('num_bs', '—')} · UE {_dex.get('num_users', '—')} · "
-                f"LOS/NLOS {_dex.get('los_links', '—')}/{_dex.get('nlos_links', '—')} — map halos/links still **proxies**."
+                f"BS {_dex.get('num_bs', UI_EMPTY)} · UE {_dex.get('num_users', UI_EMPTY)} · "
+                f"LOS/NLOS {_dex.get('los_links', UI_EMPTY)}/{_dex.get('nlos_links', UI_EMPTY)} . Map halos/links still **proxies**."
             )
         if _sim_sn.get("loaded"):
             _sn_src = "demo bundle" if _sim_sn.get("source_kind") == "demo" else "simulation export"
             _cov = "**Coverage overlay ON** (`layer-sionna-coverage-geojson`)." if _sim_sn.get("coverage_overlay_active") else "No GeoJSON overlay in this load."
             st.info(
-                f"**Sionna RT** ({_sn_src}): validated summary and/or GeoJSON — {_cov} Details in **Simulation summaries** above."
+                f"**Sionna RT** ({_sn_src}): validated summary and/or GeoJSON - {_cov} Details in **Simulation summaries** above."
             )
 
     # --- Propagation / coverage (screenshot panel; honest proxy labeling) ---
     st.markdown("### Propagation / Coverage (implemented proxy abstraction)")
     st.warning(
-        "**Implemented proxy / current abstraction** — deterministic scenario math for **demo + screenshots**. "
+        "**Implemented proxy / current abstraction** - deterministic scenario math for **demo + screenshots**. "
         "**Not** ray-traced coverage, **not** DeepMIMO CSI, **not** Sionna path loss grids, **not** NVIDIA Aerial exports, **not** drive-test data."
     )
     _sim_backing_msgs = []
@@ -2190,7 +2199,7 @@ def _render_judge_gary_micro_twin_3d():
     if _sim_dm.get("loaded"):
         _dm_src2 = "**demo bundle**" if _sim_dm.get("source_kind") == "demo" else "**simulation export**"
         _sim_backing_msgs.append(
-            f"**DeepMIMO** ({_dm_src2}): scenario summary **passed validation** — see **Simulation summaries** for BS/UE/LOS. "
+            f"**DeepMIMO** ({_dm_src2}): scenario summary **passed validation** - see **Simulation summaries** for BS/UE/LOS. "
             "**Halos / orange stress disks** remain **proxies** (not CSI-driven) here."
         )
     if _sim_backing_msgs:
@@ -2219,7 +2228,7 @@ def _render_judge_gary_micro_twin_3d():
         for b in buildings:
             pr = b["_prop"]
             st.caption(
-                f"**{b['name'][:40]}** — coverage(proxy) {pr['coverage_proxy']:.2f} · "
+                f"**{b['name'][:40]}** - coverage(proxy) {pr['coverage_proxy']:.2f} · "
                 f"challenge {pr['challenge_proxy']:.2f} · {pr['los_nl_os']} · "
                 f"penetration~{pr['penetration_db_proxy']:.0f} dB · blockage {pr['blockage_proxy']:.2f}"
             )
@@ -2293,7 +2302,7 @@ def _render_judge_gary_micro_twin_3d():
         st.caption("Red disks + hatched footprints = coexistence **proxies** only.")
     with r4:
         st.markdown("**Link LOS proxy**")
-        st.caption("Tooltip along cyan segment — straight-line **indicator**, not Sionna RT.")
+        st.caption("Tooltip along cyan segment - straight-line **indicator**, not Sionna RT.")
 
     st.info(
         "**Next scaling (replace proxies):** **Sionna RT** → path-loss / LOS grids → `data/sionna_rt/` (or legacy `data/simulation/sionna_rt/`). "
@@ -2314,14 +2323,14 @@ def _render_judge_gary_micro_twin_3d():
     st.caption(
         "**City Hall:** residents, staff, visitors · **Library:** patrons, study users, learners · **West Side:** students, teachers, staff."
     )
-    st.caption("Implemented now — site-specific user personas for this completed extension demo.")
+    st.caption("Implemented now - site-specific user personas for this completed extension demo.")
 
     # --- Closed-loop AI-RAN scene controller (RIC-style; demo only) ---
     st.markdown("### Closed-loop AI-RAN scene controller (RIC-style abstraction)")
     st.caption(
         "**Layers (honest):** **Policy / context** (preset + site + RF sliders) · **Sensing / belief** (detector on **synthetic** demo IQ + scenario engine state) · "
         "**Action** (`select_closed_loop_action`) · **KPI feedback** (`apply_action_to_kpis`). "
-        "**Near-RT / Non-RT–inspired** — **not** a deployed full RT RIC or live E2."
+        "**Near-RT / Non-RT–inspired** - **not** a deployed full RT RIC or live E2."
     )
 
     pred = st.session_state.get("judge_live_pred")
@@ -2344,7 +2353,7 @@ def _render_judge_gary_micro_twin_3d():
     radio_env_favorability = max(0.0, min(1.0, 1.0 - 0.85 * eff_env + 0.08 * (1.0 - _sp["challenge_proxy"])))
     coexistence_risk = float(selected_building["risk_score"])
 
-    st.markdown("#### Controller observation — scenario engine + proxies + sensing")
+    st.markdown("#### Controller observation - scenario engine + proxies + sensing")
     s1, s2, s3, s4, s5 = st.columns(5)
     s1.metric("Detector belief", occ_word.replace(" (1)", "").replace(" (0)", "")[:14])
     s2.metric("Site context", selected_building["id"].replace("_", " ")[:16])
@@ -2380,7 +2389,7 @@ def _render_judge_gary_micro_twin_3d():
         )
     else:
         st.caption(
-            "**Controller input mix (honest):** **Proxy-only** for this scene — "
+            "**Controller input mix (honest):** **Proxy-only** for this scene - "
             + _ctrl_proxy_bits
             + ". Add files under `data/deepmimo/` / `data/sionna_rt/` or use **bundled demo summaries** (see **Simulation data sources** above)."
         )
@@ -2435,7 +2444,7 @@ def _render_judge_gary_micro_twin_3d():
     ]
 
     _chosen_title = next(c[1] for c in candidates if c[0] == chosen_key)
-    st.markdown("##### Action layer — selected command (**computed** from scenario + belief)")
+    st.markdown("##### Action layer - selected command (**computed** from scenario + belief)")
     st.success(f"**{_chosen_title}**  \n{action_reason}")
 
     st.markdown("#### Control loop trace (ingest → belief → act → KPI feedback)")
@@ -2474,7 +2483,7 @@ def _render_judge_gary_micro_twin_3d():
 
     st.markdown(
         "<div style='border-left:5px solid #5b21b6;padding:12px 16px;background:#e9e3f5;border:1px solid #212529;border-radius:0 12px 12px 0;margin:10px 0'>"
-        "<strong style='color:#212529'>Why this reads as AI-RAN (honest scope)</strong><br/>"
+        "<strong style='color:#212529'>How this relates to AI-RAN (declared scope)</strong><br/>"
         "<span style='font-size:13px;color:#212529;line-height:1.55'>"
         "A <b>closed-loop</b> <b>RIC-style</b> narrative (<b>Near-RT / Non-RT–inspired</b>): <b>observations</b> (detector + scenario engine + propagation proxies) → "
         "<b>policy</b> → <b>discrete actions</b> → <b>KPI</b> readout. Explicit <b>proxy</b> labeling; <b>no</b> claim of a production RIC or full RT stack.</span></div>",
@@ -2505,7 +2514,7 @@ def _render_judge_gary_micro_twin_3d():
     k4.metric("Energy / efficiency", f"{kpi_dict['energy']:.2f}", help="Heuristic vs traffic + action.")
     k5.metric("Service continuity", f"{kpi_dict['continuity']:.2f}", help="Continuity proxy vs scenario stress.")
     st.caption(
-        "**Honest labeling:** KPIs start from **scenario engine + propagation proxy**, then **`apply_action_to_kpis`** — **not** drive-test or ray-traced truth."
+        "**Honest labeling:** KPIs start from **scenario engine + propagation proxy**, then **`apply_action_to_kpis`** - **not** drive-test or ray-traced truth."
     )
 
     st.markdown("#### Judge / research evidence (core vs extension)")
@@ -2519,10 +2528,10 @@ def _render_judge_gary_micro_twin_3d():
                 "Core judged path (SpectrumX detector)",
                 "<ul style='margin:0;padding-left:18px;line-height:1.55'>"
                 "<li><b>Final / best-known package</b> (repo discovery): <code>"
-                + str(_ev_best or "—")
+                + str(_ev_best or UI_EMPTY)
                 + "</code></li>"
                 "<li><b>Active app model path</b> (Judge sidebar when set): <code>"
-                + str(_ev_active or "—")
+                + str(_ev_active or UI_EMPTY)
                 + "</code></li>"
                 "<li><b>Truthfulness</b>: no official competition IQ is embedded in Streamlit; use <b>synthetic</b> demo IQ in-app.</li>"
                 "</ul>",
@@ -2553,7 +2562,7 @@ def _render_judge_gary_micro_twin_3d():
                 + "</b> · coexistence <b>"
                 + f"{kpi_dict['coexistence']:.2f}"
                 + "</b>.</li>"
-                "<li><b>Simulation backbone</b>: DeepMIMO / Sionna / Aerial summaries — see expander above (loaded vs <b>not loaded</b>).</li>"
+                "<li><b>Simulation backbone</b>: DeepMIMO / Sionna / Aerial summaries - see expander above (loaded vs <b>not loaded</b>).</li>"
                 "</ul>",
                 tone="gray",
             ),
@@ -2563,7 +2572,7 @@ def _render_judge_gary_micro_twin_3d():
     # --- Plain-language RF × place ---
     st.markdown("### How low-7 GHz 5G-like signals interact with this site")
     st.success(
-        "**Buildings** block and scatter radio waves — taller civic structures create **shadows** and **variable indoor penetration**. "
+        "**Buildings** block and scatter radio waves - taller civic structures create **shadows** and **variable indoor penetration**. "
         "**Who shows up when** (school hours, weekend library use, city events) changes **demand** and **coexistence risk**: more active users "
         "mean less margin for careless transmission. **Spectrum sensing** (like the judged detector, run separately on real data) tells a "
         "this controller **whether the band looks occupied** so it can **hold power**, **retune**, or **prioritize** service where the "
@@ -2574,7 +2583,7 @@ def _render_judge_gary_micro_twin_3d():
     st.markdown("### Simulation backbone")
     st.caption(
         "**Active in this UI:** digital-twin **radio scene** + **proxy** propagation/coverage + **closed-loop AI-RAN scene controller** (RIC-style). "
-        "**Next scaling:** DeepMIMO / Sionna RT / Aerial — **JSON summary loaders** below; **not** claimed to run the **judged** detector unless you wire them in."
+        "**Next scaling:** DeepMIMO / Sionna RT / Aerial - **JSON summary loaders** below; **not** claimed to run the **judged** detector unless you wire them in."
     )
 
     _repo = _repo_mt
@@ -2590,15 +2599,15 @@ def _render_judge_gary_micro_twin_3d():
     _dm_card_extra = ""
     if _dm_loaded and _dm_ex:
         _dm_card_extra = (
-            f"<br/><span style='font-size:11px'>Parsed: <b>{_dm_ex.get('scenario_name') or '—'}</b> · "
-            f"BS {_dm_ex.get('num_bs', '—')} · UE {_dm_ex.get('num_users', '—')}</span>"
+            f"<br/><span style='font-size:11px'>Parsed: <b>{_dm_ex.get('scenario_name') or UI_EMPTY}</b> · "
+            f"BS {_dm_ex.get('num_bs', UI_EMPTY)} · UE {_dm_ex.get('num_users', UI_EMPTY)}</span>"
         )
     _sn_card_extra = ""
     if _sn_loaded and _sn_ex:
         _sn_card_extra = (
-            f"<br/><span style='font-size:11px'>Parsed: <b>{_sn_ex.get('scenario_name') or '—'}</b> · "
-            f"mean PL {_sn_ex.get('mean_path_loss_db', '—')} dB · "
-            f"GeoJSON feats {_sn_ex.get('coverage_geojson_features', '—')}</span>"
+            f"<br/><span style='font-size:11px'>Parsed: <b>{_sn_ex.get('scenario_name') or UI_EMPTY}</b> · "
+            f"mean PL {_sn_ex.get('mean_path_loss_db', UI_EMPTY)} dB · "
+            f"GeoJSON feats {_sn_ex.get('coverage_geojson_features', UI_EMPTY)}</span>"
         )
     elif _sn_loaded and (_sn_status or {}).get("parser_note"):
         _sn_card_extra = f"<br/><span style='font-size:11px'>{(_sn_status or {}).get('parser_note', '')}</span>"
@@ -2612,7 +2621,7 @@ def _render_judge_gary_micro_twin_3d():
                 "<li><b>Contributes</b>: reproducible <b>site-specific MIMO channels</b>, CSI summaries, scenario matrices for ML + controller replay.</li>"
                 "<li><b>Connects here</b>: feeds <b>propagation / SINR panels</b> and map overlays when parsers land.</li>"
                 "<li><b>Paths</b>: <code>data/deepmimo/</code> (legacy <code>data/simulation/deepmimo/</code>) then fallback <code>examples/simulation_exports/deepmimo/</code>. "
-                f"<b>Status:</b> **{(_dm_status or {}).get('status_label', 'Not loaded') if _dm_status else '—'}**."
+                f"<b>Status:</b> **{(_dm_status or {}).get('status_label', 'Not loaded') if _dm_status else ' · '}**."
                 f"{_dm_card_extra}</li></ul>",
             ),
             unsafe_allow_html=True,
@@ -2622,10 +2631,10 @@ def _render_judge_gary_micro_twin_3d():
             _judge_html_card(
                 "Sionna RT",
                 "<ul style='margin:0;padding-left:18px;line-height:1.5'>"
-                "<li><b>Contributes</b>: <b>ray-traced propagation</b>, materials, diffraction — replaces disk <b>proxies</b> with physics-backed maps.</li>"
+                "<li><b>Contributes</b>: <b>ray-traced propagation</b>, materials, diffraction - replaces disk <b>proxies</b> with physics-backed maps.</li>"
                 "<li><b>Connects here</b>: GeoJSON / JSON → pydeck coverage heatmaps + panel metrics.</li>"
                 "<li><b>Paths</b>: <code>data/sionna_rt/</code> (legacy <code>data/simulation/sionna_rt/</code>) then <code>examples/simulation_exports/sionna_rt/</code>. "
-                f"<b>Status:</b> **{(_sn_status or {}).get('status_label', 'Not loaded') if _sn_status else '—'}**."
+                f"<b>Status:</b> **{(_sn_status or {}).get('status_label', 'Not loaded') if _sn_status else ' · '}**."
                 f"{_sn_card_extra}</li></ul>",
             ),
             unsafe_allow_html=True,
@@ -2638,14 +2647,14 @@ def _render_judge_gary_micro_twin_3d():
                 "<li><b>Contributes</b>: <b>large-scale digital twin</b> + RF visualization workflows (external toolchain).</li>"
                 "<li><b>Connects here</b>: exports under <code>data/aerial_omniverse/</code> for future loaders.</li>"
                 "<li><b>Paths</b>: <code>data/aerial_omniverse/</code> then <code>examples/simulation_exports/aerial_omniverse/</code> (demo manifest only). "
-                "<b>Requires</b> external tooling for real twins — not bundled."
-                f"<br/><b>Status:</b> **{(_ae_status or {}).get('status_label', 'Not loaded') if _ae_status else '—'}**.</li></ul>",
+                "<b>Requires</b> external tooling for real twins - not bundled."
+                f"<br/><b>Status:</b> **{(_ae_status or {}).get('status_label', 'Not loaded') if _ae_status else ' · '}**.</li></ul>",
             ),
             unsafe_allow_html=True,
         )
 
     with st.expander("Simulation summary loader details (honest status + expected schema)", expanded=False):
-        st.caption("If files are **absent**, the app shows **not loaded** — it does **not** pretend external sims are active.")
+        st.caption("If files are **absent**, the app shows **not loaded** : it does **not** pretend external sims are active.")
         for label, st_obj in (
             ("DeepMIMO scenario summary", _dm_status),
             ("Sionna RT propagation summary", _sn_status),
@@ -2670,7 +2679,7 @@ def _render_judge_gary_micro_twin_3d():
 
     st.markdown("**Optional config stubs (graceful if missing)**")
     st.caption(
-        "`configs/wireless_scene/` — layer toggles, anchor overrides. `configs/ric/` — example Near-RT / xApp policy YAML (non-operational)."
+        "`configs/wireless_scene/` - layer toggles, anchor overrides. `configs/ric/` - example Near-RT / xApp policy YAML (non-operational)."
     )
 
     if _SIM_INTEGRATION_HOOKS_OK and describe_all_integration_drop_zones:
@@ -2692,7 +2701,7 @@ def _render_judge_gary_micro_twin_3d():
     st.info(
         "**O-RAN-style** deployment would attach this abstraction to real **E2**/**O1** interfaces; today it remains a **simulation-ready** artifact. "
         "**DeepMIMO** → channels. **Sionna RT** → propagation realism. **AI Aerial / AODT** → twin-scale scenes. "
-        "**Judged SpectrumX detector** is evaluated **offline** on competition-style data — **not** shipped as raw IQ in this app; unchanged by these hooks."
+        "**Judged SpectrumX detector** is evaluated **offline** on competition-style data - **not** shipped as raw IQ in this app; unchanged by these hooks."
     )
 
     with st.expander("Optional local assets & expected paths (graceful if missing)", expanded=False):
@@ -2704,17 +2713,17 @@ def _render_judge_gary_micro_twin_3d():
             try:
                 _ast = describe_extension_asset_status(_repo)
                 for key, meta in _ast.items():
-                    ok = "✅" if meta.get("exists") else "—"
+                    ok = "Yes" if meta.get("exists") else "No"
                     st.markdown(f"- {ok} `{meta.get('path')}` (`{key}`)")
             except Exception as e:
                 st.caption(f"Asset scan failed: {e}")
         st.markdown(
-            "**Expected paths (optional — create as needed):**\n"
-            "- `data/deepmimo/` — DeepMIMO-style NPZ/JSON/CSV (legacy: `data/simulation/deepmimo/`).\n"
-            "- `data/sionna_rt/` — Sionna RT GeoJSON + JSON (legacy: `data/simulation/sionna_rt/`).\n"
-            "- `data/aerial_omniverse/` — Aerial / Omniverse exports (USD manifest, RF overlay meta).\n"
-            "- `configs/wireless_scene/` — scene / layer YAML.\n"
-            "- `configs/ric/` — example xApp / RIC policy stubs.\n"
+            "**Expected paths (optional - create as needed):**\n"
+            "- `data/deepmimo/` - DeepMIMO-style NPZ/JSON/CSV (legacy: `data/simulation/deepmimo/`).\n"
+            "- `data/sionna_rt/` - Sionna RT GeoJSON + JSON (legacy: `data/simulation/sionna_rt/`).\n"
+            "- `data/aerial_omniverse/` - Aerial / Omniverse exports (USD manifest, RF overlay meta).\n"
+            "- `configs/wireless_scene/` - scene / layer YAML.\n"
+            "- `configs/ric/` - example xApp / RIC policy stubs.\n"
             "- `docs/final_report_figures.yaml`, `submissions/submission_metrics.csv`, `configs/gary_micro_twin.yaml`."
         )
 
@@ -2730,15 +2739,15 @@ def _render_judge_gary_micro_twin_3d():
 with st.sidebar:
     _ensure_session_defaults()
     judge_mode = st.toggle(
-        "Judge Mode",
+        "Judge mode",
         value=bool(st.session_state.get("judge_mode_toggle", False)),
         key="judge_mode_toggle",
-        help="Polished, read-only judge-facing dashboard (no dev controls, no raw debug).",
+        help="Read-only layout for reviewers: no developer controls or raw debug output.",
     )
 
     if judge_mode:
         # Judge view: keep UI minimal and polished. Core metrics come from local submissions/ CSVs.
-        st.header("🏆 Judge Mode")
+        st.header("Judge mode")
         st.caption(
             "Core judged submission metrics are loaded from `submissions/submission_metrics.csv` (if present). "
             "Official competition IQ data is not included in this app."
@@ -2762,7 +2771,7 @@ with st.sidebar:
             st.session_state["judge_active_submission_folder"] = None
         elif _j_mode == SUBMISSION_MODEL_FINAL:
             st.session_state["judge_active_submission_folder"] = _j_best
-            st.success(f"**Active package:** `{_j_best or '—'}`")
+            st.success(f"**Active package:** `{_j_best or UI_EMPTY}`")
         else:
             _idx = _j_folders.index(_j_best) if _j_best in _j_folders else 0
             st.selectbox(
@@ -2781,7 +2790,7 @@ with st.sidebar:
             st.markdown(f"**Packages found (`submissions/**/main.py`):** {len(_j_folders)}")
             _v9 = any(f == "leaderboard_v9" or f.startswith("leaderboard_v9/") for f in _j_folders)
             st.markdown(
-                f"**leaderboard_v9 discoverable:** {'✅ yes — eligible for Final / Best Known' if _v9 else '— no (not on disk in this clone)'}"
+                f"**leaderboard_v9 discoverable:** {'Yes (eligible for Final / Best Known)' if _v9 else 'No (not on disk in this clone)'}"
             )
             st.markdown(f"**Final / Best Known selection:** `{_j_best}`")
             _act = st.session_state.get("judge_active_submission_folder")
@@ -2812,7 +2821,7 @@ with st.sidebar:
         # Keep ui_mode stable in session state for existing helpers that check session_state.
         ui_mode = st.session_state.get("ui_mode", "Standard Mode")
     else:
-        st.header("🧾 Report / Figure Mode")
+        st.header("Report and figure mode")
         ui_mode = st.radio(
             "Mode",
             ["Standard Mode", "Figure Mode"],
@@ -2982,12 +2991,11 @@ if judge_mode_enabled:
 # ---------------------------------------------------------------------------
 if judge_mode_enabled:
     # Judge-facing, read-only dashboard.
-    st.header("🏆 Judge Tour")
+    st.header("Judge tour overview")
     st.caption(
-        "This view is designed for judges: polished, authoritative tables from local `submissions/` CSVs. "
-        "The Gary **Completed Research Extension** (site-aware digital twin + AI-RAN controller demo) is "
-        "**separate from** the **Core Judged SpectrumX DAC detector**, and the DeepMIMO/Sionna RT tools are "
-        "clearly labeled as the **Next Research Scaling Path**."
+        "Tables load from local `submissions/` CSVs. The **Gary digital twin** and **AI-RAN-style controller** "
+        "are a **completed research extension**, separate from the **judged SpectrumX detector**. "
+        "**DeepMIMO**, **Sionna RT**, and **Aerial/Omniverse** hooks are labeled as the **next scaling path**."
     )
 
     # Load structured metrics (authoritative when present).
@@ -3034,7 +3042,7 @@ SpectrumX DAC judging focuses on: **detection accuracy**, **implementation effic
 This dashboard presents:
 - **Core judged submission** (official SpectrumX DAC detector metrics) from local structured files.
 - **Completed research extension** (Gary site-aware digital twin + AI-RAN controller demo) implemented in this prototype and clearly separated from scoring.
-- **Next research scaling path** (DeepMIMO / Sionna RT / NVIDIA AI Aerial–class twins) — integration-ready drop zones; **not** claimed to score the detector.
+- **Next research scaling path** (DeepMIMO / Sionna RT / NVIDIA AI Aerial–class twins) - integration-ready drop zones; **not** claimed to score the detector.
             """.strip()
         )
         st.caption(
@@ -3046,7 +3054,7 @@ This dashboard presents:
             st.markdown(
                 _judge_html_card(
                     "Core judged submission",
-                    "SpectrumX DAC detector — official scoring basis (metrics from local CSVs; IQ judged offline).",
+                    "SpectrumX DAC detector: official scoring basis (metrics from local CSVs; IQ evaluated offline).",
                 ),
                 unsafe_allow_html=True,
             )
@@ -3054,7 +3062,7 @@ This dashboard presents:
             st.markdown(
                 _judge_html_card(
                     "Completed research extension",
-                    "Gary digital twin + AI-RAN-style controller — non-scoring demo in this app.",
+                    "Gary digital twin plus AI-RAN-style controller: non-scoring demo in this app.",
                     tone="gray",
                 ),
                 unsafe_allow_html=True,
@@ -3063,7 +3071,7 @@ This dashboard presents:
             st.markdown(
                 _judge_html_card(
                     "Next realism scaling",
-                    "<b>DeepMIMO</b> · <b>Sionna RT</b> · <b>NVIDIA AI Aerial / Omniverse</b> — channel, ray-tracing, twin-scale RF viz; see <code>docs/SIMULATION_BACKBONE_PLAN.md</code>.",
+                    "<b>DeepMIMO</b>, <b>Sionna RT</b>, and <b>NVIDIA AI Aerial / Omniverse</b> for channels, ray tracing, and twin-scale RF visualization. See <code>docs/SIMULATION_BACKBONE_PLAN.md</code>.",
                 ),
                 unsafe_allow_html=True,
             )
@@ -3075,7 +3083,7 @@ This dashboard presents:
             )
         )
         st.caption(
-            "**Figure 1 caption:** Task overview and judging pillars — core vs completed extension vs next scaling path separation."
+            "**Figure 1 caption:** Task overview and judging pillars: separation of core submission, completed extension, and next scaling path."
         )
 
         st.subheader("Figure 2: IQ + PSD + Spectrogram (Visualization Only)")
@@ -3088,10 +3096,10 @@ This dashboard presents:
         )
         _render_synthetic_demo_metadata_callout(
             st.session_state.get("judge_demo_meta"),
-            caption_prefix="Judge Mode:",
+            caption_prefix="Judge mode:",
         )
         st.caption(
-            "**Figure 2 caption:** IQ, Welch PSD, and spectrogram panels for **visualization quality** judging — "
+            "**Figure 2 caption:** IQ, Welch PSD, and spectrogram panels for **visualization quality** judging - "
             "synthetic demo only; no official competition IQ in-cloud."
         )
         if has_data and iq_data is not None:
@@ -3141,17 +3149,17 @@ This dashboard presents:
             st.plotly_chart(fig_spec, use_container_width=True)
             st.caption("Spectrogram provides a time-frequency screenshot panel.")
         else:
-            st.info("No demo input available for Figure 2. Reload the app; Judge Mode should auto-generate a synthetic IQ window.")
+            st.info("No demo input available for Figure 2. Reload the app; Judge mode should auto-generate a synthetic IQ window.")
 
     with tabs[1]:
         st.warning(
-            "**What was judged vs completed extension — read first:** "
-            "**(A) Core judged submission** = feature-based binary detector on **official SpectrumX labeled data** "
-            "(tables/card below use **local CSVs only**). "
-            "**(B) Completed research extension** = Gary digital twin + **Near-RT RIC–style (xApp-like)** AI-RAN control abstraction — **non-scoring** prototype. "
-            "**(C) Next scaling path** = DeepMIMO / Sionna RT / **NVIDIA AI Aerial / Omniverse** — **integration-ready** dirs + stubs; **not** active in the judged detector unless you wire them."
+            "**Judged submission vs. research extension (read this first).** "
+            "**(A) Core judged submission:** feature-based binary detector on **official SpectrumX labeled data** "
+            "(tables below use **local CSVs only**). "
+            "**(B) Completed research extension:** Gary digital twin plus **Near-RT RIC–style (xApp-like)** AI-RAN control abstraction. **Non-scoring** prototype. "
+            "**(C) Next scaling path:** DeepMIMO, Sionna RT, **NVIDIA AI Aerial / Omniverse** (**integration-ready** directories and stubs). **Not** active in the judged detector unless you wire them in."
         )
-        st.subheader("Figure 4: Canonical Final Submission card (Core Judged — single source of truth)")
+        st.subheader("Figure 4: Canonical final submission card (core judged, single source of truth)")
         st.caption(
             _fig_yaml_caption(
                 fig_yaml,
@@ -3173,12 +3181,12 @@ This dashboard presents:
 
         trained_primary = bool(artifact_present)  # conservative: infer trained-artifact when we have an artifact.
 
-        submitted_name = core_row.get("submission", "—")
-        sub_version = core_row.get("submission_version", core_row.get("version", "—"))
-        model_family = core_row.get("model_family", "—")
-        leaderboard_rank = core_row.get("leaderboard_rank", "—")
-        leaderboard_accuracy = core_row.get("leaderboard_accuracy", "—")
-        threshold = core_row.get("threshold", "—")
+        submitted_name = core_row.get("submission", UI_EMPTY)
+        sub_version = core_row.get("submission_version", core_row.get("version", UI_EMPTY))
+        model_family = core_row.get("model_family", UI_EMPTY)
+        leaderboard_rank = core_row.get("leaderboard_rank", UI_EMPTY)
+        leaderboard_accuracy = core_row.get("leaderboard_accuracy", UI_EMPTY)
+        threshold = core_row.get("threshold", UI_EMPTY)
 
         # Optional runtimes (if you extend your metrics CSV)
         runtime_val = core_row.get("runtime", core_row.get("runtime_per_sample", core_row.get("runtime_sec", None)))
@@ -3189,9 +3197,9 @@ This dashboard presents:
         c3.metric("Model family", str(model_family))
 
         c4, c5, c6 = st.columns(3)
-        c4.metric("Leaderboard rank", "N/A" if leaderboard_rank in (None, "—") else str(leaderboard_rank))
-        c5.metric("Leaderboard accuracy", "N/A" if leaderboard_accuracy in (None, "—") else str(leaderboard_accuracy))
-        c6.metric("Threshold", "N/A" if threshold in (None, "—") else str(threshold))
+        c4.metric("Leaderboard rank", "N/A" if leaderboard_rank in (None, UI_EMPTY) else str(leaderboard_rank))
+        c5.metric("Leaderboard accuracy", "N/A" if leaderboard_accuracy in (None, UI_EMPTY) else str(leaderboard_accuracy))
+        c6.metric("Threshold", "N/A" if threshold in (None, UI_EMPTY) else str(threshold))
 
         c7, c8, c9 = st.columns(3)
         c7.metric("Runtime (per sample)", "N/A" if runtime_val is None else str(runtime_val))
@@ -3213,8 +3221,8 @@ This dashboard presents:
         st.markdown("---")
         st.subheader("Live submission inference (synthetic demo IQ)")
         st.caption(
-            "Runs the selected **`submissions/<pkg>/main.py`** `evaluate()` on the **Judge Mode synthetic demo** window. "
-            "Demonstrates **implementation** and **visualization** integration — not a leaderboard replay."
+            "Runs the selected **`submissions/<pkg>/main.py`** `evaluate()` on the **Judge mode synthetic demo** window. "
+            "Demonstrates **implementation** and **visualization** integration - not a leaderboard replay."
         )
         _live_folder = st.session_state.get("judge_active_submission_folder")
         if _SUBMISSION_ADAPTER_OK and _sa_submission_folder_info is not None and _live_folder:
@@ -3222,13 +3230,13 @@ This dashboard presents:
             _crow = _metrics_row_for_submission(mdf, str(_live_folder))
             pc1, pc2, pc3 = st.columns(3)
             pc1.metric("Package", str(_live_folder))
-            pc2.metric("Model family (CSV)", str(_crow.get("model_family", "—")) if _crow else str(_pinfo.get("model_family_guess", "—")))
+            pc2.metric("Model family (CSV)", str(_crow.get("model_family", UI_EMPTY)) if _crow else str(_pinfo.get("model_family_guess", UI_EMPTY)))
             pc3.metric("Artifact present", "Yes" if _pinfo.get("artifact_present") else "No")
-            st.text(f"Threshold (CSV): {_crow.get('threshold', '—') if _crow else '—'}")
+            st.text(f"Threshold (CSV): {_crow.get('threshold', UI_EMPTY) if _crow else UI_EMPTY}")
             jp = st.session_state.get("judge_live_pred")
             jc = st.session_state.get("judge_live_conf")
             jd = st.session_state.get("judge_live_inf_detail") or {}
-            st.metric("Prediction on demo IQ", "Occupied (1)" if jp == 1 else ("Noise-only (0)" if jp == 0 else "—"))
+            st.metric("Prediction on demo IQ", "Occupied (1)" if jp == 1 else ("Noise-only (0)" if jp == 0 else UI_EMPTY))
             st.metric("Confidence / probability", "N/A" if jc is None else str(jc))
             if jd.get("trained_path_active"):
                 st.success("Heuristic: **trained-artifact path** may be active (see `main.py`).")
@@ -3247,7 +3255,7 @@ This dashboard presents:
             "Authoritative CV / leaderboard tables come from `submissions/submission_metrics.csv` when present."
         )
         st.caption(
-            "**Novelty story (for judges):** feature-based, interpretable occupancy detection with a clear inference contract — "
+            "**Novelty story (for judges):** feature-based, interpretable occupancy detection with a clear inference contract - "
             "see **Prediction Path** in Figure Mode and `submissions/<pkg>/main.py` for the packaged algorithm."
         )
 
@@ -3285,7 +3293,7 @@ This dashboard presents:
             else:
                 st.info("Feature extractor not available in this runtime. (Shared `extract_features` import failed.)")
         else:
-            st.info("No demo input available for Figure 3. Reload the app; Judge Mode should auto-generate synthetic IQ.")
+            st.info("No demo input available for Figure 3. Reload the app; Judge mode should auto-generate synthetic IQ.")
         st.caption(
             "**Figure 3 caption:** Handcrafted feature panel for **interpretability / novelty** evidence (synthetic demo IQ)."
         )
@@ -3364,7 +3372,7 @@ This dashboard presents:
 
         st.markdown("---")
         st.subheader("Submission Explorer (read-only)")
-        st.caption("Inventory of `submissions/*` — code + artifacts only; no competition IQ loaded.")
+        st.caption("Inventory of `submissions/*` - code + artifacts only; no competition IQ loaded.")
         if not inv_rows:
             st.info("No submission folders found under `submissions/`.")
         elif pd is not None:
@@ -3421,7 +3429,7 @@ This dashboard presents:
             _fig_yaml_caption(
                 fig_yaml,
                 "figure_6",
-                "Figure 6: Completed Gary Digital Twin Extension — interactive site-aware map + AI-RAN controller loop (separate from official leaderboard scoring).",
+                "Figure 6: Completed Gary Digital Twin Extension - interactive site-aware map + AI-RAN controller loop (separate from official leaderboard scoring).",
             )
         )
         _render_judge_gary_micro_twin_3d()
@@ -3447,7 +3455,7 @@ This dashboard presents:
         st.subheader("Why it Matters for Gary")
         st.markdown(
             """
-The completed Micro-Twin extension is designed to communicate how site-aware sensing and coexistence-aware control can reduce digital divide gaps—especially for learning and civic services.
+The completed Micro-Twin extension is designed to communicate how site-aware sensing and coexistence-aware control can reduce digital divide gaps, especially for learning and civic services.
             """.strip()
         )
 
@@ -3455,7 +3463,7 @@ elif st.session_state.get("ui_mode") != "Figure Mode":
     if has_data and iq_data is not None:
         # Demo mode banner when using in-app demo data
         if st.session_state.get("use_demo") and "demo_iq" in st.session_state:
-            st.info("📡 **Demo mode active** — using in-app generated IQ sample.")
+            st.info("📡 **Demo mode active** - using in-app generated IQ sample.")
         # Data info panel
         with st.expander("📋 File Information", expanded=False):
             col1, col2, col3 = st.columns(3)
@@ -4034,10 +4042,10 @@ This tab shows the handcrafted features used (or intended) for compact, interpre
         )
         _caption("This is the inference contract used by the leaderboard submission wrapper.")
         st.markdown("---")
-        st.markdown("**Final submission package — live `evaluate()` (Figure Mode)**")
+        st.markdown("**Final submission package - live `evaluate()` (Figure Mode)**")
         st.caption(
             "Uses the same sidebar **Model / submission** choice as Standard Mode. "
-            "Runs on the currently loaded IQ (demo, Micro-Twin, or upload — never competition IQ in-cloud)."
+            "Runs on the currently loaded IQ (demo, Micro-Twin, or upload - never competition IQ in-cloud)."
         )
         if has_data and iq_data is not None and model_option in (SUBMISSION_MODEL_FINAL, SUBMISSION_MODEL_EXPLORER):
             _ff_rr = _repo_root()
@@ -4212,12 +4220,12 @@ This tab shows the handcrafted features used (or intended) for compact, interpre
             st.success("Micro-Twin samples are available. Use the sidebar to select a sample.")
         else:
             st.info("Generate Micro-Twin demo data below when no IQ is loaded (synthetic samples only).")
-        st.info("For the **interactive 3D Gary building scene (Figure 6)**, enable **Judge Mode** in the sidebar.")
+        st.info("For the **interactive 3D Gary building scene (Figure 6)**, enable **Judge mode** in the sidebar.")
         _caption(
             _fig_yaml_caption(
                 fig_yaml_fm,
                 "figure_6",
-                "Figure 6 (Judge Mode): Completed Gary Digital Twin Extension — interactive site-aware map + controller demo (separate from official scoring).",
+                "Figure 6 (Judge mode): Gary digital twin extension: interactive site-aware map + controller demo (separate from official scoring).",
             )
         )
 
