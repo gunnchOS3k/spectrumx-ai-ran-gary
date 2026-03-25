@@ -10,12 +10,16 @@ timing / CFO** PHY-side hooks when a lab stack is available.
 
 from src.edge_ran_gary.pyaerial_bridge.phy_interface import (
     PHYBridgeStatus,
+    cumac_scheduler_abstraction,
     describe_pyaerial_environment,
     detector_to_phy_control_plane_hints,
+    suggested_integration_paths,
 )
 
 __all__ = [
     "PHYBridgeStatus",
+    "cumac_scheduler_abstraction",
     "describe_pyaerial_environment",
     "detector_to_phy_control_plane_hints",
+    "suggested_integration_paths",
 ]

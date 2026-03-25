@@ -74,6 +74,9 @@ Configs: `configs/wireless_scene/occupancy_profiles.json`, `device_profiles.json
 - `docs/SITE_MODELING_PLAN.md` — footprint JSON, GLB paths, fallback rules  
 - `docs/OCCUPANCY_VISUALIZATION_PLAN.md` — people / device / movement map layers  
 - `docs/AERIAL_STACK_ROADMAP.md` — civic-scale 6G stack roadmap (repo paths)  
+- `docs/EXTERNAL_RUNTIME_GAPS.md` — Streamlit vs GPU/lab/cloud (honest boundaries)  
+- `docs/AODT_EXPORT_CHECKLIST.md` — full AODT vs export manifests  
+- `docs/ARC_OTA_RUNTIME_TARGET.md` — ARC-OTA framing (**not active**)  
 - `docs/DATA_LAKE_SCHEMA.md` — OTA capture schema and detector/twin mapping  
 - `docs/PYAERIAL_BRIDGE.md` — pyAerial / PHY integration path  
 

@@ -74,3 +74,17 @@ def suggested_integration_paths() -> List[str]:
         "**pyAerial** Python APIs for PHY experimentation when licensed/available.",
         "Export **IQ windows + labels** to `data/ota_evidence/` for **OTA capture replay** (see docs/DATA_LAKE_SCHEMA.md).",
     ]
+
+
+def cumac_scheduler_abstraction() -> Dict[str, str]:
+    """
+    **Honest** MAC/scheduling vocabulary aligned with AI-RAN storytelling.
+
+    **Not** NVIDIA cuMAC or any production MAC. Use only to explain how twin **priorities**
+    could map to scheduler objectives in an external Aerial stack.
+    """
+    return {
+        "scope": "Abstract **cuMAC-style** scheduling story: map coexistence + fairness KPIs to resource allocation narratives.",
+        "relation_to_twin": "Gary scenario engine outputs (traffic, fairness, coverage pressure) are **inputs** to policy, not MAC code.",
+        "execution": "Real **cuMAC / MAC** runs only in **external** Aerial or lab RAN targets (`docs/EXTERNAL_RUNTIME_GAPS.md`).",
+    }

@@ -1,0 +1,24 @@
+{
+  "ota_lake_manifest_version": 1,
+  "arc_ota_runtime_target": "not_active_documentation_only",
+  "notes": "Example structure only. Copy to data/ota_evidence/ota_lake_manifest.json when you have real captures. Streamlit never records OTA IQ.",
+  "captures": [
+    {
+      "capture_id": "example_gary_library_0001",
+      "site_id": "public_library",
+      "center_freq_hz": 3500000000.0,
+      "sample_rate_hz": 1000000.0,
+      "duration_s": 0.5,
+      "antenna_config": "single_port_omni",
+      "gps_lat": null,
+      "gps_lon": null,
+      "weather_tag": "clear",
+      "interference_tags": [],
+      "detector_label_at_capture": 0,
+      "ground_truth_label": 0,
+      "calibration_offset_db": null,
+      "iq_npy_relative_path": "captures/example_gary_library_0001_iq.npy",
+      "notes": "IQ file path is relative to data/ota_evidence/ or your storage root; not shipped in-repo."
+    }
+  ]
+}

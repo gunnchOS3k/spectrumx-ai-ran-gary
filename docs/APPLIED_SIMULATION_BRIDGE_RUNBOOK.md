@@ -28,6 +28,17 @@
 | **Loaded (demo summary)** | Valid parse from `examples/simulation_exports/…` **or** `data/…` with `export_provenance.simulation_grade` in `analytic_fallback` / synthetic (export scripts). |
 | **Loaded (simulation export)** | Valid `data/…` export **without** analytic downgrade (operator file or `full_solver` provenance). |
 | **Access confirmed / installer-ready** | *(Aerial only)* `data/aerial_omniverse/access_summary.json` from `check_ngc_access.py` — **not** a twin or simulation export. |
+| **Execution surface** | Every hook result includes `execution_surface_label`: Streamlit **manifest-only** vs **external** regeneration / lab OTA (`simulation_provenance.attach_execution_surface`). |
+
+## Validate on-disk exports (read-only)
+
+From repo root (requires `data/deepmimo` / `data/sionna_rt` outputs to exist):
+
+```bash
+python3 scripts/validate_simulation_exports.py
+python3 scripts/validate_simulation_exports.py --deepmimo
+python3 scripts/validate_simulation_exports.py --sionna
+```
 
 ## One-time environment probe (Aerial / NGC)
 
@@ -96,3 +107,6 @@ streamlit run apps/streamlit_app.py
 
 - `docs/SIMULATION_BACKBONE_PLAN.md` — paths, parsers, provenance rules  
 - `docs/MICROTWIN_REALISM_PLAN.md` — UI behavior  
+- `docs/EXTERNAL_RUNTIME_GAPS.md` — what must run outside Streamlit / repo  
+- `docs/AODT_EXPORT_CHECKLIST.md` — AODT full scene vs export manifests  
+- `docs/ARC_OTA_RUNTIME_TARGET.md` — ARC-OTA framing (**not active**)  

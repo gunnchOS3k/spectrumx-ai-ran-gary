@@ -35,6 +35,16 @@ Each capture describes **one** RF observation window:
 2. **Digital twin:** `site_id` joins scenario engine anchors for **domain shift** and **replay** narratives.
 3. **Calibration:** `calibration_offset_db` supports threshold / SNR calibration studies.
 
+## Retraining, evaluation, and calibration (offline)
+
+| Goal | OTA fields | Workflow |
+|------|------------|----------|
+| **Retrain** detector | `iq_npy_relative_path`, `ground_truth_label`, `site_id`, `interference_tags` | Batch job reads manifest; joins with official training pipeline **outside** Streamlit Cloud. |
+| **Evaluate** drift | `detector_label_at_capture` vs `ground_truth_label`, `calibration_offset_db` | Build confusion / calibration tables per `site_id` and weather/interference strata. |
+| **Twin replay** | `site_id`, timestamps (if you extend schema), scenario preset id in `notes` | Replay narratives: compare twin state to conditions logged at capture time. |
+
+Example manifest skeleton: `examples/ota_evidence/ota_lake_manifest.example.json` (**not** active data).
+
 ## Python interface
 
-`src/edge_ran_gary/ota_data_interface.py` defines `OTACaptureRecord`, `default_ota_schema_dict()`, and `load_ota_lake_manifest(repo_root)`.
+`src/edge_ran_gary/ota_data_interface.py` defines `OTACaptureRecord`, `default_ota_schema_dict()`, `map_ota_to_detector_training_notes()`, and `load_ota_lake_manifest(repo_root)`.

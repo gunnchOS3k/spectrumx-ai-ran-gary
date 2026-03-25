@@ -1,0 +1,36 @@
+# AODT export expectations (documentation + hook targets)
+# Full USD/scene generation runs in external Omniverse / AI Aerial — not in Streamlit.
+# This file lists what the *Gary* integration path expects once you drop real exports under data/aerial_omniverse/.
+
+aodt_export_expectations_version: 1
+
+summary_manifests:
+  preferred_filenames:
+    - overlay_summary.json
+    - twin_manifest.json
+  optional_access_probe:
+    - access_summary.json
+
+scene_assets:
+  description: >
+    Large binary assets (USDZ, textures, meshes) stay outside git or in Git LFS;
+    manifests above should reference relative paths or URIs your team controls.
+  placeholders:
+    terrain_mesh_uri: null
+    vegetation_layer_uri: null
+    building_mesh_uris: []
+
+mobility:
+  description: Optional traces for replay narratives (GTFS, internal sim, or Omniverse export).
+  placeholder_paths:
+    - data/mobility_traces/README.txt
+
+dynamic_scatterers:
+  description: Summaries only in-repo; full dynamics from external sim.
+  example_fields:
+    - scatterer_class
+    - time_window_s
+    - anchor_site_id
+
+streamlit_role: manifest_and_provenance_only
+external_runtime_required_for_full_scene: true
