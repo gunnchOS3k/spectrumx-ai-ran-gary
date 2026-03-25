@@ -18,10 +18,15 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+from src.edge_ran_gary.simulation_provenance import attach_provenance_tier
+
 # --- Primary drop zones (repo root–relative) ---
 DATA_DEEPMIMO_REL = Path("data/deepmimo")
 DATA_SIONNA_RT_REL = Path("data/sionna_rt")
 DATA_AERIAL_OMNIVERSE_REL = Path("data/aerial_omniverse")
+DATA_PYAERIAL_BRIDGE_REL = Path("data/pyaerial_bridge")
+DATA_OTA_EVIDENCE_REL = Path("data/ota_evidence")
+SCHEMAS_AERIAL_DATA_LAKE_REL = Path("schemas/aerial_data_lake")
 CONFIG_WIRELESS_SCENE_REL = Path("configs/wireless_scene")
 CONFIG_RIC_REL = Path("configs/ric")
 
@@ -70,6 +75,14 @@ SIONNA_GEOJSON_NAMES = ("coverage_grid.geojson", "coverage.geojson", "sionna_cov
 EXAMPLES_DEEPMIMO_REL = Path("examples/simulation_exports/deepmimo")
 EXAMPLES_SIONNA_RT_REL = Path("examples/simulation_exports/sionna_rt")
 EXAMPLES_AERIAL_OMNIVERSE_REL = Path("examples/simulation_exports/aerial_omniverse")
+EXAMPLES_PYAERIAL_BRIDGE_REL = Path("examples/simulation_exports/pyaerial_bridge")
+
+PYAERIAL_MANIFEST_FILES = ("bridge_manifest.json", "pyaerial_probe.json")
+
+
+def _finalize_sim_dict(d: Dict[str, Any]) -> Dict[str, Any]:
+    """Attach ``provenance_tier`` / ``provenance_label`` for Streamlit + docs."""
+    return attach_provenance_tier(d)
 
 
 def _status_label_for_sim(loaded: bool, source_kind: str) -> str:
@@ -264,6 +277,24 @@ def describe_all_integration_drop_zones(repo_root: Path) -> Dict[str, Any]:
             "suggested_inputs": list(RIC_CONFIG_SUGGESTED),
             "status": "optional_config",
         },
+        "pyaerial_bridge": {
+            **_merge_dir_status([r / DATA_PYAERIAL_BRIDGE_REL], tuple(PYAERIAL_MANIFEST_FILES)),
+            "suggested_inputs": list(PYAERIAL_MANIFEST_FILES),
+            "status": "integration_ready_next_scaling",
+            "note": "PHY bridge drop zone; optional pyAerial probe JSON. See docs/PYAERIAL_BRIDGE.md.",
+        },
+        "ota_evidence": {
+            **_dir_status(r / DATA_OTA_EVIDENCE_REL),
+            "suggested_inputs": ("ota_lake_manifest.json", "captures/*.json"),
+            "status": "ota_ready_target",
+            "note": "OTA / Data Lake target — **not active** until manifests + captures exist. See docs/DATA_LAKE_SCHEMA.md.",
+        },
+        "schemas_aerial_data_lake": {
+            **_dir_status(r / SCHEMAS_AERIAL_DATA_LAKE_REL),
+            "suggested_inputs": ("ota_capture_record.schema.json",),
+            "status": "schema_stub",
+            "note": "JSON Schema stubs for OTA record shape.",
+        },
     }
 
 
@@ -310,6 +341,18 @@ def describe_extension_asset_status(repo_root: Path) -> Dict[str, Any]:
         "legacy_data_simulation_sionna": {
             "path": str((root / LEGACY_SIONNA_RT_REL).resolve()),
             "exists": (root / LEGACY_SIONNA_RT_REL).is_dir(),
+        },
+        "data_pyaerial_bridge": {
+            "path": str((root / DATA_PYAERIAL_BRIDGE_REL).resolve()),
+            "exists": (root / DATA_PYAERIAL_BRIDGE_REL).is_dir(),
+        },
+        "data_ota_evidence": {
+            "path": str((root / DATA_OTA_EVIDENCE_REL).resolve()),
+            "exists": (root / DATA_OTA_EVIDENCE_REL).is_dir(),
+        },
+        "schemas_aerial_data_lake": {
+            "path": str((root / SCHEMAS_AERIAL_DATA_LAKE_REL).resolve()),
+            "exists": (root / SCHEMAS_AERIAL_DATA_LAKE_REL).is_dir(),
         },
     }
 
@@ -453,39 +496,43 @@ def load_deepmimo_scenario_summary(repo_root: Path, demo_only: bool = False) -> 
                 break
         extracted = _normalize_deepmimo_dict(raw_data)
         sk_eff, prov_note = _tier_source_after_provenance(source_kind, raw_data)
-        return {
-            "loaded": True,
-            "path": str(json_path.resolve()),
-            "summary_json_path": str(json_path.resolve()),
-            "data": raw_data,
-            "extracted_summary": extracted,
-            "npz_channel_meta": npz_meta,
+        return _finalize_sim_dict(
+            {
+                "loaded": True,
+                "path": str(json_path.resolve()),
+                "summary_json_path": str(json_path.resolve()),
+                "data": raw_data,
+                "extracted_summary": extracted,
+                "npz_channel_meta": npz_meta,
+                "integration": "deepmimo",
+                "parser": "deepmimo_v3",
+                "source_kind": sk_eff,
+                "status_label": _status_label_for_sim(True, sk_eff),
+                "load_mode": "demo_only" if demo_only else "data_first_with_demo_fallback",
+                "parser_note": prov_note,
+                "error": None,
+            }
+        )
+
+    return _finalize_sim_dict(
+        {
+            "loaded": False,
+            "path": primary_path,
+            "summary_json_path": None,
+            "expected_files": list(DEEPMIMO_SUMMARY_FILES),
+            "expected_schema": (
+                "JSON object with e.g. scenario_name, num_bs, num_users, los_links/nlos_links, "
+                "or channel_statistics / sites — see docs/SIMULATION_BACKBONE_PLAN.md"
+            ),
+            "error": last_err,
             "integration": "deepmimo",
             "parser": "deepmimo_v3",
-            "source_kind": sk_eff,
-            "status_label": _status_label_for_sim(True, sk_eff),
+            "source_kind": "absent",
+            "status_label": "Not loaded",
             "load_mode": "demo_only" if demo_only else "data_first_with_demo_fallback",
-            "parser_note": prov_note,
-            "error": None,
+            "demo_fallback_dir": str((r / EXAMPLES_DEEPMIMO_REL).resolve()),
         }
-
-    return {
-        "loaded": False,
-        "path": primary_path,
-        "summary_json_path": None,
-        "expected_files": list(DEEPMIMO_SUMMARY_FILES),
-        "expected_schema": (
-            "JSON object with e.g. scenario_name, num_bs, num_users, los_links/nlos_links, "
-            "or channel_statistics / sites — see docs/SIMULATION_BACKBONE_PLAN.md"
-        ),
-        "error": last_err,
-        "integration": "deepmimo",
-        "parser": "deepmimo_v3",
-        "source_kind": "absent",
-        "status_label": "Not loaded",
-        "load_mode": "demo_only" if demo_only else "data_first_with_demo_fallback",
-        "demo_fallback_dir": str((r / EXAMPLES_DEEPMIMO_REL).resolve()),
-    }
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -637,23 +684,25 @@ def _load_sionna_bundle_from_dirs(
     if prov_adj:
         merged_note = f"{merged_note} {prov_adj}" if merged_note else prov_adj
 
-    return {
-        "loaded": loaded,
-        "path": path_shown,
-        "summary_json_path": str(json_path.resolve()) if json_path else None,
-        "geojson_path": str(gj_path.resolve()) if gj_path and geo_ok else None,
-        "data": raw_data if raw_data is not None else {},
-        "extracted_summary": combined_extracted,
-        "geojson_stats": geo_stats if geo_ok else {},
-        "geojson_for_deck": geojson_inline if loaded and geo_ok else None,
-        "coverage_overlay_active": bool(loaded and geo_ok and geojson_inline is not None),
-        "integration": "sionna_rt",
-        "parser": "sionna_rt_v3",
-        "parser_note": merged_note,
-        "error": None if loaded else (last_err or geo_err or "not_found"),
-        "source_kind": eff_sk if loaded else "absent",
-        "status_label": _status_label_for_sim(loaded, eff_sk if loaded else "absent"),
-    }
+    return _finalize_sim_dict(
+        {
+            "loaded": loaded,
+            "path": path_shown,
+            "summary_json_path": str(json_path.resolve()) if json_path else None,
+            "geojson_path": str(gj_path.resolve()) if gj_path and geo_ok else None,
+            "data": raw_data if raw_data is not None else {},
+            "extracted_summary": combined_extracted,
+            "geojson_stats": geo_stats if geo_ok else {},
+            "geojson_for_deck": geojson_inline if loaded and geo_ok else None,
+            "coverage_overlay_active": bool(loaded and geo_ok and geojson_inline is not None),
+            "integration": "sionna_rt",
+            "parser": "sionna_rt_v3",
+            "parser_note": merged_note,
+            "error": None if loaded else (last_err or geo_err or "not_found"),
+            "source_kind": eff_sk if loaded else "absent",
+            "status_label": _status_label_for_sim(loaded, eff_sk if loaded else "absent"),
+        }
+    )
 
 
 def load_sionna_propagation_summary(repo_root: Path, demo_only: bool = False) -> Dict[str, Any]:
@@ -680,32 +729,34 @@ def load_sionna_propagation_summary(repo_root: Path, demo_only: bool = False) ->
                 "JSON: scenario_name / path loss / LOS fraction / coverage block; "
                 "or GeoJSON FeatureCollection for coverage_grid — see docs/SIMULATION_BACKBONE_PLAN.md"
             )
-            return out
+            return _finalize_sim_dict(out)
 
-    return {
-        "loaded": False,
-        "path": primary_path,
-        "summary_json_path": None,
-        "geojson_path": None,
-        "data": {},
-        "extracted_summary": {},
-        "geojson_stats": {},
-        "geojson_for_deck": None,
-        "coverage_overlay_active": False,
-        "integration": "sionna_rt",
-        "parser": "sionna_rt_v3",
-        "parser_note": last_note or "No valid Sionna summary JSON and no valid coverage GeoJSON found.",
-        "error": "not_found",
-        "expected_files": list(SIONNA_SUMMARY_FILES) + list(SIONNA_GEOJSON_NAMES),
-        "expected_schema": (
-            "JSON: scenario_name / path loss / LOS fraction / coverage block; "
-            "or GeoJSON FeatureCollection for coverage_grid — see docs/SIMULATION_BACKBONE_PLAN.md"
-        ),
-        "source_kind": "absent",
-        "status_label": "Not loaded",
-        "load_mode": "demo_only" if demo_only else "data_first_with_demo_fallback",
-        "demo_fallback_dir": str((r / EXAMPLES_SIONNA_RT_REL).resolve()),
-    }
+    return _finalize_sim_dict(
+        {
+            "loaded": False,
+            "path": primary_path,
+            "summary_json_path": None,
+            "geojson_path": None,
+            "data": {},
+            "extracted_summary": {},
+            "geojson_stats": {},
+            "geojson_for_deck": None,
+            "coverage_overlay_active": False,
+            "integration": "sionna_rt",
+            "parser": "sionna_rt_v3",
+            "parser_note": last_note or "No valid Sionna summary JSON and no valid coverage GeoJSON found.",
+            "error": "not_found",
+            "expected_files": list(SIONNA_SUMMARY_FILES) + list(SIONNA_GEOJSON_NAMES),
+            "expected_schema": (
+                "JSON: scenario_name / path loss / LOS fraction / coverage block; "
+                "or GeoJSON FeatureCollection for coverage_grid — see docs/SIMULATION_BACKBONE_PLAN.md"
+            ),
+            "source_kind": "absent",
+            "status_label": "Not loaded",
+            "load_mode": "demo_only" if demo_only else "data_first_with_demo_fallback",
+            "demo_fallback_dir": str((r / EXAMPLES_SIONNA_RT_REL).resolve()),
+        }
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -847,7 +898,7 @@ def load_aerial_overlay_summary(repo_root: Path, demo_only: bool = False) -> Dic
             continue
         if hit["loaded"]:
             hit["load_mode"] = "demo_only" if demo_only else "data_first_with_demo_fallback"
-            return _merge_aerial_access_and_tier(hit, r)
+            return _finalize_sim_dict(_merge_aerial_access_and_tier(hit, r))
         last_err = hit.get("error")
 
     base = {
@@ -871,7 +922,92 @@ def load_aerial_overlay_summary(repo_root: Path, demo_only: bool = False) -> Dic
         "data": {},
         "extracted_summary": {},
     }
-    return _merge_aerial_access_and_tier(base, r)
+    return _finalize_sim_dict(_merge_aerial_access_and_tier(base, r))
+
+
+def _pyaerial_tiers(repo_root: Path, demo_only: bool) -> List[Tuple[Path, str]]:
+    r = repo_root.resolve()
+    out: List[Tuple[Path, str]] = []
+    if not demo_only and (r / DATA_PYAERIAL_BRIDGE_REL).is_dir():
+        out.append((r / DATA_PYAERIAL_BRIDGE_REL, "simulation"))
+    ex = r / EXAMPLES_PYAERIAL_BRIDGE_REL
+    if ex.is_dir():
+        out.append((ex, "demo"))
+    return out
+
+
+def load_pyaerial_bridge_status(repo_root: Path, demo_only: bool = False) -> Dict[str, Any]:
+    """
+    Load optional ``bridge_manifest.json`` / ``pyaerial_probe.json`` from ``data/pyaerial_bridge/``
+    or bundled ``examples/simulation_exports/pyaerial_bridge/``.
+
+    Does **not** execute pyAerial; surfaces ``phy_env`` import probe from ``phy_interface``.
+    """
+    from src.edge_ran_gary.pyaerial_bridge.phy_interface import describe_pyaerial_environment
+
+    phy = describe_pyaerial_environment()
+    r = repo_root.resolve()
+    last_err: Optional[str] = None
+    primary = str((r / DATA_PYAERIAL_BRIDGE_REL).resolve())
+
+    for d, source_kind in _pyaerial_tiers(r, demo_only):
+        if not d.is_dir():
+            continue
+        for fn in PYAERIAL_MANIFEST_FILES:
+            p = d / fn
+            if not p.is_file():
+                continue
+            try:
+                obj = json.loads(p.read_text(encoding="utf-8"))
+                raw = obj if isinstance(obj, dict) else {"value": obj}
+            except (json.JSONDecodeError, OSError) as e:
+                last_err = str(e)
+                continue
+            if not raw.get("bridge_manifest_version") and not raw.get("pyaerial_probe_version"):
+                last_err = "validation_failed"
+                continue
+            sk_eff, prov_note = _tier_source_after_provenance(source_kind, raw)
+            extracted = {k: raw.get(k) for k in ("status", "notes", "generated_at", "bridge_manifest_version") if raw.get(k) is not None}
+            return _finalize_sim_dict(
+                {
+                    "loaded": True,
+                    "path": str(p.resolve()),
+                    "summary_json_path": str(p.resolve()),
+                    "data": raw,
+                    "extracted_summary": extracted,
+                    "integration": "pyaerial_bridge",
+                    "parser": "pyaerial_bridge_v1",
+                    "source_kind": sk_eff,
+                    "status_label": _status_label_for_sim(True, sk_eff),
+                    "load_mode": "demo_only" if demo_only else "data_first_with_demo_fallback",
+                    "parser_note": prov_note,
+                    "phy_env": {"pyaerial_import_ok": phy.pyaerial_import_ok, "import_error": phy.import_error},
+                    "error": None,
+                }
+            )
+
+    return _finalize_sim_dict(
+        {
+            "loaded": False,
+            "path": primary,
+            "integration": "pyaerial_bridge",
+            "parser": "pyaerial_bridge_v1",
+            "source_kind": "absent",
+            "status_label": "Not loaded",
+            "load_mode": "demo_only" if demo_only else "data_first_with_demo_fallback",
+            "expected_files": list(PYAERIAL_MANIFEST_FILES),
+            "phy_env": {"pyaerial_import_ok": phy.pyaerial_import_ok, "import_error": phy.import_error},
+            "error": last_err,
+            "demo_fallback_dir": str((r / EXAMPLES_PYAERIAL_BRIDGE_REL).resolve()),
+        }
+    )
+
+
+def load_ota_evidence_status(repo_root: Path) -> Dict[str, Any]:
+    """OTA / Data Lake manifest under ``data/ota_evidence/`` (see ``ota_data_interface``)."""
+    from src.edge_ran_gary.ota_data_interface import load_ota_lake_manifest
+
+    return _finalize_sim_dict(load_ota_lake_manifest(repo_root))
 
 
 def load_deepmimo_overlay_stub(repo_root: Path) -> Optional[Dict[str, Any]]:

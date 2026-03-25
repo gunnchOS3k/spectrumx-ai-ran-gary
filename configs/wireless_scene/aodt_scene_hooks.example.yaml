@@ -1,0 +1,32 @@
+# Example AODT / city-scale scene hooks (NOT loaded by default).
+# Copy relevant sections into a tracked YAML under configs/wireless_scene/ when assets exist.
+# Status: next scaling path — requires NVIDIA Omniverse / Aerial tooling outside this repo.
+
+version: 1
+notes:
+  - "AODT positions physically accurate RF twins: terrain, vegetation, materials, mobility, scatterers."
+
+terrain:
+  dem_path: data/aerial_omniverse/terrain/gary_dem.tif
+  status: integration_ready_placeholder
+
+vegetation:
+  canopy_summary_json: data/aerial_omniverse/vegetation/canopy_summary.json
+  status: integration_ready_placeholder
+
+materials:
+  city_materials_usd: data/aerial_omniverse/materials/city_materials.usd
+  status: integration_ready_placeholder
+
+mobility_traces:
+  pedestrian_geojson: data/mobility_traces/pedestrian_flows.geojson
+  vehicle_geojson: data/mobility_traces/vehicle_flows.geojson
+  status: integration_ready_placeholder
+
+dynamic_scatterers:
+  summary_json: data/aerial_omniverse/scatterers/dynamic_summary.json
+  status: integration_ready_placeholder
+
+scene_import:
+  usd_root: data/aerial_omniverse/scene_export.usd
+  status: integration_ready_placeholder
