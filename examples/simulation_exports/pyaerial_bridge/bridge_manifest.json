@@ -1,0 +1,11 @@
+{
+  "bridge_manifest_version": 1,
+  "generated_at": "2026-03-24T00:00:00Z",
+  "status": "integration_ready_stub",
+  "notes": "In-repo placeholder. pyAerial is not executed here. See docs/PYAERIAL_BRIDGE.md and src/edge_ran_gary/pyaerial_bridge/.",
+  "export_provenance": {
+    "simulation_grade": "synthetic_template",
+    "engine": "none",
+    "script": "examples/simulation_exports/pyaerial_bridge/bridge_manifest.json"
+  }
+}

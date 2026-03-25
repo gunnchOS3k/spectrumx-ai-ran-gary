@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "documentation": "Structured placeholders for civic mobility and dynamic life. Not a traffic simulator; drives narrative + future AODT mobility traces.",
+  "flows": [
+    {
+      "id": "wsla_student_ingress",
+      "site_id": "west_side_leadership",
+      "label": "Student ingress / bell windows",
+      "modes": ["class_change_peak", "normal_day"],
+      "description": "Concentrated arrivals aligned with school-day presets; proxy for bus drop-off and foot ingress."
+    },
+    {
+      "id": "wsla_bus_corridor",
+      "site_id": "west_side_leadership",
+      "label": "School bus corridor (proxy)",
+      "modes": ["peak_day"],
+      "description": "Placeholder for future GTFS / route polyline import under data/mobility_traces/."
+    },
+    {
+      "id": "library_event_surge",
+      "site_id": "public_library",
+      "label": "Library program / event surge",
+      "modes": ["peak_day", "weekend_event"],
+      "description": "Stacks visitor_ratio with event_high_load; future tie-in to room booking metadata."
+    },
+    {
+      "id": "city_hall_queue",
+      "site_id": "city_hall",
+      "label": "City Hall service queue (proxy)",
+      "modes": ["normal_day", "peak_day"],
+      "description": "Queueing story for counter services; numeric prior on visitors_present only until AODT agents land."
+    },
+    {
+      "id": "vehicular_surface_street",
+      "site_id": "city_hall",
+      "label": "Surface street vehicle flux (proxy)",
+      "modes": ["peak_day"],
+      "description": "Next scaling: OSM / aerial vector lanes into Sionna or AODT dynamic scatterers."
+    }
+  ]
+}
