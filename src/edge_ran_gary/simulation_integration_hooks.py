@@ -18,7 +18,7 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from src.edge_ran_gary.simulation_provenance import attach_provenance_tier
+from src.edge_ran_gary.simulation_provenance import attach_execution_surface, attach_provenance_tier
 
 # --- Primary drop zones (repo root–relative) ---
 DATA_DEEPMIMO_REL = Path("data/deepmimo")
@@ -81,8 +81,8 @@ PYAERIAL_MANIFEST_FILES = ("bridge_manifest.json", "pyaerial_probe.json")
 
 
 def _finalize_sim_dict(d: Dict[str, Any]) -> Dict[str, Any]:
-    """Attach ``provenance_tier`` / ``provenance_label`` for Streamlit + docs."""
-    return attach_provenance_tier(d)
+    """Attach data provenance + execution surface (Streamlit vs external runtime)."""
+    return attach_execution_surface(attach_provenance_tier(d))
 
 
 def _status_label_for_sim(loaded: bool, source_kind: str) -> str:

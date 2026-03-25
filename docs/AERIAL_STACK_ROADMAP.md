@@ -6,12 +6,17 @@
 
 | Item | Path / artifact |
 |------|------------------|
-| Provenance vocabulary | `src/edge_ran_gary/simulation_provenance.py` |
+| Provenance + execution surface | `src/edge_ran_gary/simulation_provenance.py` |
+| External runtime honesty doc | `docs/EXTERNAL_RUNTIME_GAPS.md` |
+| Export validation (read-only) | `scripts/validate_simulation_exports.py` |
 | pyAerial bridge (stub + PHY hints) | `src/edge_ran_gary/pyaerial_bridge/` |
 | OTA / Data Lake interface | `src/edge_ran_gary/ota_data_interface.py`, `schemas/aerial_data_lake/` |
 | Drop zones in hook map | `src/edge_ran_gary/simulation_integration_hooks.py` (`data/pyaerial_bridge`, `data/ota_evidence`) |
 | Mobility placeholders | `configs/wireless_scene/mobility_flow_profiles.json`, `src/edge_ran_gary/gary_mobility_profiles.py` |
 | AODT hook example | `configs/wireless_scene/aodt_scene_hooks.example.yaml` |
+| AODT export expectations (doc) | `configs/wireless_scene/aodt_export_expectations.yaml`, `docs/AODT_EXPORT_CHECKLIST.md` |
+| ARC-OTA note (**not active**) | `docs/ARC_OTA_RUNTIME_TARGET.md` |
+| OTA manifest example | `examples/ota_evidence/ota_lake_manifest.example.json` |
 | Streamlit architecture cards | `apps/streamlit_app.py` (judge tour) |
 
 ## Must add next (lab / GPU / accounts)

@@ -9,6 +9,9 @@ import streamlit as st
 import io
 from pathlib import Path
 
+# Missing-field placeholder for captions and metrics (must be defined before any function uses it at import/runtime).
+UI_EMPTY = "N/A"
+
 # Smoke check: optional heavy deps — show friendly message instead of crash
 try:
     import numpy as np
@@ -62,10 +65,15 @@ except Exception:
     _SIM_INTEGRATION_HOOKS_OK = False
 
 try:
-    from src.edge_ran_gary.simulation_provenance import TIER_LABELS, civic_stack_summary
+    from src.edge_ran_gary.simulation_provenance import (
+        EXECUTION_SURFACE_LABELS,
+        TIER_LABELS,
+        civic_stack_summary,
+    )
 
     _SIM_PROVENANCE_OK = True
 except Exception:
+    EXECUTION_SURFACE_LABELS = {}  # type: ignore
     TIER_LABELS = {}  # type: ignore
     civic_stack_summary = None  # type: ignore
     _SIM_PROVENANCE_OK = False
@@ -117,17 +125,17 @@ except Exception:
 
 # Page config
 st.set_page_config(
-    page_title="SpectrumX DAC — Project Dashboard",
+    page_title="SpectrumX DAC — Competition-ready dashboard",
     page_icon="📡",
     layout="wide",
 )
 
 # Title
-st.title("📡 SpectrumX DAC — Winning Project Dashboard")
+st.title("📡 SpectrumX DAC — competition-ready project dashboard")
 st.caption(
     "Judge Mode highlights the **core SpectrumX DAC detector** (local metrics + live `evaluate()` on synthetic IQ). "
-    "**Completed Research Extension** (Gary digital twin + **closed-loop AI-RAN-style controller**, RIC wording as **abstraction only**) stays separate from the judged core. "
-    "**Simulation / evidence stack:** DeepMIMO, Sionna RT, **AODT** (city-scale twin **target**), **pyAerial** bridge, **Aerial Data Lake** / OTA path: each layer has an explicit **provenance** label (proxy, demo summary, simulation export, installer-ready, OTA-backed)."
+    "**Completed research extension** (Gary digital twin + **closed-loop AI-RAN-style controller**, RIC wording as **abstraction only**) stays separate from the judged core. "
+    "**Simulation / evidence stack:** DeepMIMO, Sionna RT, **AODT** (next scaling path), **pyAerial** bridge, **Aerial Data Lake** / OTA: each layer has **data provenance** plus **execution surface** (Streamlit loads manifests only; full solvers and OTA capture are **external**). See `docs/EXTERNAL_RUNTIME_GAPS.md`."
 )
 
 # Safety banner: do not upload competition data to Cloud
@@ -413,21 +421,52 @@ def _submission_dir(repo_root: Path, folder_name: str | None) -> Path | None:
     return (repo_root / "submissions" / folder_name).resolve()
 
 
-# Contrast-safe custom HTML (explicit dark text on light gray — judge-safe in light & dark Streamlit themes).
+def _streamlit_theme_base() -> str | None:
+    """Best-effort theme hint for Plotly/HTML contrast (Streamlit 1.40+)."""
+    try:
+        ctx = getattr(st, "context", None)
+        th = getattr(ctx, "theme", None) if ctx is not None else None
+        base = getattr(th, "base", None) if th is not None else None
+        return str(base).lower() if base else None
+    except Exception:
+        return None
+
+
+def _plotly_chart_colors() -> dict:
+    """Readable bar charts in light and dark Streamlit themes."""
+    if _streamlit_theme_base() == "dark":
+        return {
+            "paper_bgcolor": "rgba(30,32,36,0.95)",
+            "plot_bgcolor": "rgba(20,22,26,0.9)",
+            "font_color": "#e6edf3",
+        }
+    return {
+        "paper_bgcolor": "#dee2e6",
+        "plot_bgcolor": "#f8f9fa",
+        "font_color": "#212529",
+    }
+
+
+# Theme-aware custom HTML (Streamlit CSS variables with light-theme fallbacks).
 def _judge_html_card(title: str, body_inner_html: str, *, tone: str = "gray") -> str:
-    bg = "#ced4da" if tone == "gray" else "#b8c2cc"
+    bg = (
+        "var(--secondary-background-color, #ced4da)"
+        if tone == "gray"
+        else "var(--secondary-background-color, #b8c2cc)"
+    )
     return (
-        f"<div style='border:1px solid #212529;border-radius:12px;padding:14px 16px;background:{bg};"
-        f"color:#212529;box-shadow:0 1px 3px rgba(0,0,0,0.12);'>"
-        f"<div style='font-weight:700;font-size:16px;color:#212529;margin-bottom:8px'>{title}</div>"
-        f"<div style='font-size:13px;color:#212529;line-height:1.55'>{body_inner_html}</div></div>"
+        f"<div style='border:1px solid var(--border-color, #495057);border-radius:12px;padding:14px 16px;background:{bg};"
+        f"color:var(--text-color, #212529);box-shadow:0 1px 3px rgba(0,0,0,0.12);'>"
+        f"<div style='font-weight:700;font-size:16px;color:var(--text-color, #212529);margin-bottom:8px'>{title}</div>"
+        f"<div style='font-size:13px;color:var(--text-color, #212529);line-height:1.55'>{body_inner_html}</div></div>"
     )
 
 
 def _judge_html_card_sm(html_inner: str) -> str:
     return (
-        "<div style='border:1px solid #343a40;border-radius:10px;padding:10px 12px;background:#f1f3f5;"
-        "color:#111827;min-height:118px;box-shadow:0 1px 2px rgba(0,0,0,0.08);'>"
+        "<div style='border:1px solid var(--border-color, #495057);border-radius:10px;padding:10px 12px;"
+        "background:var(--secondary-background-color, #f1f3f5);"
+        "color:var(--text-color, #111827);min-height:118px;box-shadow:0 1px 2px rgba(0,0,0,0.08);'>"
         f"{html_inner}</div>"
     )
 
@@ -1041,16 +1080,20 @@ def _render_judge_oran_ai_ran_alignment_card():
             "Why this aligns with AI-RAN / O-RAN (honest abstraction)",
             "<ul style='margin:0;padding-left:18px;line-height:1.55'>"
             "<li><b>Telemetry ingestion</b>: scenario engine + site state (people, devices, traffic) and optional simulation summaries "
-            "feed a single <b>observation vector</b> for the UI loop. A production RIC would normalize O1 / E2 / FM; here it is <b>Python state</b> only.</li>"
-            "<li><b>Belief / policy layer</b>: <b>RIC-style</b> wording maps to a small <b>rule + priority</b> policy (Near-RT / Non-RT <b>inspired</b>). "
-            "This is <b>not</b> a hosted Near-RT RIC or xApp marketplace.</li>"
-            "<li><b>Action selection</b>: discrete <b>spectrum / power / scheduling</b>-style actions change KPIs in the twin. Think <b>xApp-like</b> "
-            "closed-loop step without claiming O-RAN service models or A1/E2 bindings.</li>"
-            "<li><b>KPI feedback</b>: coexistence, coverage pressure, and community-priority metrics play the role of <b>rApp-style</b> objectives "
-            "for reviewers (optimization targets, not an operational rApp).</li>"
-            "<li><b>AI-RAN link</b>: the <b>judged SpectrumX detector</b> (core tab) is the credible ML artifact; this extension can consume "
-            "<b>detector-shaped beliefs</b> as a stand-in for sensing-driven RAN adaptation when you wire IQ or scores in.</li>"
-            "<li><b>Truthful scope</b>: no live E2, no production RIC, no carrier integration: a <b>research controller abstraction</b> on top of a real submission package.</li>"
+            "form an <b>observation vector</b> for the UI loop. A production RIC would normalize O1 / E2 / FM; here it is <b>Python state</b> only.</li>"
+            "<li><b>Belief / policy</b>: <b>RIC-style</b> language maps to a small <b>rule + priority</b> policy (Near-RT / Non-RT <b>inspired</b>). "
+            "Not a hosted Near-RT RIC or xApp marketplace.</li>"
+            "<li><b>Action selection</b>: discrete <b>spectrum / power / scheduling</b>-style actions nudge KPIs in the twin (<b>xApp-like</b> step; "
+            "no A1/E2 service bindings).</li>"
+            "<li><b>KPI feedback</b>: coexistence, coverage pressure, and community-priority metrics mirror <b>rApp-style</b> objectives "
+            "(targets for study, not an operational rApp).</li>"
+            "<li><b>Scheduler narrative (cuMAC-style)</b>: the twin uses <b>priority weights</b> and coexistence pressure as a <b>MAC/scheduling story</b> only "
+            "— not NVIDIA <b>cuMAC</b> or a real MAC stack.</li>"
+            "<li><b>Execution targets</b>: <b>Aerial CUDA-Accelerated RAN</b> and <b>pyAerial / cuPHY</b> are credible <b>external</b> PHY targets; "
+            "see `pyaerial_bridge` and `docs/PYAERIAL_BRIDGE.md`. Streamlit stays <b>manifest + provenance</b> only.</li>"
+            "<li><b>AI-RAN link</b>: the <b>judged SpectrumX detector</b> is the ML artifact; this extension can consume <b>detector-shaped beliefs</b> "
+            "as a stand-in for sensing-driven adaptation when you wire scores or IQ offline.</li>"
+            "<li><b>Truthful scope</b>: no live E2, no production RIC, no carrier integration — a <b>controller abstraction</b> on a real submission package.</li>"
             "</ul>",
         ),
         unsafe_allow_html=True,
@@ -1108,9 +1151,9 @@ def _render_judge_gary_micro_twin_3d():
         with col:
             st.markdown(
                 _judge_html_card_sm(
-                    f"<div style='font-size:11px;color:#212529'>Step {num}</div>"
-                    f"<div style='font-weight:700;font-size:13px;color:#212529;margin:4px 0'>{title}</div>"
-                    f"<div style='font-size:11px;color:#212529'>{sub}</div>"
+                    f"<div style='font-size:11px;color:var(--text-color, #212529)'>Step {num}</div>"
+                    f"<div style='font-weight:700;font-size:13px;color:var(--text-color, #212529);margin:4px 0'>{title}</div>"
+                    f"<div style='font-size:11px;color:var(--text-color, #212529)'>{sub}</div>"
                 ),
                 unsafe_allow_html=True,
             )
@@ -1119,7 +1162,7 @@ def _render_judge_gary_micro_twin_3d():
     with ce1:
         st.markdown(
             _judge_html_card(
-                "Why this is research-grade now",
+                "Why this extension is credible for reviewers",
                 "<ul style='margin:0;padding-left:18px'>"
                 "<li><b>Real detector</b> evaluated on competition-style data <b>offline</b> — <b>not</b> exposed as raw IQ in this app; core tab + submission workflow.</li>"
                 "<li><b>Completed extension</b>: <b>scenario engine</b> (people/devices/load) + <b>closed-loop AI-RAN scene controller</b> (RIC-style abstraction).</li>"
@@ -1367,6 +1410,7 @@ def _render_judge_gary_micro_twin_3d():
             "path": str((_repo_mt / "data" / "deepmimo").resolve()),
             "source_kind": "absent",
             "status_label": "Not loaded",
+            "integration": "deepmimo",
             "parser_note": "`simulation_integration_hooks` failed to import — cannot load summaries.",
         }
         _sim_sn = {
@@ -1375,6 +1419,7 @@ def _render_judge_gary_micro_twin_3d():
             "source_kind": "absent",
             "status_label": "Not loaded",
             "coverage_overlay_active": False,
+            "integration": "sionna_rt",
             "parser_note": "`simulation_integration_hooks` failed to import — cannot load summaries.",
         }
         _sim_ae = {
@@ -1386,6 +1431,7 @@ def _render_judge_gary_micro_twin_3d():
             "aerial_status_tier": "none",
             "access_summary_path": None,
             "access_summary_excerpt": {},
+            "integration": "aerial_omniverse",
             "parser_note": "`simulation_integration_hooks` failed to import — cannot load summaries.",
         }
         _sim_py = {
@@ -1485,6 +1531,30 @@ def _render_judge_gary_micro_twin_3d():
                     "error": "loader_exception",
                 }
 
+    if _SIM_PROVENANCE_OK:
+        try:
+            from src.edge_ran_gary.simulation_provenance import attach_execution_surface, attach_provenance_tier
+
+            def _finalize_sim_status_dict(d: dict, integration: str) -> dict:
+                d = dict(d) if d else {"integration": integration, "loaded": False, "source_kind": "absent"}
+                if not d.get("integration"):
+                    d["integration"] = integration
+                if d.get("execution_surface_label"):
+                    return d
+                return attach_execution_surface(attach_provenance_tier(d))
+
+            _sim_dm = _finalize_sim_status_dict(_sim_dm, "deepmimo")
+            _sim_sn = _finalize_sim_status_dict(_sim_sn, "sionna_rt")
+            _sim_ae = _finalize_sim_status_dict(_sim_ae, "aerial_omniverse")
+            _sim_py = _finalize_sim_status_dict(_sim_py, "pyaerial_bridge")
+            _sim_ota = _finalize_sim_status_dict(_sim_ota, "ota_data_lake")
+        except Exception:
+            pass
+    else:
+        for _sim in (_sim_dm, _sim_sn, _sim_ae, _sim_py, _sim_ota):
+            _sim.setdefault("execution_surface_label", "Provenance module did not import; execution surface not labeled.")
+            _sim.setdefault("execution_surface_tier", "unknown")
+
     _occ_bundle: dict = {}
     if _OCC_VIZ_OK and build_pydeck_occupancy_bundle is not None:
         try:
@@ -1529,7 +1599,7 @@ def _render_judge_gary_micro_twin_3d():
         "**Access confirmed / installer-ready** (Aerial) = `access_summary.json` only — **not** a twin export."
     )
     st.markdown(
-        "<div style='background:#f8f9fa;border:2px solid #212529;border-radius:10px;padding:12px 14px;color:#111827;"
+        "<div style='background:var(--secondary-background-color, #f8f9fa);border:2px solid var(--border-color, #212529);border-radius:10px;padding:12px 14px;color:var(--text-color, #111827);"
         "font-size:13px;line-height:1.5'>"
         "<b>Judged vs extension:</b> SpectrumX detector (core submission) is evaluated separately; this panel is the "
         "<b>Gary digital-twin extension</b> only. <b>Aerial / Omniverse</b> entries are lightweight manifests unless you run external tooling.</div>",
@@ -1692,6 +1762,23 @@ def _render_judge_gary_micro_twin_3d():
             for _tk, _tv in sorted(TIER_LABELS.items()):
                 st.markdown(f"- **`{_tk}`**: {_tv}")
 
+    if _SIM_PROVENANCE_OK and EXECUTION_SURFACE_LABELS:
+        with st.expander("Execution surface vocabulary (Streamlit vs external runtime)", expanded=False):
+            st.caption("**Data provenance** (demo vs simulation export) is separate from **where code runs**.")
+            for _ek, _ev in sorted(EXECUTION_SURFACE_LABELS.items()):
+                st.markdown(f"- **`{_ek}`**: {_ev}")
+
+    with st.expander("Execution surface (this session, per layer)", expanded=False):
+        for _pill, _sd in (
+            ("DeepMIMO", _sim_dm),
+            ("Sionna RT", _sim_sn),
+            ("AODT / Aerial Omniverse", _sim_ae),
+            ("pyAerial bridge", _sim_py),
+            ("OTA Data Lake", _sim_ota),
+        ):
+            st.markdown(f"**{_pill}** (`{_sd.get('execution_surface_tier', UI_EMPTY)}`)")
+            st.caption(_sd.get("execution_surface_label") or UI_EMPTY)
+
     with st.expander("Simulation details (tables & raw JSON)", expanded=False):
         if _sim_dm.get("loaded") and _sim_dm.get("extracted_summary"):
             st.markdown("**DeepMIMO — parsed fields**")
@@ -1780,7 +1867,7 @@ def _render_judge_gary_micro_twin_3d():
         with _col:
             st.markdown(
                 f"**{_b.get('map_label', _b['name'])}**  \n"
-                f"<span style='font-size:12px;color:#212529'>{_b.get('site_type', 'site').replace('_', ' ')} · "
+                f"<span style='font-size:12px;color:var(--text-color, #212529)'>{_b.get('site_type', 'site').replace('_', ' ')} · "
                 f"{_b.get('role', '')}</span>",
                 unsafe_allow_html=True,
             )
@@ -2291,12 +2378,15 @@ def _render_judge_gary_micro_twin_3d():
     )
 
     lg1, lg2, lg3 = st.columns(3)
-    _leg_wrap = "background:#f8f9fa;border:2px solid #dee2e6;border-radius:10px;padding:12px 14px;margin-bottom:4px"
+    _leg_wrap = (
+        "background:var(--secondary-background-color, #f8f9fa);border:2px solid var(--border-color, #dee2e6);"
+        "border-radius:10px;padding:12px 14px;margin-bottom:4px"
+    )
     with lg1:
         st.markdown(f"<div style='{_leg_wrap}'>", unsafe_allow_html=True)
         st.markdown("**Map / glyph legend**")
         st.markdown(
-            "<div style='font-size:12px;line-height:1.65;color:#111827'>"
+            "<div style='font-size:12px;line-height:1.65;color:var(--text-color, #111827)'>"
             "<span style='display:inline-block;width:14px;height:14px;background:#2ecc71;border-radius:3px;vertical-align:middle;margin-right:6px'></span>Building: lower coexistence stress (proxy)<br/>"
             "<span style='display:inline-block;width:14px;height:14px;background:#f1c40f;border-radius:3px;vertical-align:middle;margin-right:6px'></span>Building: moderate stress (proxy)<br/>"
             "<span style='display:inline-block;width:14px;height:14px;background:#e74c3c;border-radius:3px;vertical-align:middle;margin-right:6px'></span>Building: higher stress (proxy)<br/>"
@@ -2324,7 +2414,7 @@ def _render_judge_gary_micro_twin_3d():
         st.markdown(f"<div style='{_leg_wrap}'>", unsafe_allow_html=True)
         st.markdown("**Wireless-layer legend (semantics)**")
         st.markdown(
-            "<div style='font-size:12px;line-height:1.65;color:#111827'>"
+            "<div style='font-size:12px;line-height:1.65;color:var(--text-color, #111827)'>"
             "<b>L1 Anchor geometry</b> — **site-specific extruded footprints** (multi-vertex outlines); optional **.glb** replaces footprint when configured. "
             "Outline color hints: **civic blue** · **library violet** · **school green** (plus coexistence tint).<br/>"
             "<b>L2 Access / serving</b> — hypothetical gNB + serving segment (not a carrier asset DB).<br/>"
@@ -2338,7 +2428,7 @@ def _render_judge_gary_micro_twin_3d():
         st.markdown(f"<div style='{_leg_wrap}'>", unsafe_allow_html=True)
         st.markdown("**O-RAN mapping (conceptual)**")
         st.markdown(
-            "<div style='font-size:12px;line-height:1.65;color:#111827'>"
+            "<div style='font-size:12px;line-height:1.65;color:var(--text-color, #111827)'>"
             "<b>RU / O-DU (abstracted)</b> — gNB marker + link geometry.<br/>"
             "<b>O1 / sensing stand-in</b> — SpectrumX <code>evaluate()</code> on <b>synthetic</b> IQ (Judge tab).<br/>"
             "<b>RIC-style controller</b> — policy panel maps **closed-loop state** → discrete action → KPIs (Near-RT / Non-RT–<b>inspired</b>).<br/>"
@@ -2476,19 +2566,21 @@ def _render_judge_gary_micro_twin_3d():
                 marker_color="#d35400",
             )
         )
+        _pc = _plotly_chart_colors()
+        _fc = _pc["font_color"]
         fig_cov.update_layout(
             barmode="group",
             height=360,
             margin=dict(t=40, b=48),
-            paper_bgcolor="#dee2e6",
-            plot_bgcolor="#f8f9fa",
-            font=dict(color="#212529", size=12),
-            legend=dict(font=dict(color="#212529")),
-            xaxis=dict(tickfont=dict(color="#212529"), title=dict(text="Anchor site", font=dict(color="#212529"))),
+            paper_bgcolor=_pc["paper_bgcolor"],
+            plot_bgcolor=_pc["plot_bgcolor"],
+            font=dict(color=_fc, size=12),
+            legend=dict(font=dict(color=_fc)),
+            xaxis=dict(tickfont=dict(color=_fc), title=dict(text="Anchor site", font=dict(color=_fc))),
             yaxis=dict(
                 range=[0, 1.08],
-                tickfont=dict(color="#212529"),
-                title=dict(text="Score (0–1 proxy)", font=dict(color="#212529")),
+                tickfont=dict(color=_fc),
+                title=dict(text="Score (0–1 proxy)", font=dict(color=_fc)),
             ),
         )
         st.plotly_chart(fig_cov, use_container_width=True)
@@ -2528,8 +2620,9 @@ def _render_judge_gary_micro_twin_3d():
     for i, persona in enumerate(selected_building["users"]):
         with uc[i]:
             st.markdown(
-                "<div style='border:1px solid #343a40;border-radius:10px;padding:12px;background:#f8f9fa;text-align:center;"
-                f"color:#111827'><strong style='color:#111827'>{persona}</strong></div>",
+                "<div style='border:1px solid var(--border-color, #343a40);border-radius:10px;padding:12px;"
+                "background:var(--secondary-background-color, #f8f9fa);text-align:center;"
+                f"color:var(--text-color, #111827)'><strong style='color:var(--text-color, #111827)'>{persona}</strong></div>",
                 unsafe_allow_html=True,
             )
     st.caption(
@@ -2676,9 +2769,9 @@ def _render_judge_gary_micro_twin_3d():
         with col:
             st.markdown(
                 _judge_html_card_sm(
-                    f"<div style='font-size:12px;color:#212529'>{title}</div>"
-                    f"<div style='font-weight:600;margin:6px 0;font-size:13px;color:#212529'>{headline}</div>"
-                    f"<div style='font-size:11px;color:#212529'>{sub}</div>"
+                    f"<div style='font-size:12px;color:var(--text-color, #212529)'>{title}</div>"
+                    f"<div style='font-weight:600;margin:6px 0;font-size:13px;color:var(--text-color, #212529)'>{headline}</div>"
+                    f"<div style='font-size:11px;color:var(--text-color, #212529)'>{sub}</div>"
                 ),
                 unsafe_allow_html=True,
             )
@@ -2694,11 +2787,13 @@ def _render_judge_gary_micro_twin_3d():
             st.caption(blurb)
 
     st.markdown(
-        "<div style='border-left:5px solid #5b21b6;padding:12px 16px;background:#e9e3f5;border:1px solid #212529;border-radius:0 12px 12px 0;margin:10px 0'>"
-        "<strong style='color:#212529'>Why this reads as AI-RAN (honest scope)</strong><br/>"
-        "<span style='font-size:13px;color:#212529;line-height:1.55'>"
+        "<div style='border-left:5px solid #7c3aed;padding:12px 16px;background:var(--secondary-background-color, #e9e3f5);"
+        "border:1px solid var(--border-color, #212529);border-radius:0 12px 12px 0;margin:10px 0'>"
+        "<strong style='color:var(--text-color, #212529)'>Why this reads as AI-RAN (honest scope)</strong><br/>"
+        "<span style='font-size:13px;color:var(--text-color, #212529);line-height:1.55'>"
         "A <b>closed-loop</b> <b>RIC-style</b> narrative (<b>Near-RT / Non-RT–inspired</b>): <b>observations</b> (detector + scenario engine + propagation proxies) → "
-        "<b>policy</b> → <b>discrete actions</b> → <b>KPI</b> readout. Explicit <b>proxy</b> labeling; <b>no</b> claim of a production RIC or full RT stack.</span></div>",
+        "<b>policy</b> → <b>discrete actions</b> → <b>KPI</b> readout. Explicit <b>proxy</b> labeling; <b>no</b> claim of a production RIC, cuMAC, or full RT stack. "
+        "<b>Aerial CUDA RAN</b> / <b>pyAerial</b> are <b>external</b> execution targets only.</span></div>",
         unsafe_allow_html=True,
     )
 
