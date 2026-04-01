@@ -15,6 +15,8 @@ Outputs:
   - propagation_summary.json
   - path_loss_summary.json
   - coverage_grid.geojson
+
+Evidence vocabulary: `docs/PROVENANCE_LEGEND.md`.
 """
 from __future__ import annotations
 

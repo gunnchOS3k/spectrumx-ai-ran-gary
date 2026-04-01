@@ -1,8 +1,7 @@
 # AODT export expectations (documentation + hook targets)
-# Full USD/scene generation runs in external Omniverse / AI Aerial — not in Streamlit.
-# This file lists what the *Gary* integration path expects once you drop real exports under data/aerial_omniverse/.
+# Full USD/scene generation: external Omniverse / AI Aerial + GPU — not Streamlit.
 
-aodt_export_expectations_version: 1
+aodt_export_expectations_version: 2
 
 summary_manifests:
   preferred_filenames:
@@ -10,27 +9,40 @@ summary_manifests:
     - twin_manifest.json
   optional_access_probe:
     - access_summary.json
+  example_extended_manifest: examples/simulation_exports/aerial_omniverse/overlay_summary.example.json
+
+# Optional JSON fields consumed by simulation_integration_hooks._normalize_aerial_dict (when present)
+optional_manifest_sections:
+  site_identifiers: List of Gary anchor ids (strings)
+  terrain_summary: DEM/mesh provenance and resolution
+  vegetation_summary: Layer or instancing summary
+  georeferencing: CRS, anchor lon/lat, survey notes
+  mobility_summary: Trace URI + format (GTFS, Omniverse export, etc.)
+  dynamic_scatterer_summary: Time-varying clutter summary
+  export_provenance: Same discipline as DeepMIMO/Sionna (simulation_grade, engine, script)
+  generation_environment: Kit version, GPU model, tooling revision (no secrets)
 
 scene_assets:
   description: >
-    Large binary assets (USDZ, textures, meshes) stay outside git or in Git LFS;
-    manifests above should reference relative paths or URIs your team controls.
+    Large binaries (USDZ, textures, meshes) live outside git or in Git LFS.
+    JSON manifests reference URIs or relative paths your team controls.
   placeholders:
     terrain_mesh_uri: null
     vegetation_layer_uri: null
     building_mesh_uris: []
 
 mobility:
-  description: Optional traces for replay narratives (GTFS, internal sim, or Omniverse export).
+  description: Traces for replay narratives — exported from Omniverse or fused with GTFS/OSM in lab.
   placeholder_paths:
     - data/mobility_traces/README.txt
 
 dynamic_scatterers:
-  description: Summaries only in-repo; full dynamics from external sim.
+  description: Summaries in JSON; dynamics authored in external sim.
   example_fields:
     - scatterer_class
     - time_window_s
     - anchor_site_id
 
-streamlit_role: manifest_and_provenance_only
+streamlit_evidence_states: proxy-only | loaded demo | loaded simulation export | installer-ready | external-runtime-required
+streamlit_execution: manifest-load-only for display; external-runtime-required to regenerate full scene
 external_runtime_required_for_full_scene: true

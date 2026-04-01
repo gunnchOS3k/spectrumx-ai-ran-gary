@@ -9,6 +9,8 @@ Usage (from repo root):
     python3 scripts/validate_simulation_exports.py
     python3 scripts/validate_simulation_exports.py --deepmimo
     python3 scripts/validate_simulation_exports.py --sionna
+
+Provenance terms: `docs/PROVENANCE_LEGEND.md`.
 """
 from __future__ import annotations
 

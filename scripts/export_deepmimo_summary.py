@@ -11,6 +11,8 @@ Modes:
                       (set manually after you run a real DeepMIMO export elsewhere)
 
 **Never** embeds API keys or MATLAB paths with secrets.
+
+UI evidence labels: see `docs/PROVENANCE_LEGEND.md`.
 """
 from __future__ import annotations
 

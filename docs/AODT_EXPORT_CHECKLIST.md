@@ -1,39 +1,56 @@
 # AODT (Aerial Omniverse Digital Twin) — export checklist
 
-## Two distinct phases (do not blur)
+## Two phases (do not blur)
 
-### 1) Full scene generation (**external runtime**)
+### Phase A — Full scene generation (**external runtime only**)
 
-Runs **outside** this repo in NVIDIA **Omniverse** / **AI Aerial** (GPU, often NGC or installer-based access).
+Runs in **NVIDIA Omniverse / AI Aerial** with **GPU** and often NGC or installer access.
 
-Produces:
+| Step | Check |
+|------|--------|
+| Scene graph / USD | City or campus scope matches Gary anchor intent |
+| **Terrain** | DEM or mesh from GIS / photogrammetry; document CRS |
+| **Vegetation** | Instancing or layers; note season / LOD |
+| **Materials** | Building façade / ground RF-relevant where possible |
+| **Georeferencing** | CRS, origin, tie to lon/lat used in twin |
+| **Mobility** | Optional animation, CSV, or GTFS-derived traces |
+| **Dynamic scatterers** | Vehicles / crowds as separate export or summary |
+| RF overlay | Per your Aerial / AODT workflow (not asserted here) |
 
-- USD or USDZ scene assets, materials, optional vegetation and terrain meshes
-- Mobility / animation clips or exported trajectories (optional)
-- RF overlay or twin metadata consistent with your Aerial workflow
+**Not** executed in Streamlit or CI in this repo.
 
-**Not** executed in Streamlit Cloud.
+### Phase B — **Manifests / summaries** for this app (**in repo**)
 
-### 2) **Export manifests** for this app (**in repo / drop zone**)
+After Phase A, place JSON the loader accepts under `data/aerial_omniverse/` (or use bundled **demo** under `examples/simulation_exports/aerial_omniverse/`).
 
-After external generation, copy **summary** artifacts the loaders understand:
+| Artifact | Path | Loader |
+|----------|------|--------|
+| Twin / overlay summary | `overlay_summary.json` or `twin_manifest.json` | `load_aerial_overlay_summary` |
+| Access probe (optional) | `access_summary.json` | `scripts/check_ngc_access.py` → evidence **`installer-ready`**, not a scene |
+| Extended fields (optional) | Same JSON | `site_identifiers`, `terrain_summary`, `vegetation_summary`, `georeferencing`, `mobility_summary`, `dynamic_scatterer_summary`, `export_provenance`, `generation_environment` (see `_normalize_aerial_dict`) |
 
-| Artifact | Typical path | Purpose |
-|----------|----------------|--------|
-| Overlay / twin manifest | `data/aerial_omniverse/overlay_summary.json` or `twin_manifest.json` | Parsed by `load_aerial_overlay_summary` |
-| Access probe (optional) | `data/aerial_omniverse/access_summary.json` | From `scripts/check_ngc_access.py` — **access confirmed / installer-ready**, not a twin |
-| Scene hooks (optional) | `configs/wireless_scene/aodt_scene_hooks.example.yaml` | Copy to a non-example name when you wire real paths |
+**Example extended manifest:** `examples/simulation_exports/aerial_omniverse/overlay_summary.example.json`  
+**Expectations YAML:** `configs/wireless_scene/aodt_export_expectations.yaml`
 
-See `configs/wireless_scene/aodt_export_expectations.yaml` for **expected keys** and placeholders for terrain, vegetation, mobility, and scatterer summaries (schemas for **documentation**, not live solvers).
+## Validation expectations (honest)
 
-## Honest status labels
+- Loader marks **loaded** only if JSON parses and has **scene_name** or **usd_path** (or version/assets heuristics).
+- Invalid JSON on disk → **not loaded** + parser note (no fake twin).
+- **`export_provenance.simulation_grade`:** `full_solver` vs analytic/synthetic drives **loaded demo** vs **loaded simulation export** (via shared provenance rules in hooks).
 
-- **Loaded (demo summary)** — bundled `examples/simulation_exports/aerial_omniverse/` stub.
-- **Loaded (simulation export)** — valid `data/aerial_omniverse/*` with operator `full_solver` provenance when applicable.
-- **Access confirmed / installer-ready** — `access_summary.json` only.
-- **Execution surface** — always **external** for full AODT generation; Streamlit reads manifests only (`execution_surface_label` on hook results).
+## Streamlit states (AODT row)
+
+| What you see | Meaning |
+|--------------|---------|
+| **loaded demo** | Parsed manifest from `examples/…` or downgraded provenance |
+| **loaded simulation export** | Parsed `data/aerial_omniverse/*` with simulation-tier provenance |
+| **installer-ready** | Only `access_summary.json` (no twin manifest) |
+| **proxy-only** | No manifest; twin maps use scenario proxies |
+| **external-runtime-required** | Integration target needs Omniverse/GPU to produce real scenes |
+
+Execution surface for AODT is always **external-runtime-required** for regeneration; Streamlit remains **manifest-load-only**.
 
 ## Related scripts
 
-- `scripts/check_ngc_access.py` — environment presence probe (no secrets in JSON).
-- `scripts/bootstrap_aodt_access.py` — optional Docker/bootstrap flags (see runbook).
+- `scripts/check_ngc_access.py` — access probe JSON (no secrets).
+- `scripts/bootstrap_aodt_access.py` — optional Docker/bootstrap (see runbook).

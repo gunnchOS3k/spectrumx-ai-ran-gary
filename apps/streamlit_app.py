@@ -66,16 +66,23 @@ except Exception:
 
 try:
     from src.edge_ran_gary.simulation_provenance import (
-        EXECUTION_SURFACE_LABELS,
-        TIER_LABELS,
+        CANONICAL_EVIDENCE_HELP,
+        CANONICAL_EXECUTION_HELP,
         civic_stack_summary,
+        finalize_simulation_status,
+        ordered_canonical_evidence_terms,
     )
 
     _SIM_PROVENANCE_OK = True
 except Exception:
-    EXECUTION_SURFACE_LABELS = {}  # type: ignore
-    TIER_LABELS = {}  # type: ignore
+    CANONICAL_EVIDENCE_HELP = {}  # type: ignore
+    CANONICAL_EXECUTION_HELP = {}  # type: ignore
     civic_stack_summary = None  # type: ignore
+    finalize_simulation_status = None  # type: ignore
+
+    def ordered_canonical_evidence_terms():  # type: ignore
+        return []
+
     _SIM_PROVENANCE_OK = False
 
 try:
@@ -1531,17 +1538,16 @@ def _render_judge_gary_micro_twin_3d():
                     "error": "loader_exception",
                 }
 
-    if _SIM_PROVENANCE_OK:
+    if _SIM_PROVENANCE_OK and finalize_simulation_status is not None:
         try:
-            from src.edge_ran_gary.simulation_provenance import attach_execution_surface, attach_provenance_tier
 
             def _finalize_sim_status_dict(d: dict, integration: str) -> dict:
                 d = dict(d) if d else {"integration": integration, "loaded": False, "source_kind": "absent"}
                 if not d.get("integration"):
                     d["integration"] = integration
-                if d.get("execution_surface_label"):
+                if d.get("canonical_evidence_status"):
                     return d
-                return attach_execution_surface(attach_provenance_tier(d))
+                return finalize_simulation_status(d)
 
             _sim_dm = _finalize_sim_status_dict(_sim_dm, "deepmimo")
             _sim_sn = _finalize_sim_status_dict(_sim_sn, "sionna_rt")
@@ -1554,6 +1560,8 @@ def _render_judge_gary_micro_twin_3d():
         for _sim in (_sim_dm, _sim_sn, _sim_ae, _sim_py, _sim_ota):
             _sim.setdefault("execution_surface_label", "Provenance module did not import; execution surface not labeled.")
             _sim.setdefault("execution_surface_tier", "unknown")
+            _sim.setdefault("canonical_evidence_status", "proxy-only")
+            _sim.setdefault("canonical_execution_status", "manifest-load-only")
 
     _occ_bundle: dict = {}
     if _OCC_VIZ_OK and build_pydeck_occupancy_bundle is not None:
@@ -1592,11 +1600,11 @@ def _render_judge_gary_micro_twin_3d():
 
     st.markdown("#### Simulation summaries")
     st.caption(
-        "**Loaded (simulation export)** = validated `data/*` export **without** analytic-downgrade provenance "
-        "(operator or full_solver pipeline). "
-        "**Loaded (demo summary)** = `examples/simulation_exports/*` **or** `data/*` files whose "
-        "`export_provenance.simulation_grade` is `analytic_fallback` / synthetic (export scripts). "
-        "**Access confirmed / installer-ready** (Aerial) = `access_summary.json` only — **not** a twin export."
+        "**Evidence terms:** **`loaded simulation export`** = validated `data/*` without analytic downgrade. "
+        "**`loaded demo`** = `examples/simulation_exports/*` or downgraded `export_provenance`. "
+        "**`installer-ready`** = Aerial `access_summary.json` only (not a twin). "
+        "**`proxy-only`** = twin proxies when no export. **`external-runtime-required`** = pyAerial/AODT/OTA path without honest in-app execution. **`OTA-backed`** = valid OTA manifest. "
+        "**Execution:** always **`manifest-load-only`** in Streamlit for solvers; **`external-runtime-required`** to regenerate; **`lab-OTA-workflow`** for captures."
     )
     st.markdown(
         "<div style='background:var(--secondary-background-color, #f8f9fa);border:2px solid var(--border-color, #212529);border-radius:10px;padding:12px 14px;color:var(--text-color, #111827);"
@@ -1706,7 +1714,11 @@ def _render_judge_gary_micro_twin_3d():
             st.success(f"**{_py_sl}**")
         else:
             st.warning(f"**{_py_sl}**")
-        st.caption(f"**Provenance:** `{_sim_py.get('provenance_label', UI_EMPTY)}` (`{_sim_py.get('provenance_tier', UI_EMPTY)}`)")
+        st.caption(
+            f"**Evidence:** `{_sim_py.get('canonical_evidence_status', _sim_py.get('provenance_label', UI_EMPTY))}` "
+            f"· **execution:** `{_sim_py.get('canonical_execution_status', UI_EMPTY)}` "
+            f"· `provenance_tier={_sim_py.get('provenance_tier', UI_EMPTY)}`"
+        )
         st.caption(f"**Source:** {_sim_source_type_label(str(_sim_py.get('source_kind', 'absent')))}")
         st.caption(f"**Manifest:** `{_sim_py.get('summary_json_path') or _sim_py.get('path', '')}`")
         _pe = (_sim_py.get("phy_env") or {}) if isinstance(_sim_py.get("phy_env"), dict) else {}
@@ -1724,7 +1736,11 @@ def _render_judge_gary_micro_twin_3d():
             st.success(f"**{_o_sl}**")
         else:
             st.info(f"**{_o_sl}** — drop `data/ota_evidence/ota_lake_manifest.json` to register captures (see `docs/DATA_LAKE_SCHEMA.md`).")
-        st.caption(f"**Provenance:** `{_sim_ota.get('provenance_label', UI_EMPTY)}` (`{_sim_ota.get('provenance_tier', UI_EMPTY)}`)")
+        st.caption(
+            f"**Evidence:** `{_sim_ota.get('canonical_evidence_status', _sim_ota.get('provenance_label', UI_EMPTY))}` "
+            f"· **execution:** `{_sim_ota.get('canonical_execution_status', UI_EMPTY)}` "
+            f"· `provenance_tier={_sim_ota.get('provenance_tier', UI_EMPTY)}`"
+        )
         st.caption(f"**Path:** `{_sim_ota.get('path', '')}`")
         if _sim_ota.get("parser_note"):
             st.caption(_sim_ota["parser_note"])
@@ -1756,19 +1772,22 @@ def _render_judge_gary_micro_twin_3d():
             unsafe_allow_html=True,
         )
 
-    if _SIM_PROVENANCE_OK and TIER_LABELS:
-        with st.expander("Simulation provenance vocabulary (all realism layers)", expanded=False):
-            st.caption("Machine keys map hook outputs and docs; human labels appear in cards above.")
-            for _tk, _tv in sorted(TIER_LABELS.items()):
-                st.markdown(f"- **`{_tk}`**: {_tv}")
+    if _SIM_PROVENANCE_OK and CANONICAL_EVIDENCE_HELP:
+        with st.expander("Canonical evidence vocabulary (six terms)", expanded=False):
+            st.caption(
+                "Each layer exposes **`canonical_evidence_status`** (user-facing) and **`provenance_tier`** (machine key). "
+                "See `docs/PROVENANCE_LEGEND.md`."
+            )
+            for _term in ordered_canonical_evidence_terms():
+                st.markdown(f"- **`{_term}`**: {CANONICAL_EVIDENCE_HELP.get(_term, '')}")
 
-    if _SIM_PROVENANCE_OK and EXECUTION_SURFACE_LABELS:
-        with st.expander("Execution surface vocabulary (Streamlit vs external runtime)", expanded=False):
-            st.caption("**Data provenance** (demo vs simulation export) is separate from **where code runs**.")
-            for _ek, _ev in sorted(EXECUTION_SURFACE_LABELS.items()):
+    if _SIM_PROVENANCE_OK and CANONICAL_EXECUTION_HELP:
+        with st.expander("Execution surface vocabulary (three terms)", expanded=False):
+            st.caption("**Execution** is orthogonal to evidence: Streamlit **never** runs heavy solvers or OTA capture.")
+            for _ek, _ev in CANONICAL_EXECUTION_HELP.items():
                 st.markdown(f"- **`{_ek}`**: {_ev}")
 
-    with st.expander("Execution surface (this session, per layer)", expanded=False):
+    with st.expander("Evidence + execution (this session, per layer)", expanded=False):
         for _pill, _sd in (
             ("DeepMIMO", _sim_dm),
             ("Sionna RT", _sim_sn),
@@ -1776,7 +1795,10 @@ def _render_judge_gary_micro_twin_3d():
             ("pyAerial bridge", _sim_py),
             ("OTA Data Lake", _sim_ota),
         ):
-            st.markdown(f"**{_pill}** (`{_sd.get('execution_surface_tier', UI_EMPTY)}`)")
+            st.markdown(
+                f"**{_pill}** — **evidence:** `{_sd.get('canonical_evidence_status', _sd.get('provenance_label', UI_EMPTY))}` · "
+                f"**execution:** `{_sd.get('canonical_execution_status', UI_EMPTY)}`"
+            )
             st.caption(_sd.get("execution_surface_label") or UI_EMPTY)
 
     with st.expander("Simulation details (tables & raw JSON)", expanded=False):
@@ -2890,8 +2912,10 @@ def _render_judge_gary_micro_twin_3d():
     st.markdown("### Simulation backbone")
     st.caption(
         "**Completed extension (UI):** digital-twin **radio scene** + **proxy** propagation/coverage + **AI-RAN-style** closed-loop controller (abstraction). "
-        "**Loaders:** DeepMIMO, Sionna RT, AODT manifests, **pyAerial** bridge JSON, **OTA Data Lake** manifest. Each row carries **provenance** (proxy, demo summary, simulation export, installer-ready, OTA-backed). "
-        "**Judged detector** is **not** implied to run inside these hooks."
+        "**Loaders:** DeepMIMO, Sionna RT, AODT manifests, **pyAerial** JSON, **OTA Data Lake** manifest. "
+        "**Evidence (six terms):** proxy-only · loaded demo · loaded simulation export · installer-ready · external-runtime-required · OTA-backed. "
+        "**Execution surface:** manifest-load-only (Streamlit) vs external-runtime-required vs lab-OTA-workflow. "
+        "**Judged detector** does not run inside these hooks."
     )
 
     _repo = _repo_mt
@@ -2931,7 +2955,9 @@ def _render_judge_gary_micro_twin_3d():
                 "<li><b>Contributes</b>: reproducible <b>site-specific MIMO channels</b>, CSI summaries, scenario matrices for ML + controller replay.</li>"
                 "<li><b>Connects here</b>: feeds <b>propagation / SINR panels</b> and map overlays when parsers land.</li>"
                 "<li><b>Paths</b>: <code>data/deepmimo/</code> (legacy <code>data/simulation/deepmimo/</code>) then fallback <code>examples/simulation_exports/deepmimo/</code>. "
-                f"<b>Status:</b> **{(_dm_status or {}).get('status_label', 'Not loaded') if _dm_status else '—'}**."
+                f"<b>Status:</b> **{(_dm_status or {}).get('status_label', 'Not loaded') if _dm_status else '—'}** · "
+                f"<b>Evidence:</b> `{(_dm_status or {}).get('canonical_evidence_status', '—') if _dm_status else '—'}` · "
+                f"<b>Execution:</b> `{(_dm_status or {}).get('canonical_execution_status', '—') if _dm_status else '—'}`."
                 f"{_dm_card_extra}</li></ul>",
             ),
             unsafe_allow_html=True,
@@ -2944,7 +2970,9 @@ def _render_judge_gary_micro_twin_3d():
                 "<li><b>Contributes</b>: <b>ray-traced propagation</b>, materials, diffraction — replaces disk <b>proxies</b> with physics-backed maps.</li>"
                 "<li><b>Connects here</b>: GeoJSON / JSON → pydeck coverage heatmaps + panel metrics.</li>"
                 "<li><b>Paths</b>: <code>data/sionna_rt/</code> (legacy <code>data/simulation/sionna_rt/</code>) then <code>examples/simulation_exports/sionna_rt/</code>. "
-                f"<b>Status:</b> **{(_sn_status or {}).get('status_label', 'Not loaded') if _sn_status else '—'}**."
+                f"<b>Status:</b> **{(_sn_status or {}).get('status_label', 'Not loaded') if _sn_status else '—'}** · "
+                f"<b>Evidence:</b> `{(_sn_status or {}).get('canonical_evidence_status', '—') if _sn_status else '—'}` · "
+                f"<b>Execution:</b> `{(_sn_status or {}).get('canonical_execution_status', '—') if _sn_status else '—'}`."
                 f"{_sn_card_extra}</li></ul>",
             ),
             unsafe_allow_html=True,
@@ -2960,7 +2988,8 @@ def _render_judge_gary_micro_twin_3d():
                 "<li><b>Paths</b>: <code>data/aerial_omniverse/</code> then <code>examples/simulation_exports/aerial_omniverse/</code> (demo manifest). "
                 "<b>Requires</b> GPU + external toolchain for real twins."
                 f"<br/><b>Status:</b> **{(_ae_status or {}).get('status_label', 'Not loaded') if _ae_status else '—'}** · "
-                f"<b>Provenance:</b> `{(_ae_status or {}).get('provenance_label', '—') if _ae_status else '—'}`.</li></ul>",
+                f"<b>Evidence:</b> `{(_ae_status or {}).get('canonical_evidence_status', (_ae_status or {}).get('provenance_label', '—')) if _ae_status else '—'}` · "
+                f"<b>Execution:</b> `{(_ae_status or {}).get('canonical_execution_status', '—') if _ae_status else '—'}`.</li></ul>",
             ),
             unsafe_allow_html=True,
         )
@@ -2974,7 +3003,8 @@ def _render_judge_gary_micro_twin_3d():
                 "<li><b>Role</b>: maps **detector beliefs** and twin state to **PHY-side** integration concepts (OFDM chain, channel estimation, timing / CFO) as **stubs** in <code>src/edge_ran_gary/pyaerial_bridge/</code>.</li>"
                 "<li><b>Today</b>: optional manifest + import probe; see <code>docs/PYAERIAL_BRIDGE.md</code>. **Aerial CUDA-Accelerated RAN** remains the **credible operational RAN target** wording for reviewers.</li>"
                 f"<li><b>Status:</b> **{(_py_status or {}).get('status_label', 'Not loaded') if _py_status else '—'}** · "
-                f"<b>Provenance:</b> `{(_py_status or {}).get('provenance_label', '—') if _py_status else '—'}`.</li></ul>",
+                f"<b>Evidence:</b> `{(_py_status or {}).get('canonical_evidence_status', (_py_status or {}).get('provenance_label', '—')) if _py_status else '—'}` · "
+                f"<b>Execution:</b> `{(_py_status or {}).get('canonical_execution_status', '—') if _py_status else '—'}`.</li></ul>",
             ),
             unsafe_allow_html=True,
         )
@@ -2986,7 +3016,8 @@ def _render_judge_gary_micro_twin_3d():
                 "<li><b>Role</b>: **OTA-ready target** for capture metadata + IQ sidecars to support **calibration**, **evaluation**, and **retraining** against the judged detector and twin replay.</li>"
                 "<li><b>Schema</b>: <code>schemas/aerial_data_lake/</code> + <code>docs/DATA_LAKE_SCHEMA.md</code>; manifest <code>data/ota_evidence/ota_lake_manifest.json</code>.</li>"
                 f"<li><b>Status:</b> **{(_ota_status or {}).get('status_label', 'OTA target (not active)') if _ota_status else '—'}** · "
-                f"<b>Provenance:</b> `{(_ota_status or {}).get('provenance_label', '—') if _ota_status else '—'}`.</li></ul>",
+                f"<b>Evidence:</b> `{(_ota_status or {}).get('canonical_evidence_status', (_ota_status or {}).get('provenance_label', '—')) if _ota_status else '—'}` · "
+                f"<b>Execution:</b> `{(_ota_status or {}).get('canonical_execution_status', '—') if _ota_status else '—'}`.</li></ul>",
             ),
             unsafe_allow_html=True,
         )
@@ -2998,7 +3029,7 @@ def _render_judge_gary_micro_twin_3d():
                 "Evidence today: synthetic + optional simulation exports",
                 "<ul style='margin:0;padding-left:18px;line-height:1.5'>"
                 "<li>Scenario engine + optional DeepMIMO / Sionna / AODT **summaries**.</li>"
-                "<li>Provenance tiers label **demo** vs **simulation export** vs **proxy**.</li>"
+                "<li>Six **evidence** terms + three **execution** terms — see expander and `docs/PROVENANCE_LEGEND.md`.</li>"
                 "</ul>",
             ),
             unsafe_allow_html=True,

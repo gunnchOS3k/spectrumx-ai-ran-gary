@@ -66,11 +66,8 @@ def load_ota_lake_manifest(repo_root: Path) -> Dict[str, Any]:
     """
     Load ``data/ota_evidence/ota_lake_manifest.json`` if present and minimally valid.
 
-    Returns ``loaded``, ``status_label``, ``provenance_tier`` for hooks/UI.
+    Returns fields consumed by ``finalize_simulation_status`` in hooks.
     """
-    from src.edge_ran_gary.simulation_provenance import OTA_BACKED, INTEGRATION_READY_STUB
-    from src.edge_ran_gary.simulation_provenance import TIER_LABELS
-
     root = repo_root.resolve()
     d = root / "data" / "ota_evidence"
     p = d / "ota_lake_manifest.json"
@@ -83,8 +80,6 @@ def load_ota_lake_manifest(repo_root: Path) -> Dict[str, Any]:
             "integration": "ota_data_lake",
             "source_kind": "absent",
             "status_label": "OTA target (not active)",
-            "provenance_tier": INTEGRATION_READY_STUB,
-            "provenance_label": TIER_LABELS[INTEGRATION_READY_STUB],
             "expected_files": ["ota_lake_manifest.json"],
             "error": None,
         }
@@ -98,7 +93,6 @@ def load_ota_lake_manifest(repo_root: Path) -> Dict[str, Any]:
             "integration": "ota_data_lake",
             "source_kind": "absent",
             "status_label": "Not loaded",
-            "provenance_tier": INTEGRATION_READY_STUB,
             "error": str(e),
         }
 
@@ -109,7 +103,6 @@ def load_ota_lake_manifest(repo_root: Path) -> Dict[str, Any]:
             "integration": "ota_data_lake",
             "source_kind": "absent",
             "status_label": "Not loaded",
-            "provenance_tier": INTEGRATION_READY_STUB,
             "error": "validation_failed",
         }
 
@@ -120,8 +113,6 @@ def load_ota_lake_manifest(repo_root: Path) -> Dict[str, Any]:
         "integration": "ota_data_lake",
         "source_kind": "ota",
         "status_label": "OTA-backed evidence (manifest)",
-        "provenance_tier": OTA_BACKED,
-        "provenance_label": TIER_LABELS[OTA_BACKED],
         "ota_backed": True,
         "error": None,
     }

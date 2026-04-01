@@ -1,0 +1,46 @@
+{
+  "aerial_export_version": "example-overlay-0.2",
+  "scene_name": "gary_aodt_overlay_example",
+  "site_identifiers": [
+    "city_hall",
+    "public_library",
+    "west_side_leadership_academy"
+  ],
+  "usd_path": "usd://external/export/scene.usd",
+  "georeferencing": {
+    "crs": "EPSG:4326",
+    "anchor_lon_lat": [-87.34, 41.59],
+    "notes": "Replace with survey-grade metadata from your Omniverse / GIS pipeline."
+  },
+  "terrain_summary": {
+    "source": "external_dem_or_mesh",
+    "resolution_m": null,
+    "mesh_uri": null
+  },
+  "vegetation_summary": {
+    "layers": [],
+    "notes": "Instancing or USD layers from external tooling; summaries only in-repo."
+  },
+  "mobility_summary": {
+    "trace_uri": null,
+    "format": "omniverse_export_or_gtfs",
+    "notes": "Optional mobility traces; not simulated in Streamlit."
+  },
+  "dynamic_scatterer_summary": {
+    "entries": []
+  },
+  "export_provenance": {
+    "simulation_grade": "synthetic_template",
+    "engine": "none",
+    "script": "examples/simulation_exports/aerial_omniverse/overlay_summary.example.json",
+    "generated_at_utc": "2026-03-31T00:00:00Z"
+  },
+  "generation_environment": {
+    "omniverse_kit_version": null,
+    "aerial_tooling_revision": null,
+    "gpu_model": null,
+    "notes": "Populate after a real external AODT generation run."
+  },
+  "generated_at": "2026-03-31T00:00:00Z",
+  "notes": "Example only. Copy fields into data/aerial_omniverse/overlay_summary.json after external export. Full scene generation is never done in this repo."
+}

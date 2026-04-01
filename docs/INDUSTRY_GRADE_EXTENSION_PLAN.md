@@ -4,7 +4,7 @@ Three buckets:
 
 1. **Core judged submission** — SpectrumX DAC detector evaluated **offline** on competition-style data; **raw competition IQ is not** shipped inside Streamlit.
 2. **Completed extension** — Gary **digital-twin wireless scene** + **`gary_scenario_engine`** (population/devices/pressures) + **closed-loop AI-RAN scene controller** (**RIC-style**, **Near-RT / Non-RT–inspired**) in `_render_judge_gary_micro_twin_3d`.
-3. **Simulation / deployment backbone (scaling path)** — DeepMIMO, Sionna RT, **AODT** (Aerial Omniverse Digital Twin: city/site-scale twin **target**), **pyAerial** bridge (PHY integration **path**), **Aerial Data Lake** / OTA evidence (**OTA-ready target**). Optional **JSON / manifest** drop zones; UI shows **provenance tiers** (`simulation_provenance.py`: proxy-only, demo summary, simulation export, installer-ready, integration stub, OTA-backed) — never blurred with the judged core.
+3. **Simulation / deployment backbone (scaling path)** — DeepMIMO, Sionna RT, **AODT** (Aerial Omniverse Digital Twin: city/site-scale twin **target**), **pyAerial** bridge (PHY integration **path**), **Aerial Data Lake** / OTA evidence (**OTA-ready target**). Optional **JSON / manifest** drop zones; UI shows **canonical evidence + execution** terms (`simulation_provenance.py`, `docs/PROVENANCE_LEGEND.md`) — never blurred with the judged core.
 
 **Roadmap:** `docs/AERIAL_STACK_ROADMAP.md` maps “must add now / next / later” to concrete repo paths.
 
