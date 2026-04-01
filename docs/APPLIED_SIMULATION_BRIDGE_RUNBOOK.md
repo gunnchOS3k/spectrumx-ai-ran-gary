@@ -22,13 +22,16 @@
 
 ## Status semantics (Streamlit)
 
-| Label | Meaning |
-|-------|---------|
-| **Not loaded** | No valid manifest / summary / GeoJSON for that pillar. |
-| **Loaded (demo summary)** | Valid parse from `examples/simulation_exports/…` **or** `data/…` with `export_provenance.simulation_grade` in `analytic_fallback` / synthetic (export scripts). |
-| **Loaded (simulation export)** | Valid `data/…` export **without** analytic downgrade (operator file or `full_solver` provenance). |
-| **Access confirmed / installer-ready** | *(Aerial only)* `data/aerial_omniverse/access_summary.json` from `check_ngc_access.py` — **not** a twin or simulation export. |
-| **Execution surface** | Every hook result includes `execution_surface_label`: Streamlit **manifest-only** vs **external** regeneration / lab OTA (`simulation_provenance.attach_execution_surface`). |
+Canonical **evidence** terms (see `docs/PROVENANCE_LEGEND.md`): **proxy-only** · **loaded demo** · **loaded simulation export** · **installer-ready** · **external-runtime-required** · **OTA-backed**.  
+Hook results expose `canonical_evidence_status` and machine `provenance_tier`.
+
+| Legacy headline `status_label` | Maps to |
+|--------------------------------|---------|
+| **Not loaded** | No valid manifest / GeoJSON for that pillar (often **proxy-only** after finalize). |
+| **loaded demo** | `examples/…` or downgraded `export_provenance`. |
+| **loaded simulation export** | `data/…` without analytic downgrade or `full_solver`. |
+| **installer-ready** | Aerial `access_summary.json` only — **not** a twin export. |
+| **Execution surface** | `canonical_execution_status`: **manifest-load-only** · **external-runtime-required** · **lab-OTA-workflow** + long `execution_surface_label`. |
 
 ## Validate on-disk exports (read-only)
 

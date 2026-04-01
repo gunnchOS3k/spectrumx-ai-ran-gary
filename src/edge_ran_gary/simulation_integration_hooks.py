@@ -18,7 +18,12 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from src.edge_ran_gary.simulation_provenance import attach_execution_surface, attach_provenance_tier
+from src.edge_ran_gary.simulation_provenance import (
+    CANON_INSTALLER_READY,
+    CANON_LOADED_DEMO,
+    CANON_LOADED_SIMULATION_EXPORT,
+    finalize_simulation_status,
+)
 
 # --- Primary drop zones (repo root–relative) ---
 DATA_DEEPMIMO_REL = Path("data/deepmimo")
@@ -81,19 +86,20 @@ PYAERIAL_MANIFEST_FILES = ("bridge_manifest.json", "pyaerial_probe.json")
 
 
 def _finalize_sim_dict(d: Dict[str, Any]) -> Dict[str, Any]:
-    """Attach data provenance + execution surface (Streamlit vs external runtime)."""
-    return attach_execution_surface(attach_provenance_tier(d))
+    """Attach canonical evidence + execution surface (Streamlit vs external runtime)."""
+    return finalize_simulation_status(d)
 
 
 def _status_label_for_sim(loaded: bool, source_kind: str) -> str:
+    """Headline before ``finalize_simulation_status``; finalized ``provenance_label`` is canonical."""
     if source_kind == "access":
-        return "Access confirmed / installer-ready"
+        return CANON_INSTALLER_READY
     if not loaded or source_kind == "absent":
         return "Not loaded"
     if source_kind == "demo":
-        return "Loaded (demo summary)"
+        return CANON_LOADED_DEMO
     if source_kind == "simulation":
-        return "Loaded (simulation export)"
+        return CANON_LOADED_SIMULATION_EXPORT
     return "Not loaded"
 
 
@@ -765,12 +771,26 @@ def load_sionna_propagation_summary(repo_root: Path, demo_only: bool = False) ->
 
 
 def _normalize_aerial_dict(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Extract summary fields for UI (optional extended AODT metadata)."""
     out: Dict[str, Any] = {}
     out["scene_name"] = data.get("scene_name") or data.get("name") or data.get("twin_name")
     out["usd_path"] = data.get("usd_path") or data.get("scene_export")
     out["version"] = data.get("version")
     out["generated_at"] = data.get("generated_at")
     out["notes"] = data.get("notes")
+    # Optional extended manifest (see docs/AODT_EXPORT_CHECKLIST.md)
+    for key in (
+        "site_identifiers",
+        "terrain_summary",
+        "vegetation_summary",
+        "georeferencing",
+        "mobility_summary",
+        "dynamic_scatterer_summary",
+        "export_provenance",
+        "generation_environment",
+    ):
+        if data.get(key) is not None:
+            out[key] = data[key]
     return {k: v for k, v in out.items() if v is not None}
 
 
@@ -810,7 +830,7 @@ def _merge_aerial_access_and_tier(hit: Dict[str, Any], repo_root: Path) -> Dict[
         hit["aerial_status_tier"] = "manifest"
     elif hit.get("access_confirmed"):
         hit["aerial_status_tier"] = "access_confirmed"
-        hit["status_label"] = "Access confirmed / installer-ready"
+        hit["status_label"] = CANON_INSTALLER_READY
         hit["source_kind"] = "access"
     else:
         hit["aerial_status_tier"] = "none"

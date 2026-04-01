@@ -6,7 +6,8 @@
 |------|----------------|
 | **pyAerial** Python package | **Optional**; `describe_pyaerial_environment()` tries `import pyaerial` |
 | **cuPHY / CUDA RAN** | **External** NVIDIA Aerial stack; **operational target**, not bundled |
-| **Detector → PHY hints** | **Typed placeholders** in `pyaerial_bridge/phy_interface.py` |
+| **Detector → PHY hints** | **Frozen dataclass** `PHYControlPlaneHints` + `.as_public_dict()` in `phy_interface.py` |
+| **cuMAC abstraction** | **Frozen dataclass** `CUMACSchedulerAbstraction` — not NVIDIA cuMAC |
 
 ## Code layout
 
@@ -19,9 +20,13 @@
 
 1. **Sensing:** SpectrumX-style IQ + binary occupancy from `evaluate()` (synthetic in Streamlit; official offline).
 2. **Belief / policy:** Scenario engine + RIC-style controller in the completed extension.
-3. **PHY hints (future):** `detector_to_phy_control_plane_hints()` suggests **OFDM mask story**, **channel estimation refresh bias**, **timing/CFO loop** narrative — **not** a wire protocol to a RU.
+3. **PHY hints:** `detector_to_phy_control_plane_hints()` returns **`PHYControlPlaneHints`** (OFDM / CE / timing / CFO / power **stories**) — **not** a wire protocol to a RU. Fields `relates_to_cuPHY` and `relates_to_aerial_cuda_ran` state external alignment only.
 
-4. **cuMAC-style scheduling (abstraction):** `cumac_scheduler_abstraction()` documents how twin KPIs could **narrate** MAC objectives in an external Aerial stack — **not** cuMAC code.
+4. **cuMAC-style scheduling:** `cumac_scheduler_abstraction()` returns **`CUMACSchedulerAbstraction`** — narrative only, **not** cuMAC code.
+
+## Evidence / execution vocabulary
+
+Bridge manifests use the same **six evidence** and **three execution** terms as other hooks (`docs/PROVENANCE_LEGEND.md`). **pyAerial import OK** does **not** upgrade evidence to a full PHY run; execution remains **external-runtime-required** for real cuPHY.
 
 ## Installation path
 

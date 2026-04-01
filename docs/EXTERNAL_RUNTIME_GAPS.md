@@ -1,47 +1,85 @@
-# External runtime and infrastructure (honest boundaries)
+# What runs where: external runtime boundaries
 
-Streamlit Cloud and this repository are **visualization, provenance, and integration** layers. They **do not** execute full AODT scene generation, pyAerial/cuPHY, live OTA capture, or ARC-OTA lab runtimes.
+This document is the **research boundary** for the Gary **research extension** (simulation, AODT, pyAerial, OTA). It does **not** redefine the **judged SpectrumX** submission.
 
-## What is done **in repo** (no GPU required)
+## Evidence vs execution (quick map)
 
-| Item | Location |
-|------|-----------|
-| Detector packaging and offline evaluation workflow | `submissions/`, judge metrics CSVs |
-| Gary digital twin UI + scenario engine (proxies) | `src/edge_ran_gary/gary_scenario_engine.py`, Streamlit |
-| Simulation **manifest** loaders (JSON / GeoJSON) | `src/edge_ran_gary/simulation_integration_hooks.py` |
-| Data **provenance** + **execution surface** labels | `src/edge_ran_gary/simulation_provenance.py` |
-| Analytic DeepMIMO-shaped export script | `scripts/export_deepmimo_summary.py` |
-| Analytic Sionna-shaped export script | `scripts/export_sionna_rt_summary.py` |
-| **Validation** of on-disk exports (read-only) | `scripts/validate_simulation_exports.py` |
-| pyAerial **probe** + PHY hint types | `src/edge_ran_gary/pyaerial_bridge/` |
-| OTA schema + manifest loader | `schemas/aerial_data_lake/`, `src/edge_ran_gary/ota_data_interface.py` |
-| AODT checklist + drop-zone expectations | `docs/AODT_EXPORT_CHECKLIST.md`, `configs/wireless_scene/aodt_export_expectations.yaml` |
+| Canonical evidence term | Typical execution surface |
+|-------------------------|---------------------------|
+| proxy-only | manifest-load-only |
+| loaded demo | manifest-load-only |
+| loaded simulation export | manifest-load-only (display) + **external-runtime-required** to regenerate |
+| installer-ready | manifest-load-only |
+| external-runtime-required | external-runtime-required |
+| OTA-backed | lab-OTA-workflow |
 
-## Ready to run **locally** (developer machine)
+Full definitions: `docs/PROVENANCE_LEGEND.md`.
 
-| Workflow | Notes |
-|----------|--------|
-| `streamlit run apps/streamlit_app.py` | Loads bundled `examples/simulation_exports/*` or optional `data/*` |
-| `python3 scripts/export_deepmimo_summary.py` | Writes **demo-grade** summaries unless `full_solver` criteria are met honestly |
-| `python3 scripts/export_sionna_rt_summary.py` | Analytic path-loss + GeoJSON; not full ray tracing |
-| `python3 scripts/validate_simulation_exports.py` | Checks JSON shape under `data/deepmimo` and `data/sionna_rt` |
-| `python3 scripts/check_ngc_access.py` | Optional env probe; writes **access_summary.json** (no secrets) |
+---
 
-## Requires **cloud / GPU / lab** (not faked in Streamlit)
+## In this repository (no GPU required)
 
-| Capability | Requirement |
-|------------|-------------|
-| **AODT full scene** | NVIDIA Omniverse, AI Aerial tooling, **GPU**, often NGC / program access |
-| **Sionna RT ray tracing** | TensorFlow/JAX + Sionna, **GPU** recommended |
-| **DeepMIMO full solver** | MATLAB or institutional DeepMIMO pipeline; then honest `full_solver` provenance |
-| **pyAerial / cuPHY** | NVIDIA Aerial **container** or bare-metal GPU stack; optional Python wheels |
-| **OTA / Data Lake captures** | Lab SDR or field hardware; IQ + metadata **outside** Streamlit |
-| **ARC-OTA / runtime target** | Defined in `docs/ARC_OTA_RUNTIME_TARGET.md`; **not** active until lab defines SKU and workflow |
+| Capability | Location / notes |
+|------------|------------------|
+| Judged detector packaging | `submissions/`, offline `evaluate()` |
+| Gary twin UI + scenario **proxies** | `gary_scenario_engine.py`, Streamlit |
+| Manifest **loaders** (JSON / GeoJSON) | `simulation_integration_hooks.py` |
+| **Canonical** evidence + execution labels | `simulation_provenance.py` |
+| Analytic DeepMIMO-shaped export | `scripts/export_deepmimo_summary.py` |
+| Analytic Sionna-shaped export | `scripts/export_sionna_rt_summary.py` |
+| Export **validation** (read-only) | `scripts/validate_simulation_exports.py` |
+| pyAerial **import probe** + PHY/MAC **typed abstractions** | `pyaerial_bridge/phy_interface.py` |
+| OTA schema + manifest loader | `ota_data_interface.py`, `schemas/aerial_data_lake/` |
+| AODT checklist + example manifests | `docs/AODT_EXPORT_CHECKLIST.md`, `examples/simulation_exports/aerial_omniverse/` |
 
-## Streamlit Cloud role
+**Architectural targets only (not active execution):** ARC-OTA lab framing — `docs/ARC_OTA_RUNTIME_TARGET.md`.
 
-- **Loads** validated JSON/GeoJSON **if present** in the deployed tree (including `examples/simulation_exports/`).
-- **Shows** `provenance_tier` (demo summary vs simulation export vs access vs OTA-backed) and `execution_surface_label` (manifest-only vs external regeneration).
-- **Never** runs Omniverse, Sionna solvers, pyAerial PHY, or OTA capture.
+---
 
-See also: `docs/APPLIED_SIMULATION_BRIDGE_RUNBOOK.md`, `docs/AERIAL_STACK_ROADMAP.md`.
+## Ready on a **local developer machine**
+
+| Workflow | Requirement |
+|----------|-------------|
+| `streamlit run apps/streamlit_app.py` | Python deps; `PYTHONPATH` includes repo root |
+| Root wrapper for Cloud | `streamlit_app.py` imports `apps.streamlit_app` |
+| Export scripts | No GPU; outputs may be **demo-grade** unless provenance says `full_solver` |
+| `python3 scripts/check_ngc_access.py` | Optional env vars; writes **presence-only** `access_summary.json` |
+
+---
+
+## Requires **GPU / cloud / institutional** infrastructure
+
+| Capability | Why external |
+|------------|----------------|
+| **AODT full scene** | NVIDIA Omniverse + AI Aerial tooling, GPU, often NGC / program access |
+| **Sionna RT ray tracing** | TensorFlow/JAX + Sionna; GPU strongly recommended |
+| **DeepMIMO full solver** | MATLAB or institutional DeepMIMO pipeline; then honest `full_solver` in `export_provenance` |
+| **pyAerial / cuPHY** | NVIDIA Aerial **container** or bare-metal GPU; optional licensed wheels |
+| **Aerial CUDA-Accelerated RAN** | Operational PHY/MAC target **outside** this repo |
+
+---
+
+## Requires **lab / field** infrastructure
+
+| Capability | Notes |
+|------------|--------|
+| **OTA / Data Lake captures** | SDR or field logger; IQ + metadata; `ota_lake_manifest.json` indexes files **not** recorded by Streamlit |
+| **ARC-OTA runtime target** | Radio SKU, sync, labeling pipeline — **not** implemented as live code in this repo |
+
+---
+
+## Streamlit Cloud (and this app)
+
+- **Does:** load committed `examples/simulation_exports/*` and optional `data/*` if present; show **evidence** and **execution** labels.
+- **Does not:** run Omniverse, Sionna solvers, pyAerial PHY, OTA capture, or ARC-OTA loops.
+
+---
+
+## Related documentation
+
+- `docs/PROVENANCE_LEGEND.md` — six evidence terms + three execution terms  
+- `docs/APPLIED_SIMULATION_BRIDGE_RUNBOOK.md` — export scripts, env var **names**  
+- `docs/AODT_EXPORT_CHECKLIST.md` — full AODT vs manifest-only  
+- `docs/PYAERIAL_BRIDGE.md` — bridge scope and notebook  
+- `docs/DATA_LAKE_SCHEMA.md` — OTA record semantics  
+- `docs/AERIAL_STACK_ROADMAP.md` — roadmap with repo paths  
