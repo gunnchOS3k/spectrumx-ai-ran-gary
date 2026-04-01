@@ -111,6 +111,16 @@ except Exception:
     _OCC_VIZ_OK = False
 
 try:
+    from src.edge_ran_gary.judged_headline_metrics import build_judged_headlines, headline_placeholder
+
+    _JUDGED_HEADLINES_OK = True
+except Exception:
+    build_judged_headlines = None  # type: ignore
+    headline_placeholder = None  # type: ignore
+
+    _JUDGED_HEADLINES_OK = False
+
+try:
     from src.edge_ran_gary.gary_scenario_engine import (
         ScenarioInputs,
         apply_action_to_kpis,
@@ -130,26 +140,35 @@ except Exception:
     select_closed_loop_action = None  # type: ignore
     _GSE_OK = False
 
+# User-facing controller definition (rule-based; not a trained RL / bandit policy).
+CONTROLLER_HONEST_LABEL = (
+    "Detector-conditioned rule-based closed-loop policy baseline (RIC-style abstraction)"
+)
+CONTROLLER_ROADMAP_CAPTION = (
+    "This release demonstrates state → action → KPI semantics and reproducible policy evaluation under the Gary scenario engine. "
+    "Next study arms: contextual-bandit policy learner, then constrained offline RL / near-RT RIC surrogate."
+)
+
 # Page config
 st.set_page_config(
-    page_title="SpectrumX DAC — Competition-ready dashboard",
+    page_title="SpectrumX DAC — Judge-first research instrument",
     page_icon="📡",
     layout="wide",
 )
 
-# Title
-st.title("📡 SpectrumX DAC — competition-ready project dashboard")
+# Title (standard / figure modes; Judge Mode replaces header below)
+st.title("📡 SpectrumX DAC — spectrum occupancy research instrument")
 st.caption(
-    "Judge Mode highlights the **core SpectrumX DAC detector** (local metrics + live `evaluate()` on synthetic IQ). "
-    "**Completed research extension** (Gary digital twin + **closed-loop AI-RAN-style controller**, RIC wording as **abstraction only**) stays separate from the judged core. "
-    "**Simulation / evidence stack:** DeepMIMO, Sionna RT, **AODT** (next scaling path), **pyAerial** bridge, **Aerial Data Lake** / OTA: each layer has **data provenance** plus **execution surface** (Streamlit loads manifests only; full solvers and OTA capture are **external**). See `docs/EXTERNAL_RUNTIME_GAPS.md`."
+    "Judge Mode surfaces scored core metrics first, then completed Gary extension (digital twin + closed-loop control semantics). "
+    "Simulation layers use explicit evidence tiers; Streamlit loads manifests and summaries — full solvers and OTA capture are external execution targets. "
+    "See `docs/EXTERNAL_RUNTIME_GAPS.md` and `docs/PROVENANCE_LEGEND.md`."
 )
 
-# Safety banner: do not upload competition data to Cloud
-st.warning(
-    "**Do NOT upload official competition IQ data to Streamlit Cloud.** "
-    "Use synthetic micro-twin data or run locally for real datasets."
-)
+with st.expander("Cloud safety — competition IQ", expanded=False):
+    st.warning(
+        "Do not upload official competition IQ data to Streamlit Cloud. "
+        "Use synthetic demo IQ in-app or run locally with your own files."
+    )
 
 # Optional shared feature extractor (for report figures)
 try:
@@ -475,6 +494,423 @@ def _judge_html_card_sm(html_inner: str) -> str:
         "background:var(--secondary-background-color, #f1f3f5);"
         "color:var(--text-color, #111827);min-height:118px;box-shadow:0 1px 2px rgba(0,0,0,0.08);'>"
         f"{html_inner}</div>"
+    )
+
+
+def _theme_is_dark() -> bool:
+    return _streamlit_theme_base() == "dark"
+
+
+def _legend_body_text_color() -> str:
+    """High-contrast body text for HTML legends (dark theme default was too dim)."""
+    return "#e6edf3" if _theme_is_dark() else "#0f172a"
+
+
+def _judge_step_text_colors() -> tuple[str, str, str]:
+    """(title, headline, sub) for small HTML cards — dark-mode safe."""
+    if _theme_is_dark():
+        return "#cbd5e1", "#f1f5f9", "#94a3b8"
+    return "#334155", "#0f172a", "#475569"
+
+
+def _render_judge_hero_score_strip(headline, active_pkg: str | None):
+    """Above-the-fold: four judging pillars + headline metrics (CSV-backed only)."""
+    st.markdown("### SpectrumX judging criteria — at a glance")
+    p1, p2, p3, p4 = st.columns(4)
+    with p1:
+        st.markdown(
+            _judge_html_card_sm(
+                "<div style='font-weight:700;font-size:13px'>Detection accuracy</div>"
+                "<div style='font-size:12px;margin-top:6px;line-height:1.5'>Leaderboard-facing accuracy and calibration from local <code>submission_metrics.csv</code> when populated.</div>"
+            ),
+            unsafe_allow_html=True,
+        )
+    with p2:
+        st.markdown(
+            _judge_html_card_sm(
+                "<div style='font-weight:700;font-size:13px'>Implementation efficiency</div>"
+                "<div style='font-size:12px;margin-top:6px;line-height:1.5'>Runtime column, artifact footprint, and dependency hints from the submission package.</div>"
+            ),
+            unsafe_allow_html=True,
+        )
+    with p3:
+        st.markdown(
+            _judge_html_card_sm(
+                "<div style='font-weight:700;font-size:13px'>Algorithmic novelty</div>"
+                "<div style='font-size:12px;margin-top:6px;line-height:1.5'>Compact feature contract + interpretable detector path; see Core Submission and live <code>evaluate()</code>.</div>"
+            ),
+            unsafe_allow_html=True,
+        )
+    with p4:
+        st.markdown(
+            _judge_html_card_sm(
+                "<div style='font-weight:700;font-size:13px'>Visualization quality</div>"
+                "<div style='font-size:12px;margin-top:6px;line-height:1.5'>Judged-sample microscope (IQ / PSD / spectrogram) plus structured KPI panels for auditability.</div>"
+            ),
+            unsafe_allow_html=True,
+        )
+
+    st.markdown("#### Headline results — core judged detector")
+    h1, h2, h3, h4, h5, h6 = st.columns(6)
+    with h1:
+        st.metric("Best package (repo)", headline.package, help="Final / Explorer uses `submissions/<pkg>/main.py`")
+    with h2:
+        st.metric(
+            "Accuracy (CSV)",
+            headline.leaderboard_accuracy,
+            help="Populated only from submission_metrics.csv" if headline.accuracy_verified else "Configure CSV to populate",
+        )
+    with h3:
+        st.metric("Runtime (CSV)", headline.runtime_s)
+    with h4:
+        st.metric("Public rank (CSV)", headline.leaderboard_rank)
+    with h5:
+        st.metric("Model class (CSV)", headline.model_family)
+    with h6:
+        st.caption("Active inference package")
+        st.caption(active_pkg or "—")
+
+    st.caption(headline.novelty_one_liner)
+    st.caption(headline.viz_why_one_liner)
+    if not (
+        headline.accuracy_verified
+        and headline.rank_verified
+        and headline.runtime_verified
+        and headline.model_verified
+    ):
+        st.info(
+            "Headline numbers are placeholders until `submissions/submission_metrics.csv` includes "
+            "`leaderboard_accuracy`, `leaderboard_rank`, `runtime`, and `model_family` for your best row. "
+            "The app does not invent competition scores."
+        )
+
+
+def _render_judge_scope_split_strip():
+    st.markdown("#### Scope — judged core · extension · next validation tier")
+    s1, s2, s3 = st.columns(3)
+    with s1:
+        st.markdown(
+            _judge_html_card(
+                "What was judged",
+                "Binary occupancy on <b>official 1-second IQ</b>, scored offline. This UI shows <b>CSV summaries</b> and runs <code>evaluate()</code> on <b>synthetic</b> demo IQ only.",
+            ),
+            unsafe_allow_html=True,
+        )
+    with s2:
+        st.markdown(
+            _judge_html_card(
+                "Completed extension (research)",
+                "<b>Gary digital twin</b> — three civic anchors — plus "
+                + CONTROLLER_HONEST_LABEL
+                + ". Non-scoring; demonstrates scenario → policy → KPI structure.",
+                tone="gray",
+            ),
+            unsafe_allow_html=True,
+        )
+    with s3:
+        st.markdown(
+            _judge_html_card(
+                "Next validation tier",
+                "DeepMIMO / Sionna RT / AODT manifests, pyAerial bridge, Data Lake / OTA schema — <b>current evidence tier</b> and <b>external execution targets</b> are labeled per layer (see PROVENANCE_LEGEND).",
+            ),
+            unsafe_allow_html=True,
+        )
+
+
+def _render_extension_research_and_experiment_board():
+    """Oulu / 6G Flagship — research question + experiment program (extension tab)."""
+    _tb = _legend_body_text_color()
+    st.markdown("### Research center of gravity — Gary civic anchors (extension)")
+    st.markdown(
+        _judge_html_card(
+            "Research question",
+            "<p style='margin:0 0 10px 0;font-size:15px;line-height:1.55'><b>Can site-specific AI-RAN control improve fairness, coexistence, and energy efficiency "
+            "for under-resourced urban anchor sites under realistic propagation and mobility constraints?</b></p>"
+            "<p style='margin:0;font-size:13px;line-height:1.55'>This prototype already demonstrates <b>detector-conditioned control semantics</b>, a reproducible "
+            "<b>scenario → policy → KPI</b> loop, <b>civic fairness</b> as an explicit objective, and <b>manifest-level</b> simulation discipline — staged for heavier solvers and OTA-backed evidence.</p>",
+        ),
+        unsafe_allow_html=True,
+    )
+    st.markdown("#### Experiment program board")
+    _ev_terms = (
+        "proxy-only · loaded demo · loaded simulation export · installer-ready · "
+        "external-runtime-required · OTA-backed"
+    )
+    rows_html = (
+        f"<table style='width:100%;border-collapse:collapse;font-size:13px;line-height:1.45;color:{_tb}'>"
+        "<tr style='border-bottom:1px solid var(--border-color,#cbd5e1)'><th style='text-align:left;padding:8px 6px'>Row</th>"
+        "<th style='text-align:left;padding:8px 6px'>Content</th></tr>"
+        "<tr><td style='padding:8px 6px;vertical-align:top'><b>Question</b></td><td style='padding:8px 6px'>As above — fairness / coexistence / energy under propagation + mobility stress.</td></tr>"
+        "<tr><td style='padding:8px 6px;vertical-align:top'><b>Independent variables</b></td><td style='padding:8px 6px'>Scenario preset; RF stress; occupancy prior; loaded simulation layer (evidence tier); controller policy variant (baseline rule map).</td></tr>"
+        "<tr><td style='padding:8px 6px;vertical-align:top'><b>Baselines</b></td><td style='padding:8px 6px'>Hold-scan baseline; fairness-off baseline; detector-free baseline (ablation hooks).</td></tr>"
+        "<tr><td style='padding:8px 6px;vertical-align:top'><b>KPIs</b></td><td style='padding:8px 6px'>Coexistence; fairness / community benefit; energy proxy; service continuity; coverage proxy.</td></tr>"
+        "<tr><td style='padding:8px 6px;vertical-align:top'><b>Evidence tier</b></td><td style='padding:8px 6px'>"
+        + _ev_terms
+        + " · execution: manifest-load-only · external-runtime-required · lab-OTA-workflow.</td></tr>"
+        "</table>"
+    )
+    st.markdown(
+        f"<div style='border:1px solid var(--border-color,#cbd5e1);border-radius:12px;padding:12px 14px;background:var(--secondary-background-color,#f8fafc)'>"
+        f"{rows_html}</div>",
+        unsafe_allow_html=True,
+    )
+    st.caption(CONTROLLER_ROADMAP_CAPTION)
+
+
+def _render_judged_sample_microscope(
+    iq_data,
+    sample_rate: float,
+    fig_yaml: dict | None,
+    *,
+    caption_prefix: str = "",
+):
+    """Layer A — single 1 s IQ window: waveform, PSD, spectrogram, detector readout."""
+    st.markdown("##### Judged-task microscope — one 1-second IQ window")
+    st.caption(
+        caption_prefix
+        + "Companion to SpectrumX binary occupancy: visualize structure the detector sees. "
+        "Synthetic demo IQ here; official labels are not embedded in this generator."
+    )
+    if fig_yaml and fig_yaml.get("_error"):
+        st.info(str(fig_yaml["_error"]))
+    jp = st.session_state.get("judge_live_pred")
+    jc = st.session_state.get("judge_live_conf")
+    m1, m2, m3 = st.columns(3)
+    with m1:
+        st.metric("Detector decision (demo IQ)", "Occupied (1)" if jp == 1 else ("Noise-only (0)" if jp == 0 else "—"))
+    with m2:
+        st.metric("Confidence / prob.", "N/A" if jc is None else str(jc))
+    with m3:
+        st.metric("Window duration", f"{len(iq_data) / max(sample_rate, 1e-9):.3f} s")
+
+    _pc = _plotly_chart_colors()
+    c1, c2 = st.columns(2)
+    with c1:
+        max_points = 8000
+        if len(iq_data) > max_points:
+            step = len(iq_data) // max_points
+            iq_plot = iq_data[::step]
+            t_plot = np.arange(len(iq_plot)) * step / sample_rate
+        else:
+            iq_plot = iq_data
+            t_plot = np.arange(len(iq_plot)) / sample_rate
+        fig_iq = make_subplots(rows=2, cols=1, subplot_titles=("I(t)", "Q(t)"), vertical_spacing=0.15)
+        fig_iq.add_trace(
+            go.Scatter(x=t_plot, y=np.real(iq_plot), mode="lines", name="I", line=dict(width=1, color="#38bdf8")),
+            row=1,
+            col=1,
+        )
+        fig_iq.add_trace(
+            go.Scatter(x=t_plot, y=np.imag(iq_plot), mode="lines", name="Q", line=dict(width=1, color="#a78bfa")),
+            row=2,
+            col=1,
+        )
+        fig_iq.update_layout(
+            height=320,
+            showlegend=False,
+            margin=dict(t=40, b=10),
+            paper_bgcolor=_pc["paper_bgcolor"],
+            plot_bgcolor=_pc["plot_bgcolor"],
+            font=dict(color=_pc["font_color"], size=11),
+        )
+        st.plotly_chart(fig_iq, use_container_width=True)
+    with c2:
+        freqs, psd = compute_psd(iq_data, sample_rate)
+        fig_psd = go.Figure()
+        fig_psd.add_trace(go.Scatter(x=freqs, y=10 * np.log10(np.abs(psd) + 1e-10), mode="lines", line=dict(color="#34d399")))
+        fig_psd.update_layout(
+            height=320,
+            xaxis_title="Frequency (Hz)",
+            yaxis_title="PSD (dB/Hz)",
+            margin=dict(t=40, b=10),
+            paper_bgcolor=_pc["paper_bgcolor"],
+            plot_bgcolor=_pc["plot_bgcolor"],
+            font=dict(color=_pc["font_color"], size=11),
+        )
+        st.plotly_chart(fig_psd, use_container_width=True)
+
+    freqs2, times, Sxx = compute_spectrogram(iq_data, sample_rate)
+    fig_spec = go.Figure()
+    fig_spec.add_trace(
+        go.Heatmap(
+            z=10 * np.log10(np.abs(Sxx) + 1e-10),
+            x=times,
+            y=freqs2,
+            colorscale="Viridis",
+        )
+    )
+    fig_spec.update_layout(
+        height=340,
+        xaxis_title="Time (s)",
+        yaxis_title="Frequency (Hz)",
+        margin=dict(t=36, b=10),
+        paper_bgcolor=_pc["paper_bgcolor"],
+        plot_bgcolor=_pc["plot_bgcolor"],
+        font=dict(color=_pc["font_color"], size=11),
+    )
+    st.plotly_chart(fig_spec, use_container_width=True)
+    st.caption(
+        _fig_yaml_caption(
+            fig_yaml,
+            "figure_2",
+            "IQ / PSD / spectrogram panels support visualization-quality judging without shipping raw competition IQ.",
+        )
+    )
+
+
+def _render_stochastic_signal_ecology_layer(
+    buildings: list,
+    focus_state,
+    selected_building: dict,
+    *,
+    eff_env: float,
+    traffic_score: float,
+):
+    """
+    Layer B — illustrative stochastic traffic / coexistence semantics (not competition waveform ground truth).
+    """
+    st.markdown("### Stochastic signal ecology layer (illustrative)")
+    st.caption(
+        "Scenario-generated signal ecology: animated-style flows show uplink / downlink / sensing / control / coexistence semantics. "
+        "This is not the hidden decomposition of the SpectrumX competition sample unless you supply matching products in-repo."
+    )
+    _mode = st.radio(
+        "View mode",
+        ("Aggregate scenario", "Judged-sample metaphor (envelope)"),
+        horizontal=True,
+        key="signal_ecology_mode",
+        help="Metaphor mode shapes burst intensity from the demo IQ magnitude envelope — still illustrative, not ground truth.",
+    )
+    t_slide = st.slider(
+        "Replay phase (1 s window, slow-motion index)",
+        0.0,
+        1.0,
+        0.35,
+        0.01,
+        key="signal_ecology_t",
+        help="Drives pseudo-animation of flow opacity and interference field.",
+    )
+    iq_env = None
+    if _mode == "Judged-sample metaphor (envelope)" and "judge_demo_iq" in st.session_state:
+        _jiq = st.session_state.get("judge_demo_iq")
+        if _jiq is not None and len(_jiq) > 8:
+            _step = max(1, len(_jiq) // 512)
+            iq_env = np.abs(_jiq[:: _step]).astype(float)
+            iq_env = iq_env / (np.max(iq_env) + 1e-9)
+
+    phase = float(t_slide) * 2 * np.pi
+    pulse = 0.55 + 0.45 * np.sin(phase)
+    coex_pulse = 0.4 + 0.35 * np.sin(phase + 1.1) * float(eff_env)
+    if iq_env is not None and len(iq_env) > 0:
+        _idx = int(min(len(iq_env) - 1, max(0, round(float(t_slide) * (len(iq_env) - 1)))))
+        pulse = 0.35 + 0.65 * float(iq_env[_idx])
+
+    clon, clat = selected_building["centroid"]
+    gnb_lon = clon + selected_building["gnb_offset_lon"]
+    gnb_lat = clat + selected_building["gnb_offset_lat"]
+
+    fig = go.Figure()
+    _pc = _plotly_chart_colors()
+    fc = _pc["font_color"]
+
+    # Site nodes (lon/lat as x/y — no Mapbox token required)
+    for b in buildings:
+        c = b["centroid"]
+        fig.add_trace(
+            go.Scatter(
+                x=[c[0]],
+                y=[c[1]],
+                mode="markers+text",
+                marker=dict(size=16, color="#6366f1"),
+                text=[b.get("map_label_scene") or b["name"][:12]],
+                textposition="top center",
+                name=b["id"],
+                showlegend=False,
+            )
+        )
+
+    fig.add_trace(
+        go.Scatter(
+            x=[gnb_lon],
+            y=[gnb_lat],
+            mode="markers",
+            marker=dict(size=22, color="#0ea5e9", opacity=0.9),
+            name="gNB abstraction",
+            showlegend=True,
+        )
+    )
+
+    colors = {
+        "ul": "#22c55e",
+        "dl": "#3b82f6",
+        "sense": "#f59e0b",
+        "ctrl": "#a855f7",
+        "coex": "#ef4444",
+    }
+    for b in buildings:
+        c = b["centroid"]
+        w = 2.0 + 3.0 * pulse * (0.5 + 0.5 * traffic_score)
+        fig.add_trace(
+            go.Scatter(
+                x=[gnb_lon, c[0]],
+                y=[gnb_lat, c[1]],
+                mode="lines",
+                line=dict(width=w, color=colors["dl"]),
+                opacity=0.35 + 0.4 * pulse,
+                name="Downlink story",
+                showlegend=False,
+            )
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=[c[0], gnb_lon],
+                y=[c[1], gnb_lat],
+                mode="lines",
+                line=dict(width=max(1.0, w * 0.85), color=colors["ul"]),
+                opacity=0.25 + 0.35 * coex_pulse,
+                name="Uplink story",
+                showlegend=False,
+            )
+        )
+
+    fig.add_trace(
+        go.Scatter(
+            x=[gnb_lon],
+            y=[gnb_lat],
+            mode="markers",
+            marker=dict(size=46, color=colors["coex"], opacity=0.12 + 0.2 * coex_pulse),
+            name="Coexistence field (proxy)",
+            showlegend=True,
+        )
+    )
+
+    mid_lon = sum(b["centroid"][0] for b in buildings) / max(len(buildings), 1)
+    mid_lat = sum(b["centroid"][1] for b in buildings) / max(len(buildings), 1)
+    fig.update_layout(
+        xaxis=dict(
+            title="Longitude (deg)",
+            scaleanchor="y",
+            scaleratio=1 / max(0.0001, abs(np.cos(np.radians(mid_lat)))),
+            tickfont=dict(color=fc),
+            title_font=dict(color=fc),
+        ),
+        yaxis=dict(title="Latitude (deg)", tickfont=dict(color=fc), title_font=dict(color=fc)),
+        margin=dict(l=0, r=0, t=28, b=0),
+        height=420,
+        paper_bgcolor=_pc["paper_bgcolor"],
+        plot_bgcolor=_pc["plot_bgcolor"],
+        font=dict(color=fc, size=11),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0, font=dict(color=fc)),
+    )
+    st.plotly_chart(fig, use_container_width=True)
+    st.markdown(
+        "<div style='font-size:12px;line-height:1.6;color:var(--text-color,#334155)'>"
+        "<b>Legend:</b> <span style='color:#3b82f6'>■</span> downlink narrative · "
+        "<span style='color:#22c55e'>■</span> uplink · "
+        "<span style='color:#f59e0b'>■</span> sensing stand-in · "
+        "<span style='color:#a855f7'>■</span> control traffic · "
+        "<span style='color:#ef4444'>■</span> coexistence / interference field (proxy).</div>",
+        unsafe_allow_html=True,
     )
 
 
@@ -980,16 +1416,20 @@ def _render_judge_trust_evidence_panel(
 ):
     """Judge-facing: structured evidence + explicit judged / extension / scaling separation."""
     st.markdown("### Why judges can trust this — evidence")
+    _trust_buckets_body = (
+        "<ul style='margin:0;padding-left:20px'>"
+        "<li><b>Core judged submission</b> — SpectrumX DAC detector trained/evaluated on <b>official competition data</b> (offline). "
+        "This app loads <b>only local CSV summaries</b> and runs <code>evaluate()</code> on <b>synthetic demo IQ</b> — never official IQ in-cloud.</li>"
+        + "<li><b>Completed research extension</b> — Gary site-aware digital twin + "
+        + CONTROLLER_HONEST_LABEL
+        + " (non-scoring prototype in this UI).</li>"
+        + "<li><b>Next realism scaling</b> — DeepMIMO (channels), Sionna RT (ray-tracing), "
+        + "<b>NVIDIA AI Aerial / Omniverse</b> (digital-twin RF visualization) — <b>drop zones + stubs</b> until pipelines land; "
+        + "<b>none</b> drive the judged detector in-app.</li>"
+        + "</ul>"
+    )
     st.markdown(
-        _judge_html_card(
-            "Three buckets (do not blur)",
-            "<ul style='margin:0;padding-left:20px'>"
-            "<li><b>Core judged submission</b> — SpectrumX DAC detector trained/evaluated on <b>official competition data</b> (offline). "
-            "This app loads <b>only local CSV summaries</b> and runs <code>evaluate()</code> on <b>synthetic demo IQ</b> — never official IQ in-cloud.</li>"
-            "<li><b>Completed research extension</b> — Gary site-aware digital twin + AI-RAN-style controller demo (non-scoring prototype in this UI).</li>"
-            "<li><b>Next realism scaling</b> — DeepMIMO (channels), Sionna RT (ray-tracing), **NVIDIA AI Aerial / Omniverse** (digital-twin RF visualization) — **drop zones + stubs** until pipelines land; **none** drive the judged detector in-app.</li>"
-            "</ul>",
-        ),
+        _judge_html_card("Three buckets (do not blur)", _trust_buckets_body),
         unsafe_allow_html=True,
     )
     c1, c2 = st.columns(2)
@@ -1027,7 +1467,7 @@ def _render_civic_6g_architecture_strip(repo_root: Path):
     st.markdown("### Civic-scale 6G stack (architecture snapshot)")
     st.caption(
         "Direction: a **civic-scale wireless digital twin for Gary** that starts with **real RF sensing** (judged detector, "
-        "trained and scored **offline**), adds a **completed** site-aware scene plus **AI-RAN-style** closed-loop control, and grows into an "
+        "trained and scored **offline**), adds a **completed** site-aware scene plus a **detector-conditioned rule-based control baseline** (RIC-style abstraction), and grows into an "
         "**OTA-validatable** research stack (DeepMIMO, Sionna RT, **AODT**, **pyAerial**, **Aerial Data Lake**). "
         "Labels below are **declared status**, not implied live deployment."
     )
@@ -1057,7 +1497,7 @@ def _render_civic_6g_architecture_strip(repo_root: Path):
         ),
         (
             "Gary digital twin",
-            "**Completed extension:** anchor geometry, occupancy proxies, scenario engine (people, devices, traffic, KPIs).",
+            "<b>Completed extension:</b> three anchors — geometry, occupancy proxies, scenario engine (people, devices, traffic, KPIs).",
         ),
         (
             "Simulation backbone",
@@ -1088,7 +1528,7 @@ def _render_judge_oran_ai_ran_alignment_card():
             "<ul style='margin:0;padding-left:18px;line-height:1.55'>"
             "<li><b>Telemetry ingestion</b>: scenario engine + site state (people, devices, traffic) and optional simulation summaries "
             "form an <b>observation vector</b> for the UI loop. A production RIC would normalize O1 / E2 / FM; here it is <b>Python state</b> only.</li>"
-            "<li><b>Belief / policy</b>: <b>RIC-style</b> language maps to a small <b>rule + priority</b> policy (Near-RT / Non-RT <b>inspired</b>). "
+            "<li><b>Belief / policy</b>: <b>RIC-style</b> language maps to a <b>deterministic rule map</b> over scenario + detector state (Near-RT / Non-RT <b>inspired</b>). "
             "Not a hosted Near-RT RIC or xApp marketplace.</li>"
             "<li><b>Action selection</b>: discrete <b>spectrum / power / scheduling</b>-style actions nudge KPIs in the twin (<b>xApp-like</b> step; "
             "no A1/E2 service bindings).</li>"
@@ -1131,15 +1571,18 @@ def _render_judge_gary_micro_twin_3d():
         )
         return
 
-    # --- Separation banner (completed extension is not the judged detector) ---
     st.success(
-        "**Completed Research Extension:** Not the judged SpectrumX detector. "
-        "**Closed-loop AI-RAN scene controller** + **RIC-style** policy (Near-RT / Non-RT–**inspired** abstraction only — **not** a full RT RIC)."
+        "Completed research extension — staged digital twin and control semantics. "
+        "Judged SpectrumX detector scores remain separate; this tab demonstrates scenario → policy → KPI structure."
     )
 
-    st.markdown("## Completed Gary Digital Twin Extension — simulation-backed scene + closed-loop AI-RAN controller")
+    st.markdown(
+        "## Gary digital twin — simulation-backed scene + "
+        + CONTROLLER_HONEST_LABEL
+    )
+    st.caption(CONTROLLER_ROADMAP_CAPTION)
     st.caption(
-        "**Population / device scenario engine** drives demand & pressure; **RF environment** is still a **proxy** unless you load Sionna / DeepMIMO summaries. "
+        "Population / device scenario engine drives demand; RF overlays follow declared evidence tiers (proxy, demo summary, or simulation export). "
         "No official competition IQ in this app."
     )
 
@@ -1147,36 +1590,39 @@ def _render_judge_gary_micro_twin_3d():
     st.markdown("### Guided demo strip (main path)")
     w = st.columns(6)
     _steps = [
-        ("1", "Choose **site**", "Focus anchor + community context."),
-        ("2", "Choose **scenario preset**", "Normal / peak / after hours / emergency."),
-        ("3", "**Wireless scene**", "Hotspots & IF scale with **computed** load."),
-        ("4", "**Propagation / coverage**", "Tied to **coverage pressure** from scenario."),
-        ("5", "**Closed-loop controller**", "State → **computed** action → KPIs."),
-        ("6", "**KPI impact**", "Updated from chosen policy."),
+        ("1", "Choose site", "Focus anchor + community context."),
+        ("2", "Scenario preset", "Normal / peak / after hours / emergency."),
+        ("3", "Wireless scene", "Hotspots & IF scale with engine-driven load."),
+        ("4", "Propagation / coverage", "Tied to coverage pressure from scenario."),
+        ("5", "Closed-loop control", "State → computed action → KPIs."),
+        ("6", "KPI impact", "Updated from chosen policy."),
     ]
+    _tc, _hc, _sc = _judge_step_text_colors()
     for col, (num, title, sub) in zip(w, _steps):
         with col:
             st.markdown(
                 _judge_html_card_sm(
-                    f"<div style='font-size:11px;color:var(--text-color, #212529)'>Step {num}</div>"
-                    f"<div style='font-weight:700;font-size:13px;color:var(--text-color, #212529);margin:4px 0'>{title}</div>"
-                    f"<div style='font-size:11px;color:var(--text-color, #212529)'>{sub}</div>"
+                    f"<div style='font-size:11px;color:{_tc}'>Step {num}</div>"
+                    f"<div style='font-weight:700;font-size:13px;color:{_hc};margin:4px 0'>{title}</div>"
+                    f"<div style='font-size:11px;color:{_sc}'>{sub}</div>"
                 ),
                 unsafe_allow_html=True,
             )
 
     ce1, ce2 = st.columns(2)
     with ce1:
+        _ce1_body = (
+            "<ul style='margin:0;padding-left:18px'>"
+            "<li><b>Real detector</b> evaluated on competition-style data <b>offline</b> — <b>not</b> exposed as raw IQ in this app; core tab + submission workflow.</li>"
+            + "<li><b>Completed extension</b>: <b>scenario engine</b> (people/devices/load); "
+            + CONTROLLER_HONEST_LABEL
+            + ".</li>"
+            + "<li><b>Propagation / coverage</b>: <b>scenario-driven</b> proxy metrics + charts — not a ray-tracing solver in-app.</li>"
+            + "<li><b>Simulation backbone</b>: JSON summaries when present; otherwise current evidence tier stays proxy or external-runtime target.</li>"
+            + "</ul>"
+        )
         st.markdown(
-            _judge_html_card(
-                "Why this extension is credible for reviewers",
-                "<ul style='margin:0;padding-left:18px'>"
-                "<li><b>Real detector</b> evaluated on competition-style data <b>offline</b> — <b>not</b> exposed as raw IQ in this app; core tab + submission workflow.</li>"
-                "<li><b>Completed extension</b>: <b>scenario engine</b> (people/devices/load) + <b>closed-loop AI-RAN scene controller</b> (RIC-style abstraction).</li>"
-                "<li><b>Propagation / coverage</b>: <b>scenario-driven</b> proxy metrics + charts — still <b>not</b> a ray-tracing solver.</li>"
-                "<li><b>Simulation backbone</b>: JSON summaries load when present; else honest <b>not loaded</b> + expected paths.</li>"
-                "</ul>",
-            ),
+            _judge_html_card("Why this extension is credible for reviewers", _ce1_body),
             unsafe_allow_html=True,
         )
     with ce2:
@@ -1184,10 +1630,10 @@ def _render_judge_gary_micro_twin_3d():
             _judge_html_card(
                 "Why this matters for 6G research & admissions",
                 "<ul style='margin:0;padding-left:18px'>"
-                "<li><b>AI-native RAN</b>: <b>sensing → policy → action → KPI</b> loop aligned with **Near-RT / Non-RT RIC** research language (honest abstraction).</li>"
+                "<li><b>AI-native RAN</b>: <b>sensing → policy → action → KPI</b> loop aligned with <b>Near-RT / Non-RT RIC</b> research language (honest abstraction).</li>"
                 "<li><b>Digital twins</b>: ties ML to <b>place</b> and <b>propagation-aware</b> decisions — core 6G systems theme.</li>"
                 "<li><b>Equitable access</b>: KPIs encode <b>community benefit</b> vs <b>coexistence</b> — policy-relevant framing.</li>"
-                "<li><b>Simulation discipline</b>: provenance-labeled path from <b>proxy</b> → <b>DeepMIMO / Sionna</b> → <b>AODT</b> (city-scale twin **target**) → <b>pyAerial</b> PHY bridge → <b>OTA Data Lake</b> evidence.</li>"
+                "<li><b>Simulation discipline</b>: provenance-labeled path from <b>proxy</b> → <b>DeepMIMO / Sionna</b> → <b>AODT</b> (city-scale twin <b>target</b>) → <b>pyAerial</b> PHY bridge → <b>OTA Data Lake</b> evidence.</li>"
                 "</ul>",
                 tone="gray",
             ),
@@ -2310,14 +2756,15 @@ def _render_judge_gary_micro_twin_3d():
             line_width_min_pixels=2,
             pickable=True,
         )
+        _txt_rgb = [230, 237, 243, 255] if _theme_is_dark() else [17, 24, 39, 255]
         text_layer = pdk.Layer(
             "TextLayer",
             id="layer-labels-building-names",
             data=buildings,
             get_position="label_position_3d",
             get_text="map_label_scene",
-            get_color=[17, 24, 39, 255],
-            outline_color=[255, 255, 255, 245],
+            get_color=_txt_rgb,
+            outline_color=[255, 255, 255, 245] if not _theme_is_dark() else [15, 23, 42, 255],
             outline_width=6,
             billboard=True,
             get_size=15,
@@ -2395,10 +2842,18 @@ def _render_judge_gary_micro_twin_3d():
         return
 
     st.caption(
-        "**Figure: community impact at City Hall / Library / West Side** — building height & tint encode **coexistence stress proxy** "
-        "under your scenario (not calibrated field data)."
+        "Figure: community impact at the three Gary anchors — building height and tint encode coexistence stress (scenario proxy, not drive-test calibrated)."
     )
 
+    _render_stochastic_signal_ecology_layer(
+        buildings,
+        focus_state,
+        selected_building,
+        eff_env=eff_env,
+        traffic_score=float(focus_state.traffic_demand_score),
+    )
+
+    _leg_body = _legend_body_text_color()
     lg1, lg2, lg3 = st.columns(3)
     _leg_wrap = (
         "background:var(--secondary-background-color, #f8f9fa);border:2px solid var(--border-color, #dee2e6);"
@@ -2408,7 +2863,7 @@ def _render_judge_gary_micro_twin_3d():
         st.markdown(f"<div style='{_leg_wrap}'>", unsafe_allow_html=True)
         st.markdown("**Map / glyph legend**")
         st.markdown(
-            "<div style='font-size:12px;line-height:1.65;color:var(--text-color, #111827)'>"
+            f"<div style='font-size:12px;line-height:1.65;color:{_leg_body}'>"
             "<span style='display:inline-block;width:14px;height:14px;background:#2ecc71;border-radius:3px;vertical-align:middle;margin-right:6px'></span>Building: lower coexistence stress (proxy)<br/>"
             "<span style='display:inline-block;width:14px;height:14px;background:#f1c40f;border-radius:3px;vertical-align:middle;margin-right:6px'></span>Building: moderate stress (proxy)<br/>"
             "<span style='display:inline-block;width:14px;height:14px;background:#e74c3c;border-radius:3px;vertical-align:middle;margin-right:6px'></span>Building: higher stress (proxy)<br/>"
@@ -2436,7 +2891,7 @@ def _render_judge_gary_micro_twin_3d():
         st.markdown(f"<div style='{_leg_wrap}'>", unsafe_allow_html=True)
         st.markdown("**Wireless-layer legend (semantics)**")
         st.markdown(
-            "<div style='font-size:12px;line-height:1.65;color:var(--text-color, #111827)'>"
+            f"<div style='font-size:12px;line-height:1.65;color:{_leg_body}'>"
             "<b>L1 Anchor geometry</b> — **site-specific extruded footprints** (multi-vertex outlines); optional **.glb** replaces footprint when configured. "
             "Outline color hints: **civic blue** · **library violet** · **school green** (plus coexistence tint).<br/>"
             "<b>L2 Access / serving</b> — hypothetical gNB + serving segment (not a carrier asset DB).<br/>"
@@ -2450,7 +2905,7 @@ def _render_judge_gary_micro_twin_3d():
         st.markdown(f"<div style='{_leg_wrap}'>", unsafe_allow_html=True)
         st.markdown("**O-RAN mapping (conceptual)**")
         st.markdown(
-            "<div style='font-size:12px;line-height:1.65;color:var(--text-color, #111827)'>"
+            f"<div style='font-size:12px;line-height:1.65;color:{_leg_body}'>"
             "<b>RU / O-DU (abstracted)</b> — gNB marker + link geometry.<br/>"
             "<b>O1 / sensing stand-in</b> — SpectrumX <code>evaluate()</code> on <b>synthetic</b> IQ (Judge tab).<br/>"
             "<b>RIC-style controller</b> — policy panel maps **closed-loop state** → discrete action → KPIs (Near-RT / Non-RT–<b>inspired</b>).<br/>"
@@ -2652,12 +3107,11 @@ def _render_judge_gary_micro_twin_3d():
     )
     st.caption("Implemented now — site-specific user personas for this completed extension demo.")
 
-    # --- Closed-loop AI-RAN scene controller (RIC-style; demo only) ---
-    st.markdown("### Closed-loop AI-RAN scene controller (RIC-style abstraction)")
+    st.markdown("### Closed-loop control — " + CONTROLLER_HONEST_LABEL)
     st.caption(
-        "**Layers (honest):** **Policy / context** (preset + site + RF sliders) · **Sensing / belief** (detector on **synthetic** demo IQ + scenario engine state) · "
-        "**Action** (`select_closed_loop_action`) · **KPI feedback** (`apply_action_to_kpis`). "
-        "**Near-RT / Non-RT–inspired** — **not** a deployed full RT RIC or live E2."
+        "Layers: policy context (preset + site + RF sliders) · sensing / belief (detector on synthetic demo IQ + scenario state) · "
+        "action (`select_closed_loop_action`) · KPI feedback (`apply_action_to_kpis`). "
+        "RIC/Near-RT language is conceptual mapping — not a deployed RIC or live E2."
     )
 
     pred = st.session_state.get("judge_live_pred")
@@ -2771,7 +3225,7 @@ def _render_judge_gary_micro_twin_3d():
     ]
 
     _chosen_title = next(c[1] for c in candidates if c[0] == chosen_key)
-    st.markdown("##### Action layer — selected command (**computed** from scenario + belief)")
+    st.markdown("##### Action layer — selected command (computed from scenario + belief)")
     st.success(f"**{_chosen_title}**  \n{action_reason}")
 
     st.markdown("#### Control loop trace (ingest → belief → act → KPI feedback)")
@@ -2787,18 +3241,19 @@ def _render_judge_gary_micro_twin_3d():
         ("4 · Action", f"**{_chosen_title}**", "`select_closed_loop_action` (state + RF + detector)."),
         ("5 · KPI feedback", "Metrics below →", "`apply_action_to_kpis` on scenario bases."),
     ]
+    _tc2, _hc2, _sc2 = _judge_step_text_colors()
     for col, (title, headline, sub) in zip(pipe, stages):
         with col:
             st.markdown(
                 _judge_html_card_sm(
-                    f"<div style='font-size:12px;color:var(--text-color, #212529)'>{title}</div>"
-                    f"<div style='font-weight:600;margin:6px 0;font-size:13px;color:var(--text-color, #212529)'>{headline}</div>"
-                    f"<div style='font-size:11px;color:var(--text-color, #212529)'>{sub}</div>"
+                    f"<div style='font-size:12px;color:{_tc2}'>{title}</div>"
+                    f"<div style='font-weight:600;margin:6px 0;font-size:13px;color:{_hc2}'>{headline}</div>"
+                    f"<div style='font-size:11px;color:{_sc2}'>{sub}</div>"
                 ),
                 unsafe_allow_html=True,
             )
 
-    st.markdown("**Candidate actions (RIC-style set)**")
+    st.markdown("Candidate actions (discrete RIC-style command set)")
     ca = st.columns(6)
     for i, (k, title, blurb) in enumerate(candidates):
         with ca[i]:
@@ -2808,16 +3263,16 @@ def _render_judge_gary_micro_twin_3d():
                 st.caption(title)
             st.caption(blurb)
 
-    st.markdown(
+    _ai_ran_note = (
         "<div style='border-left:5px solid #7c3aed;padding:12px 16px;background:var(--secondary-background-color, #e9e3f5);"
         "border:1px solid var(--border-color, #212529);border-radius:0 12px 12px 0;margin:10px 0'>"
-        "<strong style='color:var(--text-color, #212529)'>Why this reads as AI-RAN (honest scope)</strong><br/>"
+        "<strong style='color:var(--text-color, #212529)'>AI-RAN research mapping (staged)</strong><br/>"
         "<span style='font-size:13px;color:var(--text-color, #212529);line-height:1.55'>"
-        "A <b>closed-loop</b> <b>RIC-style</b> narrative (<b>Near-RT / Non-RT–inspired</b>): <b>observations</b> (detector + scenario engine + propagation proxies) → "
-        "<b>policy</b> → <b>discrete actions</b> → <b>KPI</b> readout. Explicit <b>proxy</b> labeling; <b>no</b> claim of a production RIC, cuMAC, or full RT stack. "
-        "<b>Aerial CUDA RAN</b> / <b>pyAerial</b> are <b>external</b> execution targets only.</span></div>",
-        unsafe_allow_html=True,
+        "The <b>rule-based baseline</b> implements the same <b>observation → decision → KPI</b> interface a future contextual bandit or offline RL policy would use. "
+        "Explicit proxy labeling; no production RIC, cuMAC, or full RT stack. "
+        "Aerial CUDA RAN / pyAerial remain <b>external execution targets</b> (manifest-load only here).</span></div>"
     )
+    st.markdown(_ai_ran_note, unsafe_allow_html=True)
 
     base_coverage = float(_sp["coverage_proxy"])
     base_coex = float(focus_state.coexistence_pressure)
@@ -3389,16 +3844,13 @@ if judge_mode_enabled:
 # Standard Mode (preserve existing behavior)
 # ---------------------------------------------------------------------------
 if judge_mode_enabled:
-    # Judge-facing, read-only dashboard.
-    st.header("🏆 Judge Tour")
+    # Judge-facing, read-only dashboard — score first, scope second, extension in tabs.
+    st.header("SpectrumX DAC — judge-first dashboard")
     st.caption(
-        "This view is designed for judges: polished, authoritative tables from local `submissions/` CSVs. "
-        "The Gary **Completed Research Extension** (site-aware digital twin + AI-RAN controller demo) is "
-        "**separate from** the **Core Judged SpectrumX DAC detector**, and the DeepMIMO/Sionna RT tools are "
-        "clearly labeled as the **Next Research Scaling Path**."
+        "Headline metrics come from `submissions/submission_metrics.csv` when you populate it; live `evaluate()` uses synthetic demo IQ only. "
+        "The Gary extension is a staged research instrument with explicit evidence tiers — not a substitute for judged scores."
     )
 
-    # Load structured metrics (authoritative when present).
     repo_root = _repo_root()
     inv_rows = scan_submissions_inventory(str(repo_root))
     mdf = load_submission_metrics(str(repo_root))
@@ -3406,19 +3858,39 @@ if judge_mode_enabled:
     fig_yaml = load_final_report_figures_yaml(str(repo_root))
     core_row = _pick_core_submission_row(mdf, ldf, inv_rows) if (mdf is not None or ldf is not None) else _pick_core_submission_row(None, None, inv_rows)
 
-    # Pick a submission folder name for efficiency scans (only if we have a core row).
+    _j_active = st.session_state.get("judge_active_submission_folder")
+    _head_row = _metrics_row_for_submission(mdf, str(_j_active)) if (_j_active and mdf is not None) else None
+    core_row_for_headline: dict = {}
+    if isinstance(_head_row, dict):
+        core_row_for_headline = dict(_head_row)
+    elif isinstance(core_row, dict):
+        core_row_for_headline = dict(core_row)
+
+    headline = None
+    if _JUDGED_HEADLINES_OK and build_judged_headlines is not None and headline_placeholder is not None:
+        headline = build_judged_headlines(core_row_for_headline, str(_j_active) if _j_active else None)
+    elif headline_placeholder is not None:
+        headline = headline_placeholder(str(_j_active) if _j_active else None)
+
     core_submission_name = str(core_row.get("submission")) if core_row and core_row.get("submission") is not None else None
+    if not core_submission_name and _j_active:
+        core_submission_name = str(_j_active)
 
     _pkg_ct = len(_discover_submissions_safe(repo_root))
-    _render_judge_trust_evidence_panel(
-        repo_root,
-        mdf,
-        core_row if isinstance(core_row, dict) else None,
-        st.session_state.get("judge_active_submission_folder"),
-        _pkg_ct,
-    )
-    _render_civic_6g_architecture_strip(repo_root)
-    _render_judge_oran_ai_ran_alignment_card()
+    if headline is not None:
+        _render_judge_hero_score_strip(headline, str(_j_active) if _j_active else None)
+    _render_judge_scope_split_strip()
+
+    with st.expander("Evidence separation, CSV detail & O-RAN / RIC alignment (full notes)", expanded=False):
+        _render_judge_trust_evidence_panel(
+            repo_root,
+            mdf,
+            core_row if isinstance(core_row, dict) else None,
+            _j_active,
+            _pkg_ct,
+        )
+        _render_civic_6g_architecture_strip(repo_root)
+        _render_judge_oran_ai_ran_alignment_card()
 
     # Judge-tour tabs
     tabs = st.tabs(
@@ -3433,22 +3905,17 @@ if judge_mode_enabled:
     )
 
     with tabs[0]:
-        st.subheader("Figure 1: Problem / Task Overview")
+        st.subheader("Problem — official task (concise)")
         if fig_yaml and fig_yaml.get("_error"):
             st.info(str(fig_yaml["_error"]))
         st.markdown(
             """
-SpectrumX DAC judging focuses on: **detection accuracy**, **implementation efficiency**, **algorithmic novelty**, and **visualization quality**.
+**Task:** From a **single 1-second IQ window**, output **binary occupancy** (occupied vs noise-only). Judges score **accuracy**, **efficiency**, **novelty**, and **visualization**.
 
-This dashboard presents:
-- **Core judged submission** (official SpectrumX DAC detector metrics) from local structured files.
-- **Completed research extension** (Gary site-aware digital twin + AI-RAN controller demo) implemented in this prototype and clearly separated from scoring.
-- **Next research scaling path** (DeepMIMO / Sionna RT / NVIDIA AI Aerial–class twins) — integration-ready drop zones; **not** claimed to score the detector.
+**Why it matters:** Spectrum sharing and civic RAN need trustworthy occupancy sensing without over-claiming spectrum use.
+
+**What this app judges here:** Local **CSV summaries** + **synthetic** demo IQ for `evaluate()` — not raw official IQ in-cloud.
             """.strip()
-        )
-        st.caption(
-            "**Evidence map:** **Accuracy** → Results tab / CSV; **Efficiency** → Efficiency tab; **Novelty** → Core Submission + notes; "
-            "**Completed extension** → Completed Research Extension tab; **Next scaling path** → roadmap in the same tab."
         )
         ccore, cext, cnext = st.columns(3)
         with ccore:
@@ -3463,7 +3930,9 @@ This dashboard presents:
             st.markdown(
                 _judge_html_card(
                     "Completed research extension",
-                    "Gary digital twin + AI-RAN-style controller — non-scoring demo in this app.",
+                    "Gary digital twin (three anchors) + "
+                    + CONTROLLER_HONEST_LABEL
+                    + " — non-scoring research layer.",
                     tone="gray",
                 ),
                 unsafe_allow_html=True,
@@ -3471,95 +3940,43 @@ This dashboard presents:
         with cnext:
             st.markdown(
                 _judge_html_card(
-                    "Next realism scaling",
-                    "<b>DeepMIMO</b> · <b>Sionna RT</b> · <b>NVIDIA AI Aerial / Omniverse</b> — channel, ray-tracing, twin-scale RF viz; see <code>docs/SIMULATION_BACKBONE_PLAN.md</code>.",
+                    "Next validation tier",
+                    "<b>DeepMIMO</b> · <b>Sionna RT</b> · <b>AODT</b> · <b>pyAerial</b> · <b>Data Lake / OTA</b> — manifest-load today; external execution targets labeled per layer.",
                 ),
                 unsafe_allow_html=True,
             )
-        st.caption(
-            _fig_yaml_caption(
-                fig_yaml,
-                "figure_1",
-                "Cloud safety: official competition IQ data is not included in this app.",
+        st.caption(_fig_yaml_caption(fig_yaml, "figure_1", "Figure 1: task framing — judged core vs extension vs validation path."))
+        with st.expander("Judging pillar map (where to click next)", expanded=False):
+            st.caption(
+                "Accuracy → Results tab / CSV. Efficiency → Efficiency tab. Novelty → Core Submission + code. "
+                "Visualization → Core Submission microscope. Extension → Completed Research Extension tab."
             )
-        )
-        st.caption(
-            "**Figure 1 caption:** Task overview and judging pillars — core vs completed extension vs next scaling path separation."
-        )
-
-        st.subheader("Figure 2: IQ + PSD + Spectrogram (Visualization Only)")
-        st.caption(
-            _fig_yaml_caption(
-                fig_yaml,
-                "figure_2",
-                "Synthetic demo IQ is shown for screenshot clarity. It does not drive judge-scoring metrics in this UI.",
-            )
-        )
-        _render_synthetic_demo_metadata_callout(
-            st.session_state.get("judge_demo_meta"),
-            caption_prefix="Judge Mode:",
-        )
-        st.caption(
-            "**Figure 2 caption:** IQ, Welch PSD, and spectrogram panels for **visualization quality** judging — "
-            "synthetic demo only; no official competition IQ in-cloud."
-        )
-        if has_data and iq_data is not None:
-            # Time-domain IQ
-            c1, c2 = st.columns(2)
-            with c1:
-                max_points = 8000
-                if len(iq_data) > max_points:
-                    step = len(iq_data) // max_points
-                    iq_plot = iq_data[::step]
-                    t_plot = np.arange(len(iq_plot)) * step / sample_rate
-                else:
-                    iq_plot = iq_data
-                    t_plot = np.arange(len(iq_plot)) / sample_rate
-                fig_iq = make_subplots(rows=2, cols=1, subplot_titles=("I(t)", "Q(t)"), vertical_spacing=0.15)
-                fig_iq.add_trace(go.Scatter(x=t_plot, y=np.real(iq_plot), mode="lines", name="I", line=dict(width=1)), row=1, col=1)
-                fig_iq.add_trace(go.Scatter(x=t_plot, y=np.imag(iq_plot), mode="lines", name="Q", line=dict(width=1)), row=2, col=1)
-                fig_iq.update_layout(height=360, showlegend=False, margin=dict(t=40, b=10))
-                st.plotly_chart(fig_iq, use_container_width=True)
-                st.caption("Time-domain view to communicate signal bursts vs noise-only windows.")
-
-            with c2:
-                freqs, psd = compute_psd(iq_data, sample_rate)
-                fig_psd = go.Figure()
-                fig_psd.add_trace(go.Scatter(x=freqs, y=10 * np.log10(np.abs(psd) + 1e-10), mode="lines"))
-                fig_psd.update_layout(height=360, xaxis_title="Frequency (Hz)", yaxis_title="PSD (dB/Hz)", margin=dict(t=40, b=10))
-                st.plotly_chart(fig_psd, use_container_width=True)
-                st.caption("Welch PSD communicates spectral structure relative to noise.")
-
-            # Spectrogram (single figure)
-            freqs, times, Sxx = compute_spectrogram(iq_data, sample_rate)
-            fig_spec = go.Figure()
-            fig_spec.add_trace(
-                go.Heatmap(
-                    z=10 * np.log10(np.abs(Sxx) + 1e-10),
-                    x=times,
-                    y=freqs,
-                    colorscale="Viridis",
-                )
-            )
-            fig_spec.update_layout(
-                height=420,
-                xaxis_title="Time (s)",
-                yaxis_title="Frequency (Hz)",
-                margin=dict(t=50, b=10),
-            )
-            st.plotly_chart(fig_spec, use_container_width=True)
-            st.caption("Spectrogram provides a time-frequency screenshot panel.")
-        else:
-            st.info("No demo input available for Figure 2. Reload the app; Judge Mode should auto-generate a synthetic IQ window.")
 
     with tabs[1]:
-        st.warning(
-            "**What was judged vs completed extension — read first:** "
-            "**(A) Core judged submission** = feature-based binary detector on **official SpectrumX labeled data** "
-            "(tables/card below use **local CSVs only**). "
-            "**(B) Completed research extension** = Gary digital twin + **Near-RT RIC–style (xApp-like)** AI-RAN control abstraction — **non-scoring** prototype. "
-            "**(C) Next scaling path** = DeepMIMO / Sionna RT / **NVIDIA AI Aerial / Omniverse** — **integration-ready** dirs + stubs; **not** active in the judged detector unless you wire them."
-        )
+        st.subheader("Core Submission — judged detector")
+        if has_data and iq_data is not None:
+            _render_synthetic_demo_metadata_callout(
+                st.session_state.get("judge_demo_meta"),
+                caption_prefix="Judge Mode:",
+            )
+            _render_judged_sample_microscope(
+                iq_data,
+                float(sample_rate),
+                fig_yaml,
+                caption_prefix="",
+            )
+        else:
+            st.info("Synthetic demo IQ unavailable — reload Judge Mode.")
+
+        with st.expander("Judged vs extension — scope reminder", expanded=False):
+            st.markdown(
+                "**(A) Core judged submission** — feature-based binary detector on official SpectrumX labeled data "
+                "(tables use local CSVs only).\n\n"
+                "**(B) Completed extension** — Gary digital twin + "
+                + CONTROLLER_HONEST_LABEL
+                + " — non-scoring prototype.\n\n"
+                "**(C) Next validation tier** — DeepMIMO / Sionna RT / Aerial-class manifests; integration-ready drop zones."
+            )
         st.subheader("Figure 4: Canonical Final Submission card (Core Judged — single source of truth)")
         st.caption(
             _fig_yaml_caption(
@@ -3651,53 +4068,50 @@ This dashboard presents:
             st.info("Submission adapter unavailable; live inference disabled.")
 
     with tabs[2]:
-        st.subheader("Figure 5: Results (CV + Leaderboard Progress)")
-        st.markdown(
-            "Authoritative CV / leaderboard tables come from `submissions/submission_metrics.csv` when present."
-        )
+        st.subheader("Results — CV, leaderboard, errors")
         st.caption(
-            "**Novelty story (for judges):** feature-based, interpretable occupancy detection with a clear inference contract — "
-            "see **Prediction Path** in Figure Mode and `submissions/<pkg>/main.py` for the packaged algorithm."
-        )
-
-        st.subheader("Figure 3: Feature Extraction (Visualization Only)")
-        st.caption(
-            _fig_yaml_caption(
-                fig_yaml,
-                "figure_3",
-                "Feature table/chart shown for interpretability screenshots. Judge-scoring metrics in this view come only from structured CSVs.",
-            )
+            "Authoritative tables from `submissions/submission_metrics.csv`. Algorithm / novelty detail: Core Submission tab and `submissions/<pkg>/main.py`."
         )
         if has_data and iq_data is not None:
-            df = _features_dataframe(iq_data, sample_rate)
-            if df is not None:
-                if pd is not None:
-                    st.dataframe(pd.DataFrame(df), use_container_width=True, hide_index=True)
-                else:
-                    st.caption("pandas not available in this runtime; showing feature rows as JSON.")
-                    st.json(df[:50])
-                # Screenshot-friendly emphasis: top magnitude features.
-                try:
-                    top = sorted(df, key=lambda r: abs(r["value"]), reverse=True)[:10]
-                    fig_feat = go.Figure()
-                    fig_feat.add_trace(
-                        go.Bar(
-                            x=[r["value"] for r in top],
-                            y=[r["feature"] for r in top],
-                            orientation="h",
-                        )
+            with st.expander("Judged-sample feature microscope (interpretability — Figure 3)", expanded=False):
+                st.caption(
+                    _fig_yaml_caption(
+                        fig_yaml,
+                        "figure_3",
+                        "Feature table for interpretability; scoring numbers still come only from structured CSVs.",
                     )
-                    fig_feat.update_layout(height=360, margin=dict(t=40, b=10), title="Top Feature Magnitudes (demo)")
-                    st.plotly_chart(fig_feat, use_container_width=True)
-                except Exception:
-                    st.caption("Top-feature chart not rendered in this runtime.")
-            else:
-                st.info("Feature extractor not available in this runtime. (Shared `extract_features` import failed.)")
-        else:
-            st.info("No demo input available for Figure 3. Reload the app; Judge Mode should auto-generate synthetic IQ.")
-        st.caption(
-            "**Figure 3 caption:** Handcrafted feature panel for **interpretability / novelty** evidence (synthetic demo IQ)."
-        )
+                )
+                df = _features_dataframe(iq_data, sample_rate)
+                if df is not None:
+                    if pd is not None:
+                        st.dataframe(pd.DataFrame(df), use_container_width=True, hide_index=True)
+                    else:
+                        st.caption("pandas not available in this runtime; showing feature rows as JSON.")
+                        st.json(df[:50])
+                    try:
+                        top = sorted(df, key=lambda r: abs(r["value"]), reverse=True)[:10]
+                        fig_feat = go.Figure()
+                        fig_feat.add_trace(
+                            go.Bar(
+                                x=[r["value"] for r in top],
+                                y=[r["feature"] for r in top],
+                                orientation="h",
+                            )
+                        )
+                        _pc = _plotly_chart_colors()
+                        fig_feat.update_layout(
+                            height=320,
+                            margin=dict(t=40, b=10),
+                            title="Top feature magnitudes (demo IQ)",
+                            paper_bgcolor=_pc["paper_bgcolor"],
+                            plot_bgcolor=_pc["plot_bgcolor"],
+                            font=dict(color=_pc["font_color"]),
+                        )
+                        st.plotly_chart(fig_feat, use_container_width=True)
+                    except Exception:
+                        st.caption("Top-feature chart not rendered in this runtime.")
+                else:
+                    st.info("Feature extractor not available in this runtime.")
         st.markdown("---")
 
         if mdf is not None:
@@ -3782,16 +4196,19 @@ This dashboard presents:
             st.json(inv_rows[:50])
 
     with tabs[3]:
-        st.subheader("Figure: Efficiency & Implementation Fit")
+        st.subheader("Efficiency — footprint, runtime, operational fit")
         if core_submission_name:
             runtime_val = core_row.get("runtime", core_row.get("runtime_per_sample", core_row.get("runtime_sec", None)))
             st.markdown(
-                "Efficiency is communicated using *local, evidence-backed* signals: learned artifact footprint and inference-path heuristics from `submissions/<core>/main.py`."
+                "Efficiency story: **accuracy–complexity tradeoff** backed by local signals — artifact size, dependency count, "
+                "and static heuristics on `main.py` (no hidden cloud training loop in this UI)."
             )
             if runtime_val is not None:
                 st.metric("Runtime per sample (from CSV)", str(runtime_val))
             else:
-                st.info("Runtime per sample not found in CSV. Add a `runtime` column in `submissions/submission_metrics.csv` for best judge readability.")
+                st.info(
+                    "Next milestone: add a `runtime` column to `submissions/submission_metrics.csv` so judges see wall-clock evidence next to accuracy."
+                )
 
             size_mb, size_hint = _compute_submission_artifact_footprint(repo_root, core_submission_name)
             st.metric("Learned artifact footprint (approx)", f"~{size_mb:.2f} MB")
@@ -3825,38 +4242,67 @@ This dashboard presents:
             st.warning("Core submission folder could not be inferred. Add metrics CSV so efficiency panels can populate.")
 
     with tabs[4]:
-        st.subheader("Completed Research Extension")
+        st.subheader("Completed Research Extension — Oulu / 6G Flagship framing")
         st.caption(
             _fig_yaml_caption(
                 fig_yaml,
                 "figure_6",
-                "Figure 6: Completed Gary Digital Twin Extension — interactive site-aware map + AI-RAN controller loop (separate from official leaderboard scoring).",
+                "Figure 6: Gary digital twin + closed-loop control semantics — separate from official leaderboard scoring.",
             )
         )
+        _render_extension_research_and_experiment_board()
         _render_judge_gary_micro_twin_3d()
 
     with tabs[5]:
-        st.subheader("Novelty Story: What Was Judged vs Completed Extension vs Next Scaling Path")
-        st.markdown(
-            """
-**Core judged submission (scoring basis):**
-- Feature-based binary detector trained on official SpectrumX labeled data (metrics shown from local structured CSVs).
-
-**Completed research extension (prototype, non-scoring):**
-- Gary Micro-Twin digital twin (3 anchor sites) + interactive 3D scene and radio environment proxies.
-- Site/user/radio/controller/KPI loop with a simplified AI-RAN-style controller demo.
-
-**Next research scaling path (future integration layer):**
-- DeepMIMO for site-specific wireless channel / scenario generation.
-- Sionna RT for propagation / ray-tracing realism and next-layer coverage inputs.
-            """.strip()
+        st.subheader("Why it matters for Gary — three-paper roadmap")
+        st.caption(
+            "Structured narrative: judged core → civic digital twin → sim-to-real evidence. Evidence tiers: see `docs/PROVENANCE_LEGEND.md`."
         )
-        st.caption("This panel explicitly separates scoring-algorithm evidence from the completed extension and the next realism scaling path.")
+        p1, p2, p3 = st.columns(3)
+        with p1:
+            st.markdown(
+                _judge_html_card(
+                    "Paper 1 — detection & rigor",
+                    "<b>Scope:</b> real RF occupancy detection on the SpectrumX task.<br/>"
+                    "<b>Emphasis:</b> calibration, uncertainty, reproducible evaluation, and provenance of what was judged vs demo IQ.",
+                ),
+                unsafe_allow_html=True,
+            )
+        with p2:
+            st.markdown(
+                _judge_html_card(
+                    "Paper 2 — civic AI-RAN-style control",
+                    "<b>Scope:</b> three Gary anchors (City Hall, Library & Cultural Center, West Side Leadership Academy).<br/>"
+                    "<b>Emphasis:</b> site-specific fairness, energy / spectral proxies, mobility-aware scenario progression, "
+                    + CONTROLLER_HONEST_LABEL
+                    + ".",
+                    tone="gray",
+                ),
+                unsafe_allow_html=True,
+            )
+        with p3:
+            st.markdown(
+                _judge_html_card(
+                    "Paper 3 — sim-to-real bridge",
+                    "<b>Scope:</b> pyAerial bridge, Aerial Data Lake schema, OTA-backed targets.<br/>"
+                    "<b>Emphasis:</b> data contracts, validation discipline, path toward ARC-OTA–class evidence without over-claiming current capture.",
+                ),
+                unsafe_allow_html=True,
+            )
+        with st.expander("Judged core vs extension vs next validation tier (summary)", expanded=False):
+            st.markdown(
+                "**Core judged submission** — binary detector on official labeled IQ; metrics from local CSVs.\n\n"
+                "**Completed extension** — Gary Micro-Twin + scenario engine + "
+                + CONTROLLER_HONEST_LABEL
+                + ".\n\n"
+                "**Next validation tier** — DeepMIMO, Sionna RT, AODT manifests, pyAerial runtime, lab OTA workflow."
+            )
         st.markdown("---")
-        st.subheader("Why it Matters for Gary")
+        st.subheader("Civic impact thesis")
         st.markdown(
             """
-The completed Micro-Twin extension is designed to communicate how site-aware sensing and coexistence-aware control can reduce digital divide gaps—especially for learning and civic services.
+Site-aware spectrum control can **target fairness and coexistence** for learning and civic anchors where backhaul and spectrum access are scarce.
+The twin makes **demand, geometry, and policy** visible so optimization is **auditable** rather than hand-waved.
             """.strip()
         )
 
@@ -4611,7 +5057,7 @@ This tab shows the handcrafted features used (or intended) for compact, interpre
         st.subheader("Completed Research Extension")
         st.markdown(
             """
-**Completed research extension (prototype):** The Gary Micro-Twin generates synthetic IQ windows across a small set of equity-relevant zones and provides a site-aware digital twin + AI-RAN controller demo.
+**Completed research extension (prototype):** The Gary Micro-Twin generates synthetic IQ windows across equity-relevant zones and provides a site-aware digital twin plus a **detector-conditioned rule-based closed-loop policy baseline (RIC-style abstraction)** — not a trained RL policy.
 
 - This tab is suitable for conference-style screenshots of the completed extension (not the official judged detector).
 - The Micro-Twin is **NOT** the basis of the core leaderboard submission.
