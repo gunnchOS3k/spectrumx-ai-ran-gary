@@ -1,0 +1,48 @@
+@startuml deployment_future_research_adoption
+title Deployment — **future research adoption** (artifact loop)
+
+skinparam titleFontColor #B71C1C
+
+node "Workstation" as ws {
+  artifact "Local dev +\nnotebooks" as dev
+}
+
+node "GPU / HPC cloud" as gpu {
+  artifact "Sionna RT /\nDeepMIMO batch" as sim
+}
+
+node "AODT / Omniverse host" as omni {
+  artifact "Scene generation +\nUSD / RF meta" as aodt
+}
+
+node "PHY lab / NVIDIA stack" as phy {
+  artifact "pyAerial +\ncuPHY-capable runtime" as pya
+}
+
+node "OTA field / lab" as field {
+  artifact "Capture + label +\nlake manifest" as ota
+}
+
+cloud "GitHub" as gh {
+  database "Repo + CI outputs" as repo
+}
+
+cloud "Streamlit / dashboard" as dash {
+  artifact "Compare runs +\nprovenance" as st
+}
+
+ws --> gh
+gpu --> gh : export bundles
+omni --> gh : summaries
+phy --> gh : bridge configs
+field --> gh : OTA manifests
+gh --> dash
+dash --> gh
+
+note bottom
+  **Future:** manifests round-trip into
+  the same **provenance vocabulary**
+  as today; execution stays **explicit**.
+end note
+
+@enduml

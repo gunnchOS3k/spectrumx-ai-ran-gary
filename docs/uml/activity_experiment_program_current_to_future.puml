@@ -1,0 +1,40 @@
+@startuml activity_experiment_program_current_to_future
+title Activity — experiment program (current proxy to future validation)
+
+start
+
+:Define research question\n(fairness / coexistence / energy under stress);
+
+:Choose independent variables\npreset, RF stress, occupancy prior,\nloaded simulation layer, policy variant;
+
+:Choose baselines\nhold-scan, fairness-off, detector-free;
+
+:Choose KPIs\ncoexistence, fairness, energy proxy,\ncontinuity, coverage proxy;
+
+:Assign **evidence tier**\nproxy-only → loaded demo →\nloaded simulation export →\nOTA-backed / external-runtime;
+
+if (Run current Streamlit path?) then (yes)
+  :Execute scenario engine +\nrule-based controller;
+  :Load manifests if on disk;
+  :Record provenance labels;
+else (no)
+endif
+
+if (Import simulation export?) then (yes)
+  :Drop JSON/GeoJSON/NPZ\nunder data/ or examples/;
+  :Re-run validators /\nreload app;
+else (no)
+endif
+
+:Evaluate KPI deltas\n(heuristic model today);
+
+:Plan **next validation tier**\nexternal Sionna / AODT /\npyAerial runtime / lab OTA;
+
+stop
+
+note right
+  See **docs/PROVENANCE_LEGEND.md**
+  and **EXTERNAL_RUNTIME_GAPS.md**
+end note
+
+@enduml

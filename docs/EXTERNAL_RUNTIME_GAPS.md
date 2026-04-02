@@ -77,6 +77,7 @@ Full definitions: `docs/PROVENANCE_LEGEND.md`.
 
 ## Related documentation
 
+- `docs/uml/README.md` — UML index: current vs future deployment, manifest ingestion, provenance states  
 - `docs/PROVENANCE_LEGEND.md` — six evidence terms + three execution terms  
 - `docs/APPLIED_SIMULATION_BRIDGE_RUNBOOK.md` — export scripts, env var **names**  
 - `docs/AODT_EXPORT_CHECKLIST.md` — full AODT vs manifest-only  

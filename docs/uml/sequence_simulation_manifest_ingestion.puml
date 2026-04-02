@@ -1,0 +1,45 @@
+@startuml sequence_simulation_manifest_ingestion
+title Sequence — simulation manifest ingestion (no local full solver)
+
+participant "Streamlit app" as ST
+participant "simulation_integration_hooks" as H
+participant "Filesystem\nexamples/ + data/" as FS
+participant "simulation_provenance\nfinalize_simulation_status" as P
+
+ST -> H : load_deepmimo_scenario_summary(repo)
+H -> FS : read JSON / NPZ paths
+FS --> H : raw or empty
+H --> ST : status dict
+
+ST -> H : load_sionna_propagation_summary(repo)
+H -> FS : JSON + GeoJSON
+FS --> H
+H --> ST : status dict
+
+ST -> H : load_aerial_overlay_summary(repo)
+H -> FS : overlay_summary.json etc.
+FS --> H
+H --> ST : status dict +\ninstaller probe fields
+
+ST -> H : load_pyaerial_bridge_status(repo)
+H -> FS : bridge_manifest.json
+FS --> H
+H --> ST : status dict\n(often external-runtime-required)
+
+ST -> H : load_ota_evidence_status(repo)
+H -> FS : ota lake manifest
+FS --> H
+H --> ST : status dict
+
+ST -> P : finalize on each dict
+P --> ST : canonical_evidence_status +\ncanonical_execution_status
+
+ST -> ST : Render backbone cards\n+ civic stack strip
+
+note over H
+  **Does not** run AODT, Sionna RT GPU,
+  pyAerial PHY, or OTA capture.
+  **Reads** manifests when present.
+end note
+
+@enduml

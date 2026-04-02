@@ -1,0 +1,40 @@
+@startuml use_cases_future_research_adoption
+title Use cases — future research adoption (**target**, not all implemented)
+
+left to right direction
+
+actor "Lab researcher" as lr
+actor "Simulation engineer" as sim
+actor "OTA testbed engineer" as ota
+actor "City / community partner" as city
+actor "Doctoral supervisor" as sup
+
+rectangle "Future adoption (external + repo orchestration)" {
+  usecase "Import calibrated\nsimulation exports" as UC1
+  usecase "Compare scenario baselines\nfairness / energy / coverage" as UC2
+  usecase "Evaluate controller ladder\nrule → bandit → offline RL" as UC3
+  usecase "Attach pyAerial bridge\nworkflow (external PHY)" as UC4
+  usecase "Define OTA evidence schema\n+ manifests" as UC5
+  usecase "Prepare external AODT /\nSionna heavy runs" as UC6
+  usecase "Review reproducibility +\nprovenance tiers" as UC7
+  usecase "Co-design civic KPIs\nwith stakeholders" as UC8
+}
+
+lr --> UC1
+lr --> UC2
+lr --> UC7
+sim --> UC1
+sim --> UC6
+ota --> UC5
+city --> UC8
+sup --> UC3
+sup --> UC7
+
+UC3 ..> UC2 : <<informs>>
+
+note bottom of UC3
+  **Current shipped:** rule-based baseline only.
+  Bandit / offline RL = **study arms**.
+end note
+
+@enduml

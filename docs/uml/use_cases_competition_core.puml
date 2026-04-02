@@ -1,0 +1,38 @@
+@startuml use_cases_competition_core
+title Use cases — judged competition core
+
+left to right direction
+
+actor "SpectrumX judge" as judge
+actor "Developer /\ncontributor" as dev
+actor "Leaderboard /\norganizer evaluator" as org
+actor "Local experimenter" as loc
+
+rectangle "Competition core" {
+  usecase "Review headline metrics\nfrom submission_metrics.csv" as UC1
+  usecase "Load local IQ sample\n(.npy upload or demo)" as UC2
+  usecase "Run packaged evaluate()\non in-memory IQ in Streamlit" as UC3
+  usecase "Run evaluate(filename)\noffline in Python env" as UC4
+  usecase "Compute compact features\nfor interpretability" as UC5
+  usecase "Classify occupied vs\nnoise-only (0/1)" as UC6
+  usecase "Inspect PSD /\nspectrogram /\nmicroscope" as UC7
+  usecase "Compare submission versions\ninventory + CSV" as UC8
+  usecase "Review reproducibility\nnotes + user_reqs" as UC9
+}
+
+judge --> UC1
+judge --> UC7
+dev --> UC2
+dev --> UC3
+dev --> UC4
+dev --> UC5
+dev --> UC8
+org --> UC4
+org --> UC6
+loc --> UC2
+loc --> UC3
+loc --> UC5
+UC3 ..> UC6 : <<triggers>>
+UC4 ..> UC6 : <<triggers>>
+
+@enduml

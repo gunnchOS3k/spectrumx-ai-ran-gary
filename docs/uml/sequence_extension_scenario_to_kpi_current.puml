@@ -1,0 +1,37 @@
+@startuml sequence_extension_scenario_to_kpi_current
+title Sequence — scenario to KPI (current extension, rule-based controller)
+
+actor User
+participant "Streamlit\nGary extension" as ST
+participant "gary_scenario_engine" as GSE
+participant "Detector session\n(synthetic IQ)" as DET
+participant "Simulation hooks\n(optional)" as SIM
+participant "simulation_provenance" as PRV
+
+User -> ST : Select anchor\nCity Hall / Library / WSLA
+User -> ST : Select preset +\nRF stress + calendar
+ST -> GSE : build ScenarioInputs
+ST -> GSE : compute_all_anchor_states()
+GSE --> ST : SiteScenarioState per anchor
+
+ST -> SIM : load summaries\nDeepMIMO / Sionna / AODT /\npyAerial / OTA
+SIM --> ST : hook dicts\n(manifest or absent)
+ST -> PRV : finalize_simulation_status()
+PRV --> ST : canonical evidence +\nexecution labels
+
+ST -> DET : read judge_live_pred /\nconfidence if present
+ST -> GSE : select_closed_loop_action\n(state, pred, conf, env)
+GSE --> ST : action key +\nreason string
+ST -> GSE : apply_action_to_kpis(...)
+GSE --> ST : updated KPI proxies
+
+ST --> User : Refresh pydeck +\npanels + ecology layer
+
+note over GSE
+  **Detector-conditioned rule-based**
+  **closed-loop policy baseline**
+  **(RIC-style abstraction)**
+  Heuristic KPI deltas — **not** trained RL.
+end note
+
+@enduml
