@@ -155,11 +155,9 @@ See [docs/STREAMLIT_DEPLOY.md](docs/STREAMLIT_DEPLOY.md) and [docs/STREAMLIT_CLO
 
 - `docs/uml/`
 
-  - `system_context.mmd` — System context diagram (Mermaid).
-  - `class_diagram_detection.mmd` — Detection module class diagram (Mermaid).
-  - `sequence_inference.mmd` — Inference sequence diagram (Mermaid).
-  - `containers_components.puml` — Component diagram (PlantUML).
-  - `deployment_streamlit.puml` — Deployment diagram (PlantUML).
+  - **[UML front door (`README.md`)](docs/uml/README.md)** — browse **`current/`**, **`future/`**, **`legacy/`** Markdown wrappers (GitHub-visible diagrams).
+  - **[Current index](docs/uml/current/index.md)** — authoritative post-project diagrams; PlantUML also under `rendered/*.svg`.
+  - Raw `*.mmd` / `*.puml` sources remain alongside wrappers; legacy-only artifacts are indexed under [`docs/uml/legacy/`](docs/uml/legacy/index.md).
 
 ## Architecture
 
@@ -172,86 +170,26 @@ This repository implements a **two-phase architecture**:
    - Production-ready detection pipeline with baseline and ML models
    - Streamlit dashboard for visualization and model comparison
 
-2. **Research Extension (Phase 2)**: Digital twin simulation with AI-RAN controller
-   - Resource allocation (beams, power, resource blocks) under constraints
-   - Fairness considerations for under-resourced communities
-   - Demonstrates research vision beyond competition scope
+2. **Research Extension (Phase 2)**: Gary digital twin + **detector-conditioned rule-based closed-loop policy baseline (RIC-style abstraction)** in Streamlit
+   - Resource allocation *proxies* (beams, power, RBs) under scenario stress; separate `models/` code targets future bandit/RL study arms
+   - Fairness considerations for under-resourced communities (three Gary civic anchors)
+   - Demonstrates research vision beyond competition scope; see UML **current** extension diagrams
 
 This separation ensures competition judges can evaluate the core detection task independently, while Phase 2 showcases our broader research capabilities.
 
 ### System Context
 
-```mermaid
-flowchart TB
-    subgraph External["External Systems"]
-        SDS[SpectrumX SDS<br/>Dataset Provider]
-        Judges[Competition Judges<br/>Evaluation Panel]
-    end
-    
-    subgraph Team["Development Team"]
-        Edmund[Edmund Gunn, Jr.<br/>Team Lead]
-        Ananya[Ananya Jha<br/>ML Modeling]
-        Noah[Noah Newman<br/>Data Pipeline]
-    end
-    
-    subgraph Repo["Repository"]
-        DataPipeline[data_pipeline/]
-        Detection[detection/<br/>Occupancy Detection]
-        Channels[channels/<br/>Digital Twin]
-        Models[models/<br/>AI-RAN Controllers]
-    end
-    
-    subgraph Cloud["Streamlit Cloud"]
-        Dashboard[Streamlit Dashboard]
-    end
-    
-    SDS --> DataPipeline
-    Team --> Repo
-    Repo --> Cloud
-    Cloud --> Dashboard
-    Judges --> Dashboard
-```
+Post-project boundaries (Streamlit, submissions, external runtime targets): **[System context (current) — UML](docs/uml/current/system_context_current.md)**.
 
 ### Detection Pipeline (Phase 1)
 
-The competition core implements a complete detection pipeline:
-
-```mermaid
-classDiagram
-    class DatasetLoader {
-        +download()
-        +load_labeled()
-    }
-    class FeatureExtractor {
-        +extract_time()
-        +extract_freq()
-        +extract_statistical()
-    }
-    class EncoderSSL {
-        +pretrain()
-        +encode()
-    }
-    class ClassifierHead {
-        +train()
-        +predict()
-    }
-    class Calibrator {
-        +calibrate()
-        +predict_proba()
-    }
-    
-    DatasetLoader --> FeatureExtractor
-    FeatureExtractor --> EncoderSSL
-    FeatureExtractor --> ClassifierHead
-    EncoderSSL --> ClassifierHead
-    ClassifierHead --> Calibrator
-```
+Streamlit + submission inference contract (judged core): **[Class diagram — detection (current)](docs/uml/current/class_diagram_detection_current.md)**.
 
 ### Documentation
 
 - **[System Overview](docs/architecture/00_system_overview.md)**: Detailed architecture description
 - **[Data Flow](docs/architecture/10_dataflow.md)**: Pipeline details and reproducibility contract
-- **[UML Diagrams](docs/uml/)**: Complete UML documentation (Mermaid and PlantUML)
+- **[UML pack (front door)](docs/uml/README.md)**: GitHub-visible architecture diagrams (`current/` / `future/` / `legacy/`) plus committed PlantUML SVGs
 
 ## Metrics
 

@@ -1,4 +1,5 @@
 @startuml containers_components
+!pragma layout smetana
 ' LEGACY / superseded — see container_view_current.puml and docs/uml/README.md section G
 !define RECTANGLE class
 

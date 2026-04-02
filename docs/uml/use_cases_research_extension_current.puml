@@ -1,4 +1,5 @@
 @startuml use_cases_research_extension_current
+!pragma layout smetana
 title Use cases — completed research extension (current)
 
 left to right direction

@@ -1,89 +1,76 @@
-# UML and architecture diagrams
+# UML and architecture diagrams — front door
 
-Post-project documentation for **spectrumx-ai-ran-gary**: current deployed reality, honest extension scope, and **future research-adoption** targets. Diagrams separate:
+Post-project, **GitHub-visible** architecture package for **spectrumx-ai-ran-gary**. Judges, faculty, collaborators, and system architects should start here with **Markdown pages** (`docs/uml/current/`, `future/`, `legacy/`) — **not** raw `.puml` or `.mmd` files.
+
+## Lanes (how to read the repo)
 
 | Lane | Meaning |
 |------|---------|
-| **Judged competition core** | Binary occupancy on official SpectrumX IQ; `submissions/*/main.py` + offline evaluation |
-| **Completed research extension** | Gary digital twin (three anchors), scenario engine, **detector-conditioned rule-based closed-loop policy baseline (RIC-style abstraction)** |
-| **Future scaling / external runtime** | AODT, full Sionna RT, pyAerial/cuPHY execution, OTA/Data Lake capture — manifests and docs in-repo; execution mostly **external** |
+| **Judged competition core** | Binary occupancy on official SpectrumX IQ; `submissions/*/main.py` + offline evaluation; Judge Mode microscope |
+| **Completed research extension** | Gary digital twin (**three anchors below**), scenario engine, **detector-conditioned rule-based closed-loop policy baseline (RIC-style abstraction)** |
+| **Future research-adoption** | AODT, full Sionna RT, pyAerial/cuPHY execution, OTA / data lake — **manifests and integration targets**; execution mostly **external** |
 
-**Canonical evidence terms:** `docs/PROVENANCE_LEGEND.md`  
-**Execution boundaries:** `docs/EXTERNAL_RUNTIME_GAPS.md`  
-**Three Gary anchors:** Gary City Hall · Gary Public Library & Cultural Center · West Side Leadership Academy  
+**Three Gary anchors (current scope):** Gary City Hall · Gary Public Library & Cultural Center · West Side Leadership Academy.
 
-**Controller (current, all diagrams):** *Detector-conditioned rule-based closed-loop policy baseline (RIC-style abstraction)* — state = detector belief + traffic/coexistence/fairness/coverage stress; actions = hold, cautious, power, channel, prioritize, rebalance; transition = heuristic KPI deltas. **Not** a trained RL or contextual-bandit policy in the shipped Streamlit path.
+**Controller (current, authoritative):** *Detector-conditioned rule-based closed-loop policy baseline (RIC-style abstraction)* — **not** trained RL or contextual-bandit in the shipped Streamlit path. Planned arms appear only as **future** on the maturity ladder.
 
-**Future controller ladder (when shown):** rule-based baseline → contextual-bandit study arm → constrained offline RL / near-RT RIC surrogate.
-
----
-
-## How to read this folder
-
-- **Mermaid** (`.mmd`): open in GitHub via Markdown embed, or use [Mermaid Live Editor](https://mermaid.live). Source files here are **plain Mermaid** (no markdown fences inside the file).
-- **PlantUML** (`.puml`): render with [PlantUML](https://plantuml.com/) locally, IDE plugin, or CI; see `render_plantuml.sh` if present.
+**Canonical evidence terms:** [`docs/PROVENANCE_LEGEND.md`](../PROVENANCE_LEGEND.md)  
+**Execution boundaries:** [`docs/EXTERNAL_RUNTIME_GAPS.md`](../EXTERNAL_RUNTIME_GAPS.md)  
+**System narrative:** [`docs/architecture/00_system_overview.md`](../architecture/00_system_overview.md)
 
 ---
 
-## A. Current system
+## Browse the diagrams (primary entry points)
 
-| Diagram | Format | Purpose |
-|---------|--------|---------|
-| [system_context_current.mmd](system_context_current.mmd) | Mermaid | Actors, boundaries, manifest vs external runtime |
-| [container_view_current.puml](container_view_current.puml) | PlantUML | Major containers / packages |
-| [component_view_current.puml](component_view_current.puml) | PlantUML | Components and data flow |
-| [deployment_current.puml](deployment_current.puml) | PlantUML | Where code runs today (local, GitHub, Cloud, external) |
+| Index | Contents |
+|-------|----------|
+| **[Current index](current/index.md)** | Post-project truth: context, container, component, deployment, sequences, activities, state, class, use cases |
+| **[Future index](future/index.md)** | Research-adoption **targets** (context, stack, deployment, use cases, experiment program) |
+| **[Legacy index](legacy/index.md)** | Superseded diagrams — **do not cite** as current |
 
----
+**Governance / adoption aids**
 
-## B. Current workflows
-
-| Diagram | Format | Purpose |
-|---------|--------|---------|
-| [sequence_competition_inference_current.mmd](sequence_competition_inference_current.mmd) | Mermaid | IQ → evaluate / baselines → result |
-| [sequence_judge_review_flow.mmd](sequence_judge_review_flow.mmd) | Mermaid | Judge Mode narrative |
-| [sequence_extension_scenario_to_kpi_current.puml](sequence_extension_scenario_to_kpi_current.puml) | PlantUML | Scenario → rule-based controller → KPIs |
-| [activity_signal_lifecycle_current.mmd](activity_signal_lifecycle_current.mmd) | Mermaid | One-second IQ lifecycle (competition-style) |
-| [activity_signal_ecology_extension_current.mmd](activity_signal_ecology_extension_current.mmd) | Mermaid | Extension “signal ecology” (scenario-generated / illustrative) |
-| [sequence_simulation_manifest_ingestion.puml](sequence_simulation_manifest_ingestion.puml) | PlantUML | Manifest loaders + provenance finalize (no fake local AODT/pyAerial/OTA execution) |
+- [Traceability matrix](traceability_matrix.md) — lanes ↔ diagrams  
+- [Interface / integration catalog](interface_catalog.md) — `evaluate()`, CSV, manifests, provenance, pyAerial bridge, OTA  
+- [Architecture decision summary](architecture_decisions.md) — concise AD-style rationale  
 
 ---
 
-## C. Current use cases
+## Source vs rendered assets
 
-| Diagram | Format | Purpose |
-|---------|--------|---------|
-| [use_cases_competition_core.puml](use_cases_competition_core.puml) | PlantUML | Judges, developers, evaluators |
-| [use_cases_research_extension_current.puml](use_cases_research_extension_current.puml) | PlantUML | Twin, provenance, controller semantics |
+| Asset | Role on GitHub |
+|-------|----------------|
+| **`docs/uml/current/*.md`**, **`future/*.md`**, **`legacy/*.md`** | **Primary:** Mermaid in fenced ` ```mermaid ` blocks renders inline; PlantUML pages embed **committed SVG** |
+| **`*.mmd`**, **`*.puml`** in `docs/uml/` | **Preserved sources** for editors and regeneration; not the main reader path |
+| **`docs/uml/rendered/*.svg`** | **Committed** PlantUML output for inline display (stable filenames) |
 
----
-
-## D. Future research-adoption architecture
-
-**Explicitly target / not fully deployed.**
-
-| Diagram | Format | Purpose |
-|---------|--------|---------|
-| [system_context_future_research_adoption.puml](system_context_future_research_adoption.puml) | PlantUML | External sim, AODT, PHY, OTA, stakeholders |
-| [deployment_future_research_adoption.puml](deployment_future_research_adoption.puml) | PlantUML | Artifacts flowing back to repo/app |
-| [component_view_future_research_stack.puml](component_view_future_research_stack.puml) | PlantUML | Future stack + controller ladder |
-| [use_cases_future_research_adoption.puml](use_cases_future_research_adoption.puml) | PlantUML | Lab / city / supervisor workflows |
+PlantUML sources use `!pragma layout smetana` where needed so SVG generation does **not** require a system **Graphviz** `dot` install.
 
 ---
 
-## E. Structure, state, and rigor
+## Documentation governance
 
-| Diagram | Format | Purpose |
-|---------|--------|---------|
-| [class_diagram_detection_current.mmd](class_diagram_detection_current.mmd) | Mermaid | Actual submission + detection modules in-repo |
-| [class_diagram_extension_current.mmd](class_diagram_extension_current.mmd) | Mermaid | Scenario engine, hooks, pyAerial/OTA abstractions |
-| [state_provenance_evidence.mmd](state_provenance_evidence.mmd) | Mermaid | Six evidence tiers + three execution surfaces |
-| [state_controller_maturity_ladder.mmd](state_controller_maturity_ladder.mmd) | Mermaid | Current rule baseline vs planned study arms |
-| [activity_experiment_program_current_to_future.puml](activity_experiment_program_current_to_future.puml) | PlantUML | Experiment program → evidence tiers → external validation |
+- **Current** — shipped behavior and honest boundaries (`current/`).  
+- **Future** — adoption and validation targets; may outrun implementation (`future/`).  
+- **Legacy** — historical or over-aspirational diagrams; kept for provenance (`legacy/`).  
+- **Updating diagrams** — edit the `.puml` / `.mmd` source, then refresh the matching `.md` wrapper if Mermaid text is duplicated, and regenerate SVGs for PlantUML.  
+- **Regenerating SVGs** — from repo root:
+
+```bash
+./docs/uml/render_plantuml.sh
+```
+
+Or manually (after placing `plantuml.jar` under `docs/uml/.tools/`):
+
+```bash
+cd docs/uml && java -jar .tools/plantuml.jar -tsvg -o rendered ./*.puml
+```
+
+See `render_plantuml.sh` for Java/JAR setup and dependency hints.
 
 ---
 
-## F. Diagram legend (terminology)
+## Mini legend (terminology)
 
 ```mermaid
 flowchart LR
@@ -94,7 +81,7 @@ flowchart LR
     E[Gary twin + scenario engine\nRule-based RIC-style controller]
   end
   subgraph fut["Future / external"]
-    F[Manifests only in Streamlit\nAODT / Sionna GPU / pyAerial / OTA lab]
+    F[Manifests in Streamlit\nAODT / Sionna GPU / pyAerial / OTA lab]
   end
   judged --> ext
   ext -.->|evidence tiers| fut
@@ -102,25 +89,20 @@ flowchart LR
 
 ---
 
-## G. Legacy / superseded diagrams
+## Legacy naming (do not confuse)
 
-These reflected an **earlier aspirational** package layout (e.g. Bandit/RL as deployed Streamlit controllers, generic SSL pipeline as the only path). **Do not use for post-project accuracy.** Prefer the `*_current*` and `*_future_*` files above.
+| Legacy (historical) | Authoritative current |
+|---------------------|------------------------|
+| `class_diagram_detection.mmd` | `class_diagram_detection_current.mmd` → [wrapper](current/class_diagram_detection_current.md) |
+| `system_context.mmd` | `system_context_current.mmd` → [wrapper](current/system_context_current.md) |
+| `sequence_inference.mmd` | `sequence_competition_inference_current.mmd` → [wrapper](current/sequence_competition_inference_current.md) |
+| `containers_components.puml` | `container_view_current.puml` + [container MD](current/container_view_current.md) |
 
-| Legacy file | Issue |
-|-------------|--------|
-| [system_context.mmd](system_context.mmd) | Wrong repo topology; RL/notebooks over-emphasized |
-| [containers_components.puml](containers_components.puml) | Bandit/RL/sim as primary extension flow |
-| [deployment_streamlit.puml](deployment_streamlit.puml) | Narrow; no external-runtime boundary |
-| [sequence_inference.mmd](sequence_inference.mmd) | SSL/Ensemble/Calibrator path not matching default Streamlit `evaluate()` |
-| [class_diagram_detection.mmd](class_diagram_detection.mmd) | Many classes not wired as shown for dashboard inference |
-| [class_diagram_ml.mmd](class_diagram_ml.mmd) | Research aspirational stack |
+Full legacy table: [legacy/index.md](legacy/index.md).
 
 ---
 
 ## Related docs
 
-- [../architecture/00_system_overview.md](../architecture/00_system_overview.md) — narrative (update in prose if diagrams disagree; diagrams here reflect **Streamlit + hooks** truth for judges)
-- [../PROVENANCE_LEGEND.md](../PROVENANCE_LEGEND.md)
-- [../EXTERNAL_RUNTIME_GAPS.md](../EXTERNAL_RUNTIME_GAPS.md)
-- [../AODT_EXPORT_CHECKLIST.md](../AODT_EXPORT_CHECKLIST.md)
-- [../PYAERIAL_BRIDGE.md](../PYAERIAL_BRIDGE.md)
+- [`docs/AODT_EXPORT_CHECKLIST.md`](../AODT_EXPORT_CHECKLIST.md)  
+- [`docs/PYAERIAL_BRIDGE.md`](../PYAERIAL_BRIDGE.md)
