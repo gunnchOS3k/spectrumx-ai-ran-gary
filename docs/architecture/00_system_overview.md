@@ -1,11 +1,13 @@
 # System Overview
 
+> **Diagrams:** Post-project UML (current vs future, provenance, workflows) lives under [`docs/uml/README.md`](../uml/README.md). This page is narrative; if a diagram conflicts with shipped Streamlit behavior, prefer the UML **current** set.
+
 ## Architecture Philosophy
 
 This repository implements a two-phase approach to spectrum analysis and radio resource management:
 
 1. **Competition Core**: Real-time spectrum occupancy detection from 1-second IQ samples (SpX-DAC competition requirement)
-2. **Phase 2 Research Extension**: Digital twin simulation with AI-RAN controller for resource allocation (research portfolio)
+2. **Phase 2 Research Extension**: Gary digital twin + **detector-conditioned rule-based closed-loop policy baseline (RIC-style abstraction)** in Streamlit; separate `models/` code exists for future bandit/RL study arms (not the shipped twin controller)
 
 This separation ensures that competition judges can evaluate the core detection task independently, while demonstrating our broader research vision for equitable 6G access in under-resourced communities.
 
@@ -66,60 +68,46 @@ Evaluator (metrics, submission bundle)
 
 ---
 
-## Phase 2: Research Extension — Digital Twin + AI-RAN Controller
+## Phase 2: Research Extension — Digital Twin + controller abstraction
 
-### Problem Statement
+### Problem statement
 
-Design an AI-native radio access network (RAN) controller that allocates radio resources (beams, power, resource blocks) under spectral and energy constraints, with explicit fairness considerations for mid-sized cities like Gary, Indiana.
+Study how **site-aware** RAN-style control (fairness, coexistence, energy proxies) can be grounded on **Gary’s three civic anchors**, with a clear path from **scenario → policy → KPIs** and from **proxy** to **simulation exports** to **external** validation.
 
-### System Components
+### What ships in Streamlit today (completed extension)
 
-1. **Digital Twin** (`src/edge_ran_gary/channels/`, `src/edge_ran_gary/data_pipeline/deepmimo_scenarios.py`)
-   - Sionna-based ray-tracing channel models
-   - DeepMIMO-style synthetic channel generation
-   - GIS data integration for realistic urban environments
-   - Propagation modeling for 6G-like scenarios
+1. **Gary scenario engine** (`gary_scenario_engine.py`, `gary_site_geometry.py`, digital twin generators)
+   - Three anchors: **Gary City Hall**, **Gary Public Library & Cultural Center**, **West Side Leadership Academy**
+   - People / device / traffic / pressure metrics from documented assumptions + UI presets
+   - **Detector-conditioned rule-based closed-loop policy baseline (RIC-style abstraction)** — discrete actions (hold, cautious, power, channel, prioritize, rebalance) and **heuristic KPI deltas** (`select_closed_loop_action`, `apply_action_to_kpis`)
 
-2. **AI-RAN Controller** (`src/edge_ran_gary/models/`)
-   - Contextual bandit policies (`bandit_policies.py`)
-   - Actor-critic RL agents (`actor_critic.py`)
-   - Baseline heuristics (`baselines.py`)
+2. **Simulation + provenance** (`simulation_integration_hooks.py`, `simulation_provenance.py`)
+   - Manifest-load for DeepMIMO / Sionna / AODT / pyAerial / OTA-shaped paths; **no** full local execution of external solvers in the app
 
-3. **Simulation Environment** (`src/edge_ran_gary/sim/`)
-   - Environment loop connecting channels and controllers
-   - Constraint enforcement (spectral masks, power limits)
-   - Fairness metrics across users/neighborhoods
-   - Energy efficiency tracking
+3. **pyAerial bridge** (`pyaerial_bridge/`) — import probe + **conceptual** PHY/MAC hints; real PHY remains **external**
 
-4. **Metrics** (`src/edge_ran_gary/utils/metrics.py`)
-   - Spectral efficiency (bps/Hz/user)
-   - Energy efficiency (bits/Joule)
-   - Fairness index (Jain's index, Gini coefficient)
-   - Constraint violation rates
+### Additional code (future / offline study arms, not the Streamlit controller)
 
-### Data Flow
+- **`models/`** — `bandit_policies.py`, `actor_critic.py`, `baselines.py` for **future** contextual-bandit or RL experiments (see `docs/uml/state_controller_maturity_ladder.mmd`)
+- **`sim/`**, **`channels/`**, **`data_pipeline/deepmimo_scenarios.py`** — research scaffolding; heavy Sionna/DeepMIMO **execution** is an **external runtime** target (`docs/EXTERNAL_RUNTIME_GAPS.md`)
+
+### Data flow (Streamlit extension — honest)
 
 ```
-Occupancy Probability (from Phase 1)
+Detector belief (synthetic demo IQ in Judge Mode) + scenario state
     ↓
-Digital Twin (Sionna RT + GIS)
+Rule-based policy (RIC-style abstraction)
     ↓
-Channel State Information (CSI)
+Discrete action + heuristic KPI update
     ↓
-AI-RAN Controller (bandit/RL)
-    ↓
-Resource Allocation (beams, power, RBs)
-    ↓
-Simulation Environment (constraints, fairness)
-    ↓
-Metrics & Evaluation
+pydeck scene + provenance / simulation backbone panels
 ```
 
 ---
 
 ## Why This Architecture is Credible
 
-This two-phase architecture demonstrates both practical engineering (competition core) and research innovation (Phase 2 extension). The competition core addresses the immediate SpX-DAC requirement with production-ready detection pipelines, while Phase 2 showcases our research vision for equitable 6G access. The separation allows judges to evaluate the detection task independently, while the Phase 2 components demonstrate our ability to extend beyond the competition scope into real-world RAN optimization problems. The use of established tools (Sionna, DeepMIMO) and modern ML techniques (SSL, RL) shows technical depth, while the focus on equity (Gary, Indiana) demonstrates social awareness—a combination valued by both competition judges and PhD admissions committees.
+This two-phase architecture separates **judged** detection (packaged `evaluate()`, offline scoring) from a **completed** Gary twin that already demonstrates **reproducible scenario → policy → KPI** semantics with explicit **provenance**. Optional modules (SSL, bandit/RL code under `models/`) support future study arms; they are **not** described as the current Streamlit controller. See `docs/uml/README.md` for diagrams.
 
 ---
 
@@ -130,7 +118,7 @@ src/edge_ran_gary/
 ├── data_pipeline/     # Dataset loading, preprocessing
 ├── detection/         # Competition core: occupancy detection
 ├── channels/          # Phase 2: channel modeling
-├── models/            # Phase 2: AI-RAN controllers
+├── models/            # Phase 2: bandit/RL scaffolding (future study arms; not Streamlit twin controller)
 ├── sim/               # Phase 2: simulation environment
 ├── utils/             # Shared utilities (metrics, plotting)
 └── viz/               # Visualization components

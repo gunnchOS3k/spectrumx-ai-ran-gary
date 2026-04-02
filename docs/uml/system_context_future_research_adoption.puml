@@ -1,0 +1,48 @@
+@startuml system_context_future_research_adoption
+title System context — **future research adoption** (target architecture)
+
+skinparam titleFontColor #B71C1C
+legend
+  Target / future research adoption — not fully deployed.
+  Repo holds orchestration, docs, and manifest-load UI; heavy execution is external.
+endlegend
+
+actor "Doctoral researcher" as phd
+actor "Simulation engineer" as sim
+actor "OTA / lab engineer" as ota
+actor "City / community partner" as city
+
+package "Repo layer (orchestration)" #E3F2FD {
+  [GitHub repo\nspectrumx-ai-ran-gary] as repo
+  [docs / UML /\nexperiment registry] as docs
+  [Streamlit app\nmanifest + twin UI] as st
+}
+
+package "External simulation stack" #FFEBEE {
+  [Sionna RT GPU jobs] as sionna
+  [DeepMIMO / MATLAB pipelines] as dm
+  [AODT / Omniverse /\nAerial digital twin] as aodt
+}
+
+package "PHY + RAN targets" #FFF3E0 {
+  [pyAerial / cuPHY /\nAerial CUDA RAN] as phy
+}
+
+package "Field evidence" #E8F5E9 {
+  [OTA capture /\nData Lake ingestion] as lake
+}
+
+phd --> repo
+phd --> docs
+sim --> sionna
+sim --> dm
+sim --> aodt
+sim --> repo : manifests /\nCI artifacts
+ota --> lake
+ota --> repo : schemas /\nmanifests
+city --> docs : civic KPI co-design
+st --> repo
+
+phy ..> st : future closed-loop\nPHY hints validated
+
+@enduml

@@ -1,0 +1,59 @@
+@startuml component_view_future_research_stack
+title Component view — **future** research stack (target)
+
+skinparam titleFontColor #B71C1C
+
+package "Judged detector core\n(continues)" {
+  [Submission +\noffline eval] as det
+}
+
+package "Digital twin" {
+  [Gary scenario engine] as twin
+  [Geometry +\nmobility] as geo
+}
+
+package "Simulation backbone" {
+  [DeepMIMO exports] as dm
+  [Sionna RT grids] as sn
+  [AODT scene assets] as ao
+}
+
+package "Controller ladder" #E8F5E9 {
+  [Rule-based baseline\n**current**] as rb
+  [Contextual bandit\nstudy arm] as cb
+  [Offline RL /\nRIC surrogate] as rl
+}
+
+package "PHY + MAC bridge" {
+  [pyAerial +\nPHY hints] as py
+}
+
+package "OTA evidence" {
+  [Data Lake schema +\nmanifests] as ota
+}
+
+package "Provenance + experiments" {
+  [simulation_provenance] as prv
+  [experiment log /\npaper trail] as ex
+}
+
+det --> twin
+twin --> geo
+dm --> twin
+sn --> twin
+ao --> twin
+twin --> rb
+rb ..> cb : **future**
+cb ..> rl : **future**
+py ..> twin
+ota ..> prv
+twin --> prv
+det --> prv
+ex --> prv
+
+note bottom of rb
+  **Only rule-based baseline**
+  is in the current Streamlit path.
+end note
+
+@enduml

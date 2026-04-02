@@ -30,3 +30,5 @@ Field: `canonical_execution_status`. Long text: `execution_surface_label`.
 **Streamlit** = visualization + provenance. **Never** full AODT generation, Sionna ray trace, pyAerial PHY, or OTA capture.
 
 See `docs/EXTERNAL_RUNTIME_GAPS.md` and `docs/APPLIED_SIMULATION_BRIDGE_RUNBOOK.md`.
+
+**UML:** Evidence and execution terms are diagrammed in `docs/uml/state_provenance_evidence.mmd` and indexed in `docs/uml/README.md`.

@@ -1,0 +1,39 @@
+@startuml use_cases_research_extension_current
+title Use cases — completed research extension (current)
+
+left to right direction
+
+actor "Research viewer" as rv
+actor "Local experimenter" as loc
+actor "Judge in Judge Mode" as judge
+actor "Supervisor /\nreviewer (future)" as sup
+
+rectangle "Gary extension + simulation UI" {
+  usecase "Select Gary anchor\nCity Hall / Library / WSLA" as UC1
+  usecase "Configure scenario preset\n+ RF stress + calendar" as UC2
+  usecase "Inspect digital twin scene\npydeck + legends" as UC3
+  usecase "Inspect KPI changes\nafter rule-based action" as UC4
+  usecase "Inspect controller semantics\nstate / action / heuristic KPI" as UC5
+  usecase "Inspect simulation +\nprovenance status cards" as UC6
+  usecase "Read future scaling path\nAODT / pyAerial / OTA docs" as UC7
+  usecase "Toggle demo vs data/\nmanifest load mode" as UC8
+}
+
+rv --> UC1
+rv --> UC3
+rv --> UC6
+loc --> UC2
+loc --> UC8
+judge --> UC1
+judge --> UC5
+judge --> UC6
+sup --> UC5
+sup --> UC7
+
+note bottom of UC5
+  **Detector-conditioned rule-based**
+  **closed-loop policy baseline**
+  **(RIC-style abstraction)**
+end note
+
+@enduml

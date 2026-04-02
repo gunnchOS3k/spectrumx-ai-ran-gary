@@ -1,0 +1,45 @@
+@startuml deployment_current
+title Deployment — current execution surfaces (honest)
+
+node "Developer / experimenter workstation" as dev {
+  artifact "Local Python 3.x\nPYTHONPATH=repo root" as py
+  artifact "streamlit run apps/streamlit_app.py" as stl
+  artifact "scripts/*.py exports /\nvalidate_simulation_exports" as scr
+}
+
+cloud "GitHub" as gh {
+  database "gunnchOS3k/spectrumx-ai-ran-gary\nsource + docs/uml + examples/" as repo
+}
+
+cloud "Streamlit Community Cloud\n(optional)" as sc {
+  artifact "Hosted Streamlit\nsynthetic demo IQ only\nno competition IQ" as hosted
+}
+
+node "External systems\n(not this repo runtime)" as ext {
+  artifact "SpectrumX SDS /\norganizer eval" as sds
+  artifact "GPU cluster /\nSionna / DeepMIMO full solve" as gpu
+  artifact "AODT / Omniverse /\nAerial tooling" as aodt
+  artifact "Lab OTA capture" as ota
+}
+
+dev --> gh : git push / clone
+gh --> sc : deploy hook
+sc --> repo : pull
+hosted --> repo : read-only checkout
+
+py --> repo
+stl --> repo
+scr --> repo
+
+repo ..> sds : dataset download\nlocal only
+gpu ..> repo : writes manifests\nto data/ or CI artifact
+aodt ..> repo : exports summaries
+ota ..> repo : OTA lake manifests
+
+note bottom of ext
+  Streamlit **never** runs full AODT,
+  pyAerial PHY, or OTA capture.
+  It **loads** JSON/GeoJSON when present.
+end note
+
+@enduml

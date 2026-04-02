@@ -1,0 +1,63 @@
+@startuml component_view_current
+title Component view — interfaces (current)
+
+left to right direction
+
+rectangle "IQ path" {
+  [load_iq_data /\ndemo generator] as iq
+  [compute_psd /\ncompute_spectrogram] as sig
+}
+
+rectangle "Inference" {
+  [run_evaluate_on_iq_array] as ev
+  [energy /\nflatness /\nPSD baselines] as base
+}
+
+rectangle "Features (optional UI)" {
+  [feature_baseline.extract_features] as feat
+}
+
+rectangle "Scenario + control" {
+  [ScenarioInputs] as si
+  [compute_all_anchor_states] as cas
+  [select_closed_loop_action\n**rule-based baseline**] as pol
+  [apply_action_to_kpis] as kpi
+}
+
+rectangle "Simulation ingest" {
+  [load_*_summary hooks] as lh
+  [finalize_simulation_status] as fin
+}
+
+rectangle "Presentation" {
+  [Streamlit panels /\nplotly / pydeck] as ui
+}
+
+iq --> ev
+iq --> base
+iq --> sig
+iq --> feat
+ev --> ui
+base --> ui
+sig --> ui
+feat --> ui
+
+si --> cas
+cas --> pol
+pol --> kpi
+cas --> ui
+kpi --> ui
+
+lh --> fin
+fin --> ui
+pol ..> iq : detector belief\nfrom session
+
+note right of pol
+  **Detector-conditioned rule-based**
+  **closed-loop policy baseline**
+  **(RIC-style abstraction)**
+  Actions: hold, cautious, power,
+  channel, prioritize, rebalance
+end note
+
+@enduml

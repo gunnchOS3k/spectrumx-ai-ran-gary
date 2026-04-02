@@ -1,0 +1,59 @@
+@startuml container_view_current
+title Container view — current repo (post-project)
+
+skinparam componentStyle rectangle
+skinparam wrapWidth 180
+
+package "Judged competition core" #E8F5E9 {
+  [Submission packages\nsubmissions/*/main.py] as sub
+  [submission_adapter +\ndetection baselines] as detcore
+}
+
+package "Streamlit application" #E3F2FD {
+  [apps/streamlit_app.py] as st
+  [judged_headline_metrics\nCSV strip] as jhm
+}
+
+package "Completed Gary extension" #F3E5F5 {
+  [gary_scenario_engine\nrule-based controller] as gse
+  [gary_site_geometry +\noccupancy viz + mobility] as geom
+  [digital_twin /\nmicro-twin generators] as dt
+}
+
+package "Simulation + provenance" #FFF8E1 {
+  [simulation_integration_hooks\nmanifest loaders] as hooks
+  [simulation_provenance\nfinalize + labels] as prov
+}
+
+package "Bridge + OTA (abstractions)" #FCE4EC {
+  [pyaerial_bridge\nPHY/MAC hints] as pyb
+  [ota_data_interface\nlake manifest read] as ota
+}
+
+package "Knowledge + config" #ECEFF1 {
+  [docs / UML /\nPROVENANCE_LEGEND] as docs
+  [configs/wireless_scene +\nschemas] as cfg
+}
+
+sub --> detcore
+st --> sub
+st --> detcore
+st --> jhm
+st --> gse
+st --> geom
+st --> dt
+st --> hooks
+hooks --> prov
+st --> prov
+st --> pyb
+st --> ota
+docs ..> st : human review
+cfg ..> hooks
+
+note bottom of hooks
+  DeepMIMO, Sionna RT, AODT, pyAerial, OTA:
+  **manifest-load** in Streamlit.
+  Full solvers = **external runtime**.
+end note
+
+@enduml

@@ -1,0 +1,18 @@
+stateDiagram-v2
+  [*] --> RuleBasedBaseline : current Streamlit extension
+
+  state "Current (shipped)" as C {
+    RuleBasedBaseline : Detector-conditioned rule-based\nclosed-loop policy baseline\nRIC-style abstraction
+  }
+
+  state "Planned study arms" as P {
+    ContextualBandit : Contextual-bandit policy learner\nfuture experiment
+    OfflineRL : Constrained offline RL\nfuture experiment
+    RICSurrogate : Near-RT RIC surrogate target\nfuture integration
+  }
+
+  RuleBasedBaseline --> ContextualBandit : next research arm
+  ContextualBandit --> OfflineRL : later arm
+  OfflineRL --> RICSurrogate : productionization path
+
+  note right of RuleBasedBaseline : select_closed_loop_action\nheuristic KPI deltas

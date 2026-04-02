@@ -1,0 +1,63 @@
+flowchart TB
+  subgraph actors["Actors"]
+    Judge[SpectrumX judge]
+    Collab[Team / contributor]
+    Exp[Local experimenter]
+    SU[Streamlit user]
+    Sup[Future supervisor / lab reviewer]
+  end
+
+  subgraph external_data["External data / evaluation authority"]
+    SDS[SpectrumX SDS or local dataset access\nnot shipped in public Streamlit]
+    LE[Leaderboard / organizer evaluation\noffline from this repo UI]
+  end
+
+  subgraph repo["GitHub repo: spectrumx-ai-ran-gary"]
+    Docs[docs/ UML / runbooks / provenance]
+    Sub[submissions/*/main.py\ncompetition packages]
+    Src[src/edge_ran_gary/*]
+    Man[examples/simulation_exports/**\ndata/** drop zones]
+  end
+
+  subgraph local_rt["Local Python runtime"]
+    CLI[pytest / scripts / notebooks]
+    STlocal[Streamlit local\napps/streamlit_app.py]
+  end
+
+  subgraph cloud["Streamlit Cloud optional"]
+    STcloud[Streamlit hosted app\nmanifest-load + synthetic demo IQ]
+  end
+
+  subgraph ext_run["External runtime targets\nnot executed inside Streamlit"]
+    GPU[Sionna RT / DeepMIMO full solvers\nGPU jobs]
+    AODT[AODT / Omniverse scene generation]
+    PHY[pyAerial / cuPHY / Aerial CUDA RAN]
+    OTA[OTA capture / lab workflow]
+  end
+
+  Collab --> repo
+  Exp --> local_rt
+  Exp --> SDS
+  Judge --> STcloud
+  Judge --> STlocal
+  SU --> STcloud
+  SU --> STlocal
+  Sup --> Docs
+
+  repo --> STlocal
+  repo --> STcloud
+
+  STlocal --> Sub
+  STcloud --> Sub
+  Sub --> Src
+
+  Man --> Src
+  GPU -.->|simulation exports as JSON/GeoJSON| Man
+  AODT -.->|manifests| Man
+  PHY -.->|bridge manifests / external| Man
+  OTA -.->|OTA lake manifests| Man
+
+  LE -.->|scores official IQ offline| Sub
+
+  style ext_run fill:#f9f3e6,stroke:#c9a227
+  style repo fill:#e8f4fc,stroke:#2980b9
