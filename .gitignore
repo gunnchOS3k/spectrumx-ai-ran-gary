@@ -24,3 +24,5 @@ data/competition_subset/
 SpX-DAC_gunnchOS3kMLV.csv
 # Local-only report metrics (template: submissions/submission_metrics.example.csv)
 submissions/submission_metrics.csv
+# Local PlantUML JAR (regenerate SVGs via docs/uml/render_plantuml.sh)
+docs/uml/.tools/

@@ -1,4 +1,5 @@
 @startuml use_cases_competition_core
+!pragma layout smetana
 title Use cases — judged competition core
 
 left to right direction

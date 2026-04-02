@@ -1,4 +1,5 @@
 @startuml system_context_future_research_adoption
+!pragma layout smetana
 title System context — **future research adoption** (target architecture)
 
 skinparam titleFontColor #B71C1C

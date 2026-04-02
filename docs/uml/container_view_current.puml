@@ -1,4 +1,6 @@
 @startuml container_view_current
+' Layout without system Graphviz (GitHub-friendly render)
+!pragma layout smetana
 title Container view — current repo (post-project)
 
 skinparam componentStyle rectangle

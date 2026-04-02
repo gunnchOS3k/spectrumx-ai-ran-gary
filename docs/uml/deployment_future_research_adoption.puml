@@ -1,4 +1,5 @@
 @startuml deployment_future_research_adoption
+!pragma layout smetana
 title Deployment — **future research adoption** (artifact loop)
 
 skinparam titleFontColor #B71C1C

@@ -1,4 +1,5 @@
 @startuml activity_experiment_program_current_to_future
+!pragma layout smetana
 title Activity — experiment program (current proxy to future validation)
 
 start

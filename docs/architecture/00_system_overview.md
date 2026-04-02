@@ -1,6 +1,6 @@
 # System Overview
 
-> **Diagrams:** Post-project UML (current vs future, provenance, workflows) lives under [`docs/uml/README.md`](../uml/README.md). This page is narrative; if a diagram conflicts with shipped Streamlit behavior, prefer the UML **current** set.
+> **Diagrams:** GitHub-visible UML pack: [`docs/uml/README.md`](../uml/README.md) (front door) and [`docs/uml/current/index.md`](../uml/current/index.md) (browse current-state diagrams). This page is narrative; if a diagram conflicts with shipped Streamlit behavior, prefer the **current** Markdown wrappers, not legacy sources.
 
 ## Architecture Philosophy
 

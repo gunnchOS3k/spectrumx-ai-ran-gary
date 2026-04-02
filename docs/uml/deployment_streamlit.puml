@@ -1,4 +1,5 @@
 @startuml deployment_streamlit
+!pragma layout smetana
 ' LEGACY / narrow view — see deployment_current.puml and docs/uml/README.md section G
 !define DEVICE node
 

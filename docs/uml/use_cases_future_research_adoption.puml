@@ -1,4 +1,5 @@
 @startuml use_cases_future_research_adoption
+!pragma layout smetana
 title Use cases — future research adoption (**target**, not all implemented)
 
 left to right direction

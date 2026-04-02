@@ -1,4 +1,5 @@
 @startuml component_view_current
+!pragma layout smetana
 title Component view — interfaces (current)
 
 left to right direction

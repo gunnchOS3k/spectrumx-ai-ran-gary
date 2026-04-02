@@ -1,4 +1,5 @@
 @startuml deployment_current
+!pragma layout smetana
 title Deployment — current execution surfaces (honest)
 
 node "Developer / experimenter workstation" as dev {
