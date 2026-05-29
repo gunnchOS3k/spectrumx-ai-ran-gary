@@ -1,10 +1,8 @@
-name: Experiment
+name: experiment
 description: experiment
 labels: ['track:6g-research']
 body:
   - type: textarea
-    id: description
+    id: body
     attributes:
-      label: Description
-    validations:
-      required: true
+      label: Details

@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+title: "gunnchOS3k MLV 6G Research Artifact"
+message: "If you use this software, please cite it."
+authors:
+  - family-names: Gunn
+    given-names: Edmund
+    name-particle: Jr.
+license: MIT
+repository-code: 'https://github.com/gunnchOS3k/spectrumx-ai-ran-gary'
