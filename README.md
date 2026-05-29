@@ -325,3 +325,9 @@ See [docs/DIGITAL_TWIN.md](docs/DIGITAL_TWIN.md) for full documentation.
 - **Ananya Jha** – ML modeling, optimization, MLOps  
   - [LinkedIn](https://www.linkedin.com/in/ananya-jha-9968b01b7) | [GitHub](https://github.com/Ananya-Jha-code)
 
+
+## Where this repo sits in the gunnchOS3k MLV 7GC AI-RAN Digital Twin Program
+
+**Gary flagship node** for community-scale AI-RAN research. Phase 1 preserves the competition-safe spectrum occupancy detector. Phase 2–3 extend toward the [7GC digital twin](https://github.com/gunnchOS3k/7gc-digital-twin) and [Edge-IO measurement](https://github.com/gunnchOS3k/edge-io-measurement-node) endpoints.
+
+> Research prototype — not operational carrier 6G infrastructure.

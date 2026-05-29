@@ -1,0 +1,10 @@
+name: Research Task
+description: research_task
+labels: ['track:6g-research']
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+    validations:
+      required: true
