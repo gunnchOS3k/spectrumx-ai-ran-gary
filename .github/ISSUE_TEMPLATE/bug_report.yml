@@ -1,0 +1,10 @@
+name: Bug Report
+description: bug_report
+labels: ['track:6g-research']
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+    validations:
+      required: true
