@@ -1,0 +1,8 @@
+sequenceDiagram
+  participant U as User
+  participant CLI as Demo CLI
+  participant Core as Core modules
+  U->>CLI: run demo command
+  CLI->>Core: load synthetic data
+  Core-->>CLI: metrics/output
+  CLI-->>U: stdout + results file

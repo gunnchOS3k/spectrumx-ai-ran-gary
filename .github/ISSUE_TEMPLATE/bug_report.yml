@@ -1,10 +1,8 @@
-name: Bug Report
+name: bug_report
 description: bug_report
 labels: ['track:6g-research']
 body:
   - type: textarea
-    id: description
+    id: body
     attributes:
-      label: Description
-    validations:
-      required: true
+      label: Details

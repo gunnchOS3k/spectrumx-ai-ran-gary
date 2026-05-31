@@ -1,5 +1,5 @@
-name: research_task
-description: research_task
+name: ethics_privacy_review
+description: ethics_privacy_review
 labels: ['track:6g-research']
 body:
   - type: textarea
