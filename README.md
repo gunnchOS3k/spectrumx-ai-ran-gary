@@ -1,4 +1,16 @@
 # EDGE-RAN Gary: AI-Native Radio for Equitable 6G Access
+## End-to-End Research Artifact
+
+| Item | Detail |
+|------|--------|
+| **Runs today** | Research prototype with synthetic toy demo |
+| **Demo** | `make e2e` |
+| **Data** | Synthetic only — no private IQ or PII |
+| **Extend** | See [EXTERNAL_RESEARCHER_QUICKSTART.md](docs/EXTERNAL_RESEARCHER_QUICKSTART.md) |
+| **Limits** | Not operational 6G; not Oulu affiliation; not carrier-grade |
+| **Readiness** | [END_TO_END_READINESS.md](docs/END_TO_END_READINESS.md) |
+| **Proof** | [E2E_RUN_RECORD.md](reproducibility/E2E_RUN_RECORD.md) |
+| **Artifacts** | [results/e2e/](results/e2e/) |
 
 This repository contains our submission to the **SpectrumX Student Data & Algorithm Competition**.  
 We treat the competition dataset as a mini-testbed and design an **AI-native RAN controller** that allocates radio resources under spectrum and energy constraints, with a focus on cities like **Gary, Indiana**.
@@ -236,7 +248,7 @@ We will report:
    ```bash
    streamlit run streamlit_app.py
    ```
-   
+
    **Note:** Use the root-level `streamlit_app.py` wrapper for Cloud deployment compatibility.
 
 The dashboard will open in your browser at `http://localhost:8501`.
@@ -257,7 +269,7 @@ To deploy on Streamlit Community Cloud:
    - Branch: `main`
    - Main file path: `streamlit_app.py` (root level)
    - Click "Deploy"
-   
+
    See [docs/STREAMLIT_DEPLOY.md](docs/STREAMLIT_DEPLOY.md) for troubleshooting.
 
 3. **Note on Dataset:**

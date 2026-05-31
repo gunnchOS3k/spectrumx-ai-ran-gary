@@ -1,0 +1,27 @@
+# E2E Readiness Checklist
+
+- [ ] README under 3 min
+- [ ] Supervisor README
+- [ ] Charter
+- [ ] Requirements
+- [ ] Use cases
+- [ ] UML diagrams
+- [ ] Methods/metrics
+- [ ] Ethics
+- [ ] Limitations
+- [ ] Publication path
+- [ ] LSS quality package
+- [ ] Reproducibility package
+- [ ] make e2e
+- [ ] Synthetic demo
+- [ ] results/e2e artifact
+- [ ] Tests pass
+- [ ] CI
+- [ ] CITATION.cff
+- [ ] PR template
+- [ ] Issue templates
+- [ ] Claims audit
+- [ ] WAIKE integration
+- [ ] Tutor cards
+- [ ] External quickstart
+- [ ] Human review checklist

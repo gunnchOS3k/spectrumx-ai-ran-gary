@@ -36,10 +36,15 @@ def main() -> int:
         "note": "research prototype — not competition IQ data",
     }
     print(json.dumps(out, indent=2))
-    results = ROOT / "results" / "airan_toy_demo.json"
-    results.parent.mkdir(parents=True, exist_ok=True)
-    results.write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8")
-    print(f"Wrote {results}")
+    e2e = ROOT / "results" / "e2e"
+    e2e.mkdir(parents=True, exist_ok=True)
+    (e2e / "airan_policy_demo.json").write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8")
+    lines = ["# AI-RAN Toy Demo (research path)", "", "## Baseline"] + [
+        f"- **{k}**: {v}" for k, v in out.get("baseline", {}).items()
+    ] + ["", "## AI policy"] + [f"- **{k}**: {v}" for k, v in out.get("ai_policy", {}).items()]
+    lines += ["", out.get("note", "")]
+    (e2e / "airan_policy_demo.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print(f"Wrote {e2e / 'airan_policy_demo.json'}")
     return 0
 
 
