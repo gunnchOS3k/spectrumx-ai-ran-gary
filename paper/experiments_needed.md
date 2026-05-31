@@ -1,1 +1,2 @@
-- Replace toy with calibrated data under supervision
+- Calibrated channel measurements
+- Field telemetry (with ethics review)

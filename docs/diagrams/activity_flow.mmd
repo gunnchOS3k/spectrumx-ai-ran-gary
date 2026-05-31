@@ -1,5 +1,3 @@
 flowchart TD
-  A[Load config] --> B[Validate schema]
-  B --> C[Run synthetic pipeline]
-  C --> D[Compute metrics]
-  D --> E[Write results artifact]
+  A[Install deps] --> B[make e2e]
+  B --> C[Inspect results/e2e]

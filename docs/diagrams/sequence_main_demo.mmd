@@ -1,8 +1,10 @@
 sequenceDiagram
-  participant U as User
-  participant CLI as Demo CLI
-  participant Core as Core modules
-  U->>CLI: run demo command
-  CLI->>Core: load synthetic data
-  Core-->>CLI: metrics/output
-  CLI-->>U: stdout + results file
+  participant U as Researcher
+  participant D as demo_airan_policy.py
+  participant P as policy_interface
+  participant M as metrics fairness energy
+  U->>D: --toy
+  D->>P: UniformPolicy FairnessAwarePolicy
+  P->>M: report_bundle
+  M-->>D: JSON metrics
+  D->>D: results/e2e/airan_policy_demo.md

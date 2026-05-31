@@ -1,1 +1,3 @@
-Toy demos reproducible with documented commands; not field-validated deployment results.
+# Reproducibility
+
+`make e2e` on branch lssmb-product-research-grade-completion.

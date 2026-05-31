@@ -1,6 +1,21 @@
 flowchart TB
-  CLI[CLI / demo scripts]
-  CORE[Core library]
-  CFG[configs/]
-  CLI --> CORE
-  CORE --> CFG
+  subgraph competition_safe
+    ADAPTER[submission_adapter.py]
+    SUB[submissions/*/main.py evaluate]
+  end
+  subgraph airan_research
+    PI[policy_interface]
+    BL[baselines]
+    MET[metrics]
+    FR[fairness]
+    EN[energy]
+    DT[digital_twin_adapter]
+  end
+  DEMO[scripts/demo_airan_policy.py]
+  ADAPTER --> SUB
+  DEMO --> PI
+  PI --> BL
+  PI --> MET
+  MET --> FR
+  MET --> EN
+  DT -.7gc.-> PI

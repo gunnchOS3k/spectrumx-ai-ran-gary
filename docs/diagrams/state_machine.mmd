@@ -1,10 +1,9 @@
 stateDiagram-v2
-  [*] --> Start
-  data source
-  Validated --> features
-  Validated --> baseline
-  Validated --> AI policy
-  Validated --> constraints
-  Validated --> metrics
-  Validated --> export
-  Exported --> [*]
+  [*] --> DataSelected
+  DataSelected --> FeaturesGenerated
+  FeaturesGenerated --> BaselinePolicy
+  BaselinePolicy --> AIPolicy
+  AIPolicy --> ConstraintsChecked
+  ConstraintsChecked --> MetricsExported
+  MetricsExported --> ResearchReport
+  ResearchReport --> [*]

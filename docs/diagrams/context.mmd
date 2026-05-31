@@ -1,10 +1,14 @@
 flowchart TB
-  subgraph users [Users]
-    SUP[Supervisor]
-    RES[Researcher]
-    STU[Student]
+  RES[Researcher]
+  COMP[Competition evaluator]
+  subgraph SYS[spectrumx-ai-ran-gary]
+    EVAL[edge_ran_gary.submission_adapter evaluate]
+    AIR[src/airan_research]
   end
-  SYS[spectrumx-ai-ran-gary]
-  TWIN[7gc-digital-twin]
-  users --> SYS
-  SYS --> TWIN
+  SYN[toy synthetic features]
+  DT[7gc digital twin import stub]
+  RES --> AIR
+  COMP --> EVAL
+  SYN --> AIR
+  DT -.digital_twin_adapter.-> AIR
+  AIR --> OUT[results/e2e airan_policy_demo]

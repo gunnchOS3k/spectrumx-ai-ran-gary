@@ -1,6 +1,3 @@
 flowchart LR
-  DEV[Developer laptop]
-  GHA[GitHub Actions CI]
-  OUT[results/ docs/generated/]
-  DEV --> OUT
-  GHA --> OUT
+  DEV[Laptop] --> GHA[GitHub Actions]
+  GHA --> ART[results/e2e]
