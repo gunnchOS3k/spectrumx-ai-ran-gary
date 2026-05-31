@@ -1,5 +1,3 @@
-# Claims Audit
+# Claims Audit.Md
 
-Softened: infrastructure/deployment/certification claims.
-Safe: research prototype, simulation scaffold, toy demo.
-Needs evidence: any future performance numbers.
+Softened: breakthrough, operational 6G, Oulu affiliation, certified hardware.

@@ -1,11 +1,13 @@
-from .policy_interface import proportional_fair_policy
-
-def jain_fairness(allocations: list[float]) -> float:
-    if not allocations or sum(allocations) == 0:
-        return 0.0
-    s, s2, n = sum(allocations), sum(x * x for x in allocations), len(allocations)
-    return (s * s) / (n * s2) if s2 else 0.0
+def spectrum_utilization(allocations: list[float], capacity_mhz: float) -> float:
+    return sum(allocations) / capacity_mhz if capacity_mhz else 0.0
 
 
-def energy_per_bit(power_w: float, throughput_bps: float) -> float:
-    return power_w / throughput_bps if throughput_bps > 0 else float("inf")
+def report_bundle(allocations: list[float], capacity_mhz: float, energy_w: float) -> dict:
+    from .fairness import jains_index
+    from .energy import energy_score
+
+    return {
+        "spectrum_utilization": round(spectrum_utilization(allocations, capacity_mhz), 4),
+        "jains_fairness": round(jains_index(allocations), 4),
+        "energy_score": round(energy_score(energy_w, len(allocations)), 4),
+    }

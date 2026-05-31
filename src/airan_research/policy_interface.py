@@ -1,24 +1,32 @@
-"""AI-RAN research extension (does not modify competition evaluate path)."""
+from __future__ import annotations
+
 from dataclasses import dataclass
+from typing import Protocol
 
 
 @dataclass
-class PolicyAction:
-    beam_id: int
-    power_dbm: float
-    resource_blocks: int
+class PolicyContext:
+    n_users: int
+    spectrum_mhz: float
+    energy_budget_w: float
 
 
-def proportional_fair_policy(demands: list[float], total_rb: int = 100) -> list[int]:
-    total = sum(demands) or 1.0
-    return [max(1, int(total_rb * d / total)) for d in demands]
+class Policy(Protocol):
+    def allocate(self, ctx: PolicyContext) -> list[float]: ...
 
 
-def load_gary_site_schema_example() -> dict:
-    """7GC-compatible site schema example (inline, no cross-repo dependency)."""
-    return {
-        "site_id": "gary",
-        "is_flagship": True,
-        "spectrum": {"bands_ghz": [3.5, 28], "constraint": "spectrum_limited"},
-        "metrics": {"track": ["fairness", "spectral_efficiency", "energy_efficiency"]},
-    }
+@dataclass
+class UniformPolicy:
+    def allocate(self, ctx: PolicyContext) -> list[float]:
+        share = ctx.spectrum_mhz / max(ctx.n_users, 1)
+        return [share] * ctx.n_users
+
+
+@dataclass
+class FairnessAwarePolicy:
+    """Toy policy: equal share with mild energy scaling (research stub)."""
+
+    def allocate(self, ctx: PolicyContext) -> list[float]:
+        base = ctx.spectrum_mhz / max(ctx.n_users, 1)
+        scale = min(1.0, ctx.energy_budget_w / 10.0)
+        return [base * scale] * ctx.n_users

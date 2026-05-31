@@ -1,4 +1,3 @@
-from .metrics import energy_per_bit
-
-def energy_report(power_w: float, throughput_bps: float) -> dict:
-    return {"energy_per_bit_j": energy_per_bit(power_w, throughput_bps)}
+def energy_score(power_w: float, n_users: int) -> float:
+    """Higher is better for toy demo (lower power per user)."""
+    return 1.0 / (1.0 + power_w / max(n_users, 1))

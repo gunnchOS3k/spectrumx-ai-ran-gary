@@ -1,3 +1,1 @@
-- Replace toy data
-- Statistical tests
-- Ablation studies
+- Replace toy with calibrated data under supervision

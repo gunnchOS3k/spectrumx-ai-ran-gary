@@ -1,5 +1,9 @@
-from .policy_interface import load_gary_site_schema_example
+"""Adapter stub for 7GC digital-twin site summaries (synthetic)."""
 
-def export_site_summary() -> dict:
-    site = load_gary_site_schema_example()
-    return {"digital_twin_export": site, "format": "7gc-site-schema-v1"}
+
+def adapt_site_summary(site_summary: dict) -> dict:
+    return {
+        "site_id": site_summary.get("site_id", "gary"),
+        "n_users": site_summary.get("n_users", 100),
+        "fairness_stub": site_summary.get("jains_fairness", 0.5),
+    }

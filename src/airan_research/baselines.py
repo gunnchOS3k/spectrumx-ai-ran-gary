@@ -1,5 +1,6 @@
-from .policy_interface import proportional_fair_policy
+from .policy_interface import FairnessAwarePolicy, PolicyContext, UniformPolicy
 
-def round_robin_baseline(n_users: int, total_rb: int = 100) -> list[int]:
-    base = total_rb // max(n_users, 1)
-    return [base] * n_users
+
+def run_baseline(name: str, ctx: PolicyContext) -> list[float]:
+    policy = UniformPolicy() if name == "uniform" else FairnessAwarePolicy()
+    return policy.allocate(ctx)

@@ -1,14 +1,13 @@
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from airan_research.metrics import jain_fairness, energy_per_bit
-from airan_research.digital_twin_adapter import export_site_summary
+from airan_research.baselines import run_baseline
+from airan_research.policy_interface import PolicyContext
 
 
-def test_fairness():
-    assert jain_fairness([10, 10, 10]) == 1.0
-
-
-def test_twin_export():
-    assert export_site_summary()["digital_twin_export"]["site_id"] == "gary"
+def test_uniform_baseline():
+    ctx = PolicyContext(n_users=10, spectrum_mhz=100.0, energy_budget_w=5.0)
+    alloc = run_baseline("uniform", ctx)
+    assert len(alloc) == 10

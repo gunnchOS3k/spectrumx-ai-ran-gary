@@ -1,3 +1,3 @@
-- System diagram
-- Metric comparison plots
+- Context diagram
+- Metric comparison
 - Scenario map

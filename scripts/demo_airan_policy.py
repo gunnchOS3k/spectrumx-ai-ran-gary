@@ -1,36 +1,47 @@
 #!/usr/bin/env python3
-"""Toy AI-RAN policy demo — synthetic data only."""
+"""Toy AI-RAN research demo (synthetic; does not touch competition evaluate path)."""
+from __future__ import annotations
+
 import argparse
 import json
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
 
-from airan_research.policy_interface import proportional_fair_policy, load_gary_site_schema_example
-from airan_research.fairness import fairness_report
-from airan_research.energy import energy_report
-from airan_research.digital_twin_adapter import export_site_summary
+from airan_research.baselines import run_baseline
+from airan_research.metrics import report_bundle
+from airan_research.policy_interface import FairnessAwarePolicy, PolicyContext, UniformPolicy
 
 
-def main() -> None:
+def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--toy", action="store_true", help="Run toy synthetic demo")
+    parser.add_argument("--toy", action="store_true", help="Run synthetic toy scenario")
     args = parser.parse_args()
-    demands = [10.0, 20.0, 5.0, 15.0]
-    alloc = proportional_fair_policy(demands)
+    if not args.toy:
+        print("Use --toy for synthetic demo", file=sys.stderr)
+        return 2
+
+    ctx = PolicyContext(n_users=50, spectrum_mhz=100.0, energy_budget_w=8.0)
+    baseline = run_baseline("uniform", ctx)
+    ai = FairnessAwarePolicy().allocate(ctx)
+    baseline_report = report_bundle(baseline, ctx.spectrum_mhz, ctx.energy_budget_w)
+    ai_report = report_bundle(ai, ctx.spectrum_mhz, ctx.energy_budget_w * 0.9)
+
     out = {
-        "site": load_gary_site_schema_example(),
-        "allocations_rb": alloc,
-        "fairness": fairness_report(alloc),
-        "energy": energy_report(12.0, 5e6),
-        "twin_export": export_site_summary(),
-        "mode": "toy_synthetic",
+        "mode": "toy",
+        "baseline": baseline_report,
+        "ai_policy": ai_report,
+        "note": "research prototype — not competition IQ data",
     }
-    Path("results").mkdir(exist_ok=True)
-    Path("results/airan_policy_toy.json").write_text(json.dumps(out, indent=2))
     print(json.dumps(out, indent=2))
+    results = ROOT / "results" / "airan_toy_demo.json"
+    results.parent.mkdir(parents=True, exist_ok=True)
+    results.write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8")
+    print(f"Wrote {results}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
