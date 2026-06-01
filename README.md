@@ -3,8 +3,8 @@
 
 | Item | Detail |
 |------|--------|
-| **Runs today** | Research prototype with synthetic toy demo |
-| **Demo** | `make e2e` |
+| **Runs today** | Research prototype with smoke test (synthetic, non-evidence) |
+| **Demo** | `make e2e (smoke test only — not readiness proof) (smoke test only — not readiness proof)` |
 | **Data** | Synthetic only — no private IQ or PII |
 | **Extend** | See [EXTERNAL_RESEARCHER_QUICKSTART.md](docs/EXTERNAL_RESEARCHER_QUICKSTART.md) |
 | **Limits** | Not operational 6G; not Oulu affiliation; not carrier-grade |

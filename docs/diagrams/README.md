@@ -1,3 +1,5 @@
 # Diagrams — spectrumx-ai-ran-gary
 
-Render with Mermaid. See `05_UML_MODELING.md`.
+Repo-specific Mermaid. Render in GitHub or VS Code.
+
+See `docs/05_UML_MODELING.md`.

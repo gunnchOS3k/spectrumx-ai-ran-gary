@@ -1,0 +1,8 @@
+name: External Reproduction
+description: Report reproduction attempt (evidence level 4)
+labels: ["readiness:needs-external-reproduction", "evidence:external-review"]
+body:
+  - type: textarea
+    attributes:
+      label: Reproduction log
+    id: log

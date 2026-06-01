@@ -1,3 +1,2 @@
-- Context diagram
-- Metric comparison
-- Scenario map
+- context.mmd export as figure
+- E2E metric table from results/e2e

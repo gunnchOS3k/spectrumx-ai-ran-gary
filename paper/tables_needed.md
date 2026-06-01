@@ -1,2 +1,2 @@
-- Benchmark summary
-- Site/scenario comparison
+- Site/scenario comparison (7gc)
+- Benchmark summary (readygary)

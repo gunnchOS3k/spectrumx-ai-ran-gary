@@ -4,4 +4,4 @@
 EDGE-RAN Gary: AI-Native Spectrum and Energy-Constrained Radio Control for Equitable Urban Connectivity
 
 ## Contribution
-Open reproducible artifact for community-scale 6G research.
+competition-safe evaluate path, airan_research extension, spectrum/energy/fairness metrics, digital twin adapter stub

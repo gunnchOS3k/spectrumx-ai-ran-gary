@@ -1,1 +1,1 @@
-- Any future performance numbers require measured experiments
+- Any future performance superiority claims
