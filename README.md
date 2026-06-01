@@ -4,16 +4,19 @@
 | Item | Detail |
 |------|--------|
 | **Runs today** | Research prototype with smoke test (synthetic, non-evidence) |
-| **Demo** | `make e2e (smoke test only — not readiness proof) (smoke test only — not readiness proof)` |
+| **Demo** | `make smoke` (smoke test only — not readiness proof) |
 | **Data** | Synthetic only — no private IQ or PII |
 | **Extend** | See [EXTERNAL_RESEARCHER_QUICKSTART.md](docs/EXTERNAL_RESEARCHER_QUICKSTART.md) |
 | **Limits** | Not operational 6G; not Oulu affiliation; not carrier-grade |
 | **Readiness** | [END_TO_END_READINESS.md](docs/END_TO_END_READINESS.md) |
-| **Proof** | [E2E_RUN_RECORD.md](reproducibility/E2E_RUN_RECORD.md) |
+| **Smoke test** | [E2E_RUN_RECORD.md](reproducibility/E2E_RUN_RECORD.md) |
 | **Artifacts** | [results/e2e/](results/e2e/) |
 
 This repository contains our submission to the **SpectrumX Student Data & Algorithm Competition**.  
 We treat the competition dataset as a mini-testbed and design an **AI-native RAN controller** that allocates radio resources under spectrum and energy constraints, with a focus on cities like **Gary, Indiana**.
+
+
+> **Portfolio guide:** [START_HERE](docs/START_HERE.md) · [Plain English](docs/PLAIN_ENGLISH_EXPLANATION.md) · [Evidence policy](docs/NO_MORE_TOY_DEMOS.md) · [What would make this final?](docs/WHAT_WOULD_MAKE_THIS_FINAL.md)
 
 ## Problem
 
@@ -326,6 +329,162 @@ build_synth_dataset(
 ```
 
 See [docs/DIGITAL_TWIN.md](docs/DIGITAL_TWIN.md) for full documentation.
+
+
+## Portfolio & learner guide
+
+---
+
+## What is this?
+
+**Spectrum occupancy detection (competition) plus AI-RAN-style resource policy research for equitable Gary-scale connectivity.**
+
+| | |
+|---|---|
+| **Status** | Evidence-building repo · **Competition + research extension** |
+| **Evidence today** | Level 1 smoke test — see [Evidence status](#evidence-status-smoke-test-vs-real-validation) |
+| **Start** | [docs/START_HERE.md](docs/START_HERE.md) |
+
+## What problem does this solve?
+
+**Human:** Spectrum is scarce; unfair allocation leaves some neighborhoods with poor service during congestion.
+
+**Technical:** Need calibrated detection + policy evaluation under spectrum, energy, and fairness constraints.
+
+**Who is harmed if unsolved:** Urban residents in spectrum-constrained cities like Gary; competition evaluators need a safe core path.
+
+**Gary / 7GC / digital equality:** This repo supports equitable connectivity research for under-connected communities; Gary is the flagship urban anchor where applicable.
+
+## Beginner mental model
+
+A **traffic-light controller for wireless resources**—deciding who gets green time on limited spectrum.
+
+## How this repo addresses the problem
+
+Phase 1: `evaluate(filename)` competition detector. Phase 2–3: digital twin + policy research (`src/airan_research/`, Streamlit).
+
+**Main output:** Detector scores; research policy reports under `results/e2e/` (smoke until benchmarked).
+
+**Output does NOT prove:** Conference-ready AI-RAN claims or carrier deployment proof.
+
+## How this fits gunnchOS3k MLV
+
+Gary AI-RAN brain connected to 7GC twin and Edge-IO; competition path preserved for judges.
+
+Deep dive: [docs/HOW_THIS_FITS_GUNNCHOS.md](docs/HOW_THIS_FITS_GUNNCHOS.md) · [docs/CROSS_REPO_DEPENDENCY_MAP.md](docs/CROSS_REPO_DEPENDENCY_MAP.md) (where present)
+
+## How this fits 6G PhD research
+
+Relevant themes: **AI-native RAN · spectrum/energy efficiency · security/trust hooks · digital equality · wireless ML**
+
+Oulu/CWC-style alignment (research direction, not affiliation claim): [docs/HOW_THIS_FITS_6G_PHD_RESEARCH.md](docs/HOW_THIS_FITS_6G_PHD_RESEARCH.md)
+
+## What exists today
+
+- Competition detection pipeline
+- Streamlit dashboard
+- Research extension modules
+- UML architecture pack
+- COMPETITION_SAFETY docs
+
+Details: [docs/WHAT_IS_REAL_TODAY.md](docs/WHAT_IS_REAL_TODAY.md)
+
+## Evidence status: smoke test vs real validation
+
+- `make smoke` / `make e2e` = **CI smoke test** — proves code runs, **not** that research claims are field-validated.
+- See [docs/NO_MORE_TOY_DEMOS.md](docs/NO_MORE_TOY_DEMOS.md) · [docs/EVIDENCE_STANDARD.md](docs/EVIDENCE_STANDARD.md) · [quality/CLAIMS_TO_EVIDENCE_MATRIX.md](quality/CLAIMS_TO_EVIDENCE_MATRIX.md)
+
+**Next real evidence needed:**
+
+- Benchmarked AI-RAN experiment
+- 7GC scenario import validation
+- Ablations + external reproduction
+
+## Run or inspect this repo
+
+```bash
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+make smoke
+```
+
+| | |
+|---|---|
+| **Output** | `results/e2e/ research cards` |
+| **Means** | Reproducible smoke artifacts for CI and reviewers |
+| **Does not mean** | Conference, adoption, or manufacturing readiness |
+
+Video: [docs/video_walkthrough_script.md](docs/video_walkthrough_script.md)
+
+## Visual map
+
+```mermaid
+flowchart TB
+  IQ[IQ sample] --> P1[Phase 1 Detector]
+  P1 --> Comp[Competition evaluate path]
+  Twin[7gc-digital-twin] --> P2[Phase 2 Policy research]
+  P2 --> P3[Phase 3 Fairness/energy studies]
+```
+
+More diagrams: [docs/diagrams/README.md](docs/diagrams/README.md) (if present) · [docs/uml/README.md](docs/uml/README.md) (spectrumx)
+
+## Start here based on who you are
+
+| Reader | Start here | You will learn |
+|--------|------------|----------------|
+| Beginner | [docs/PLAIN_ENGLISH_EXPLANATION.md](docs/PLAIN_ENGLISH_EXPLANATION.md) | Idea without jargon |
+| Student / WAIKE | [docs/AUDIENCE_GUIDE.md](docs/AUDIENCE_GUIDE.md) | Learning path |
+| Researcher / professor | [docs/HOW_THIS_FITS_6G_PHD_RESEARCH.md](docs/HOW_THIS_FITS_6G_PHD_RESEARCH.md) | Research fit |
+| Contributor | [CONTRIBUTING.md](CONTRIBUTING.md) or Issues | How to help |
+| City / school partner | [docs/PROBLEM_SOLUTION_MAP.md](docs/PROBLEM_SOLUTION_MAP.md) | Why it matters locally |
+
+## What would make this final?
+
+**Not satisfied yet** for final / conference / adoption / manufacturing gates—see audit:
+
+- [docs/WHAT_WOULD_MAKE_THIS_FINAL.md](docs/WHAT_WOULD_MAKE_THIS_FINAL.md)
+- [quality/FINAL_READINESS_CONFIRMATION.md](quality/FINAL_READINESS_CONFIRMATION.md)
+
+## Roadmap from current state to final readiness
+
+| Gate | Status |
+|------|--------|
+| Concept | Met |
+| Smoke test | Met (`make smoke`) |
+| Real evidence pipeline | Open |
+| Benchmark / field data | Open |
+| Internal validation | Open |
+| External reproduction | Open |
+| Candidate release | Open |
+| Final | Not claimed |
+
+Full table: [quality/READINESS_GATE_TABLE.md](quality/READINESS_GATE_TABLE.md)
+
+## Related repos in the 7GC research spine
+
+
+| Repo | Role |
+|------|------|
+| [7gc-digital-twin](https://github.com/gunnchOS3k/7gc-digital-twin) | Community digital twin spine |
+| [spectrumx-ai-ran-gary](https://github.com/gunnchOS3k/spectrumx-ai-ran-gary) | AI-RAN + SpectrumX competition path |
+| [readygary-6g-beam-selection](https://github.com/gunnchOS3k/readygary-6g-beam-selection) | Beam selection / PHY-facing evidence |
+| [edge-io-measurement-node](https://github.com/gunnchOS3k/edge-io-measurement-node) | Privacy-first edge measurement |
+| [ntn-resilience-sim](https://github.com/gunnchOS3k/ntn-resilience-sim) | NTN + terrestrial resilience |
+| [waike-research-ops](https://github.com/gunnchOS3k/waike-research-ops) | Education & workforce pipeline |
+| [gunnchos-hardware-industrial-design](https://github.com/gunnchOS3k/gunnchos-hardware-industrial-design) | Device hardware EVT planning |
+| [gunnchos-device-os](https://github.com/gunnchOS3k/gunnchos-device-os) | School/research device OS prototype |
+| [gunnchAI3k](https://github.com/gunnchOS3k/gunnchAI3k) | Learning assistant (where relevant) |
+
+
+## Claims and non-claims
+
+**Supports today:** Runnable scaffold, documented methods, smoke-test artifacts, honest limitations.
+
+**Does not prove yet:** Conference-ready AI-RAN claims or carrier deployment proof.
+
+**Requires evidence issues:** See GitHub `[Evidence TODO]` issues and `quality/CLAIMS_TO_EVIDENCE_MATRIX.md`.
+
+---
 
 ## Team
 
