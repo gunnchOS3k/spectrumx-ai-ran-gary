@@ -1,0 +1,14 @@
+site_id: graham_land
+traffic_classes:
+- education
+- general
+- emergency
+fairness_priorities:
+- neighborhood_equity_stub
+low_bandwidth_constraints: true
+power_constraints: true
+resilience_priority: true
+privacy_safety_constraints:
+- no_pii
+scenario_source_7gc: configs/site_profiles/graham_land.yaml
+evidence_status: smoke_test_only
