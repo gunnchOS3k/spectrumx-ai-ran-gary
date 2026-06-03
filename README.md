@@ -502,3 +502,14 @@ Full table: [quality/READINESS_GATE_TABLE.md](quality/READINESS_GATE_TABLE.md)
 **Gary flagship node** for community-scale AI-RAN research. Phase 1 preserves the competition-safe spectrum occupancy detector. Phase 2–3 extend toward the [7GC digital twin](https://github.com/gunnchOS3k/7gc-digital-twin) and [Edge-IO measurement](https://github.com/gunnchOS3k/edge-io-measurement-node) endpoints.
 
 > Research prototype — not operational carrier 6G infrastructure.
+
+## Industry / research-grade tooling alignment
+
+| Tool / ecosystem | Why it matters | Adapter | Runs now? | Access? |
+|------------------|----------------|---------|-----------|---------|
+| See matrix | Evidence upgrade path | `industry_research_stack/` | Stub exports | Optional |
+
+**Commands:** `make e2e` (includes tool export stubs) · `python3 scripts/run_all_tool_exports.py`
+
+**Notice:** Aligned with public research ecosystems — [non-affiliation](industry_research_stack/NON_AFFILIATION_NOTICE.md). Smoke stubs only unless documented otherwise.
+
