@@ -4,7 +4,7 @@
 - **Not** operational carrier 6G infrastructure.
 - **Not** certified hardware or manufacturing-ready devices.
 - **Not** a validated commercial product.
-- **Not** University of Oulu, CWC, or 6G Flagship affiliation.
+- **Not** target wireless communications engineering programs, CWC, or 6G Flagship affiliation.
 - **Not** guaranteed employment or deployment outcomes.
 - **Not** claims of results that have not been measured.
 

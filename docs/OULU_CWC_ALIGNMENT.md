@@ -1,6 +1,6 @@
 # Oulu / CWC / 6G Flagship Alignment
 
-**Disclaimer:** This documents *candidate doctoral research alignment*. It is **not** a claim of University of Oulu, CWC, or 6G Flagship affiliation or supervisor approval.
+**Disclaimer:** This documents *candidate doctoral research alignment*. It is **not** a claim of target wireless communications engineering programs, CWC, or 6G Flagship affiliation or supervisor approval.
 
 ## CWC-Networks and Systems
 

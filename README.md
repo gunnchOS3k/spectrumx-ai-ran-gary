@@ -513,6 +513,6 @@ Full table: [quality/READINESS_GATE_TABLE.md](quality/READINESS_GATE_TABLE.md)
 
 **Notice:** Aligned with public research ecosystems — [non-affiliation](industry_research_stack/NON_AFFILIATION_NOTICE.md). Smoke stubs only unless documented otherwise.
 
-## Oulu WCE portfolio alignment
+## Wireless engineering alignment
 
-See [docs/OULU_WCE_ALIGNMENT.md](docs/OULU_WCE_ALIGNMENT.md).
+See [docs/WIRELESS_ENGINEERING_ALIGNMENT.md](docs/WIRELESS_ENGINEERING_ALIGNMENT.md).
