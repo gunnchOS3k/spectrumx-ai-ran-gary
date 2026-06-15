@@ -1,7 +1,13 @@
-.PHONY: test demo-research e2e
+.PHONY: test demo-research e2e benchmark ablation
 
 test:
 	PYTHONPATH=src pytest -q tests/test_airan_research.py
+
+benchmark:
+	PYTHONPATH=src python3 scripts/run_benchmark.py
+
+ablation:
+	PYTHONPATH=src python3 scripts/run_ablation.py
 
 demo-research:
 	python3 scripts/demo_airan_policy.py --toy

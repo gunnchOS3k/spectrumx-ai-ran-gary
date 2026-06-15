@@ -24,9 +24,28 @@ class UniformPolicy:
 
 @dataclass
 class FairnessAwarePolicy:
-    """Toy policy: equal share with mild energy scaling (research stub)."""
+    """Toy policy: equal share (research stub; not near-RT RIC xApp)."""
 
     def allocate(self, ctx: PolicyContext) -> list[float]:
-        base = ctx.spectrum_mhz / max(ctx.n_users, 1)
+        share = ctx.spectrum_mhz / max(ctx.n_users, 1)
+        return [share] * ctx.n_users
+
+
+@dataclass
+class EnergyAwarePolicy:
+    """Toy policy: energy-budget scaling without fairness rebalancing."""
+
+    def allocate(self, ctx: PolicyContext) -> list[float]:
+        share = ctx.spectrum_mhz / max(ctx.n_users, 1)
         scale = min(1.0, ctx.energy_budget_w / 10.0)
-        return [base * scale] * ctx.n_users
+        return [share * scale] * ctx.n_users
+
+
+@dataclass
+class CombinedFairnessEnergyPolicy:
+    """Toy policy: equal share with capped energy scaling (combined objective stub)."""
+
+    def allocate(self, ctx: PolicyContext) -> list[float]:
+        share = ctx.spectrum_mhz / max(ctx.n_users, 1)
+        scale = min(1.0, ctx.energy_budget_w / 12.0)
+        return [share * scale] * ctx.n_users
