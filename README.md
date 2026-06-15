@@ -12,6 +12,42 @@
 | **Smoke test** | [E2E_RUN_RECORD.md](reproducibility/E2E_RUN_RECORD.md) |
 | **Artifacts** | [results/e2e/](results/e2e/) |
 
+## Conference readiness status
+
+| Area | Status |
+|------|--------|
+| IEEE draft paper | [paper/ieee_conference_draft.md](paper/ieee_conference_draft.md) |
+| Evaluation protocol | [docs/EVAL_PROTOCOL.md](docs/EVAL_PROTOCOL.md) |
+| Artifact audit | [quality/IEEE_ARTIFACT_READINESS_AUDIT.md](quality/IEEE_ARTIFACT_READINESS_AUDIT.md) |
+| Claims ↔ evidence | [quality/CLAIMS_TO_EVIDENCE_MATRIX.md](quality/CLAIMS_TO_EVIDENCE_MATRIX.md) |
+| Fresh-machine repro | [docs/REPRODUCIBILITY_FRESH_MACHINE.md](docs/REPRODUCIBILITY_FRESH_MACHINE.md) |
+| Umbrella portfolio | [gunnchos-7gc-ai-ran-field-kit](https://github.com/gunnchOS3k/gunnchos-7gc-ai-ran-field-kit) |
+
+**Framing:** IMT-2030-aligned / **6G-aligned** AI-assisted O-RAN-style control **experiment** — not deployable 6G or carrier-grade AI-RAN.
+
+## How to reproduce the core result
+
+```bash
+pip install -r requirements.txt
+make test
+make benchmark    # → results/benchmark/metrics.csv
+make ablation     # → results/ablation/ablation_table.csv
+```
+
+Full steps: [docs/REPRODUCIBILITY_FRESH_MACHINE.md](docs/REPRODUCIBILITY_FRESH_MACHINE.md).
+
+## What is real today vs planned
+
+| Real today | Planned |
+|------------|---------|
+| Synthetic AI-RAN policy benchmarks | Live near-RT RIC / xApp integration |
+| Deterministic ablation scripts | Multi-seed statistical analysis |
+| O-RAN KPI **export stubs** | E2/KPM field validation |
+| Competition + twin code paths (optional) | Public field telemetry release |
+| Smoke CI (`make smoke`) | Zenodo DOI (umbrella release) |
+
+**Not claimed:** citywide Gary impact, certified hardware, unauthorized RF transmission, operational AI-RAN deployment.
+
 This repository contains our submission to the **SpectrumX Student Data & Algorithm Competition**.  
 We treat the competition dataset as a mini-testbed and design an **AI-native RAN controller** that allocates radio resources under spectrum and energy constraints, with a focus on cities like **Gary, Indiana**.
 
@@ -513,3 +549,6 @@ Full table: [quality/READINESS_GATE_TABLE.md](quality/READINESS_GATE_TABLE.md)
 
 **Notice:** Aligned with public research ecosystems — [non-affiliation](industry_research_stack/NON_AFFILIATION_NOTICE.md). Smoke stubs only unless documented otherwise.
 
+## Wireless engineering alignment
+
+See [docs/WIRELESS_ENGINEERING_ALIGNMENT.md](docs/WIRELESS_ENGINEERING_ALIGNMENT.md).
