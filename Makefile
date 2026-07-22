@@ -1,10 +1,31 @@
-.PHONY: test demo-research e2e
+.PHONY: setup lint test contract-test benchmark ablation demo-research e2e clean
+
+setup:
+	python3 -m pip install -r requirements.txt
+	python3 -m pip install 'scipy>=1.11' 'numpy>=1.24' jsonschema pytest
+
+lint:
+	PYTHONPATH=src python3 -m compileall -q src/airan_research/gate2
 
 test:
-	PYTHONPATH=src pytest -q tests/test_airan_research.py
+	PYTHONPATH=src pytest -q tests/test_airan_research.py tests/gate2
+
+contract-test:
+	PYTHONPATH=src pytest -q tests/gate2
+
+benchmark:
+	@test -n "$(TWIN_STATE)" || (echo "Set TWIN_STATE=path/to/02_twin_state.json" && exit 1)
+	PYTHONPATH=src python3 -m airan_research benchmark --twin-state $(TWIN_STATE) --output results/benchmark_results.csv --schema-dir $(SCHEMA_DIR)
+
+ablation:
+	@test -n "$(TWIN_STATE)" || (echo "Set TWIN_STATE=path/to/02_twin_state.json" && exit 1)
+	PYTHONPATH=src python3 -m airan_research ablation --twin-state $(TWIN_STATE) --output results/ablation_results.csv --schema-dir $(SCHEMA_DIR)
 
 demo-research:
 	python3 scripts/demo_airan_policy.py --toy
+
+clean:
+	rm -rf results/benchmark_results.csv results/ablation_results.csv
 
 e2e:
 	@mkdir -p results/e2e
