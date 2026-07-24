@@ -92,8 +92,7 @@ class SignalGenerator:
         elif zone_model:
             self.zone_model = zone_model
         else:
-            # Default: single zone
-            from .zones import Zone
+            # Default: single zone (ZoneModel already imported at module scope)
             default_zone = Zone(
                 zone_id="default",
                 weight=1.0,
@@ -103,7 +102,6 @@ class SignalGenerator:
                 cfo_range=(-1000, 1000),
                 multipath_taps_range=(1, 5)
             )
-            from .zones import ZoneModel
             self.zone_model = ZoneModel([default_zone])
     
     def generate_noise_only(self, seed: int, zone: Optional[Zone] = None) -> np.ndarray:
