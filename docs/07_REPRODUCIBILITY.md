@@ -1,3 +1,3 @@
-# 07 Reproducibility.Md
+# 07 Reproducibility
 
-See reproducibility/ package and runbook.md.
+Canonical file: repo-root [`REPRODUCIBILITY.md`](../REPRODUCIBILITY.md). Also `reproducibility/runbook.md`.

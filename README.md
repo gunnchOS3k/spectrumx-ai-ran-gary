@@ -11,6 +11,9 @@
 | **Readiness** | [END_TO_END_READINESS.md](docs/END_TO_END_READINESS.md) |
 | **Smoke test** | [E2E_RUN_RECORD.md](reproducibility/E2E_RUN_RECORD.md) |
 | **Artifacts** | [results/e2e/](results/e2e/) |
+| **Reproduce** | [REPRODUCIBILITY.md](REPRODUCIBILITY.md) · [external packet](docs/packets/EXTERNAL_REPRODUCTION_PACKET.md) |
+| **UML** | [docs/uml/README.md](docs/uml/README.md) |
+| **License** | [LICENSE](LICENSE) (MIT) |
 
 This repository contains our submission to the **SpectrumX Student Data & Algorithm Competition**.  
 We treat the competition dataset as a mini-testbed and design an **AI-native RAN controller** that allocates radio resources under spectrum and energy constraints, with a focus on cities like **Gary, Indiana**.
@@ -49,13 +52,13 @@ How can we design AI-driven radio resource management that:
 
 - Use the official **SpectrumX** dataset plus **DeepMIMO/Sionna**-style channels to emulate 6G-like propagation.
 
-- Train an **AI-RAN controller** (contextual bandit / RL) to choose beams, power levels, and/or resource blocks under:
+- Shipped Streamlit controller is a **detector-conditioned rule-based closed-loop policy baseline (RIC-style abstraction)** (`select_closed_loop_action` / `apply_action_to_kpis`). It is **not** a trained RL or contextual-bandit policy.
 
-  - Spectral masks and power limits
+- Separate **Gate 2** code under `src/airan_research/gate2/twin_policies.py` is also **rule-based / constrained optimization** (`static_uniform`, `network_only`, `service_priority`, `optimization_based`, `twin_informed`) — still **not** RL.
 
-  - Fairness constraints across users / neighborhoods
+- `src/edge_ran_gary/models/bandit_policies.py` and `actor_critic.py` remain **future study-arm scaffolding**, not the shipped controller.
 
-  - Energy-efficiency objectives
+- Scenario objectives (spectral masks, fairness, energy) are **proxy KPIs** in the Gary twin, not OTA measurements.
 
 ## Quickstart
 

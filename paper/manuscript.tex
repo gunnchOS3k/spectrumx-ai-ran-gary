@@ -1,0 +1,32 @@
+% MANUSCRIPT STATUS: DIGITAL_RESULTS_VALIDATED
+% Evidence: SYNTHETIC_SIM orchestration + SYNTHETIC_SIM FR2 TDL (ReadyGary). Judged SpectrumX IQ core untouched.
+% 28 GHz is FR2 mmWave, not Sub-6. HOST_PROCESS_TIMING is not measured RF.
+% Not SUBMITTED. Not ACCEPTED. CONFERENCE_RC: NO (independent reproduction not returned).
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs,hyperref,graphicx}
+\title{Radio-Aware Digital-Twin-Informed Cross-Layer Orchestration for Service Continuity}
+\author{Edmund Gunn Jr.\\Independent researcher --- no University of Oulu affiliation claimed}
+\date{\today}
+\begin{document}
+\maketitle
+\begin{center}
+\textbf{RESULT BANNER.} Digital results validated on a frozen protocol.
+Orchestration tables are \texttt{SYNTHETIC\_SIM}. ReadyGary 28~GHz is FR2, not Sub-6.
+Timing is \texttt{HOST\_PROCESS\_TIMING}, not measured RF.
+SpectrumX judged IQ/\texttt{evaluate} core is unchanged.
+Not SUBMITTED.
+\end{center}
+\begin{abstract}
+Paper~II asks whether radio-aware digital-twin context plus simple policies (before learning) improves service continuity versus transparent baselines~\cite{itur_m2160,3gpp_ts22261}.
+On held-out synthetic orchestration episodes, a frozen linear \texttt{information\_equivalent} policy matched the model-oracle and beat \texttt{no\_adaptation}; the procedural \texttt{twin\_informed} policy did not, because switching cost dominated the net utility.
+ReadyGary companion draws at 28~GHz are FR2~mmWave~\cite{3gpp_ts38101_2}, not Sub-6; DeepMIMO is cited as related synthetic-ray methodology~\cite{alkhateeb2019deepmimo} and was not required for these runs.
+Host-process timers are not RF latency.
+\end{abstract}
+\input{sections/introduction}
+\input{sections/method}
+\input{sections/results}
+\input{sections/limitations}
+\bibliographystyle{plain}
+\bibliography{bibliography}
+\end{document}

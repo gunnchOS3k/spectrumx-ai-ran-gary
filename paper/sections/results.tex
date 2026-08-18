@@ -1,0 +1,50 @@
+\section{Results}
+All numbers below are regenerated from \texttt{results/experiments/rq2\_cross\_layer\_continuity\_heldout.json} (and ablation/domain-shift siblings).
+They are \texttt{SYNTHETIC\_SIM}. Judged SpectrumX scores are not re-typed here.
+
+\subsection{Held-out orchestration}
+\input{tables/rq2_heldout_policies}
+
+On held-out seeds $\{100,\ldots,104\}$, mean service-continuity utility $U$ (net of switch penalties) was:
+\texttt{information\_equivalent} $0.8274$ $[0.8247,0.8301]$,
+model-\texttt{oracle} $0.8271$ $[0.8248,0.8294]$,
+\texttt{static} $0.8236$ $[0.8211,0.8261]$,
+\texttt{edge\_only} $0.8231$ $[0.8207,0.8256]$,
+\texttt{no\_adaptation} $0.8066$ $[0.8036,0.8097]$,
+\texttt{optimization\_based} $0.8066$ $[0.8036,0.8097]$ (Cohen's $d=0$ versus \texttt{no\_adaptation} on $U$),
+\texttt{rule\_based} $0.8041$ $[0.8015,0.8067]$,
+\texttt{twin\_informed} $0.7930$ $[0.7904,0.7957]$ ($d=-5.92$),
+\texttt{cloud\_only} $0.7838$ $[0.7780,0.7897]$,
+\texttt{local\_only} $0.6915$ $[0.6870,0.6961]$.
+\texttt{information\_equivalent} and \texttt{oracle} CIs overlap; they are not distinguishable on this split.
+Hypothesis H1 (twin-informed beats no-adaptation on held-out $U$) is \textbf{not} supported.
+H2 is supported as a policy-structure effect: the same features with linear scoring ($U=0.8274$) outperformed the procedural+SLSQP twin policy ($U=0.7930$).
+\texttt{twin\_informed} paid the highest mean switch cost ($0.4818$ versus $0.1533$ for \texttt{no\_adaptation}).
+SLSQP compute was about $4.3$~ms episode-sum \texttt{HOST\_PROCESS\_TIMING} versus $<0.1$~ms for the linear policy; this is not RF.
+
+\subsection{Switching-cost ablation}
+\input{tables/rq2_ablations}
+
+Zeroing switch penalties raised held-out \texttt{twin\_informed} $U$ from $0.7930$ $[0.7904,0.7957]$ to $0.8231$ $[0.8205,0.8257]$ (H3 supported on this model).
+\texttt{no\_edge\_observations} reports $U=0.9797$ because the ablation zeros latency and loss, which makes the analytical metric optimistic; it is not a field improvement.
+Other ablations stayed near the full twin policy ($0.79$).
+
+\subsection{Domain shift}
+\input{tables/rq2_domain_shift}
+
+Under \texttt{outage\_heavy}, \texttt{twin\_informed} $U=0.7046$ exceeded \texttt{no\_adaptation} $0.6709$ (twin routing helps when terrestrial outage is frequent).
+Under \texttt{high\_blockage}, \texttt{information\_equivalent} $0.6310$ led the listed non-oracle policies.
+\texttt{energy\_constrained} ranked like the in-distribution held-out split.
+
+\subsection{ReadyGary FR2 companion}
+See the sibling repo tables (\texttt{rq2\_beam\_selection\_fr2}).
+On held-out FR2 TDL draws, codebook \texttt{exhaustive\_oracle} mean SNR was $2.5263$~dB $[1.7954,3.2572]$, matching \texttt{cloud\_only} (same search).
+Hierarchical \texttt{edge\_only} was $1.3182$~dB $[0.5571,2.0792]$ ($1.2082$~dB loss versus oracle) at $0.3714$~ms versus $1.0244$~ms oracle \texttt{HOST\_PROCESS\_TIMING}.
+\texttt{twin\_informed} AoA-windowed search was $-3.6178$~dB versus \texttt{information\_equivalent} nearest-bin $-21.3758$~dB (same AoA hint; policy structure).
+Removing the AoA hint made \texttt{twin\_informed} fall back to hierarchical search ($1.3182$~dB), which is better than the hinted window on this generator --- the AoA-to-DFT-bin map is a weak geometry proxy here, not a measured-RF beam tracker.
+Sub-millisecond RF inference remains unproven.
+
+If a figure PNG is absent, treat \texttt{paper/figures/} as \texttt{RESULT\_PENDING}.
+Generated held-out bar chart (when matplotlib imported): \texttt{figures/rq2\_heldout\_continuity.png}.
+\input{tables/rq2_toy}
+\input{tables/rq2_train_policies}

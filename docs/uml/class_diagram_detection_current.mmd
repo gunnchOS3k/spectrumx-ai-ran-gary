@@ -17,7 +17,7 @@ classDiagram
 
   class feature_baseline {
     <<module>>
-    extract_features(iq, sr) list
+    extract_features(iq, sr) dict
   }
 
   class detection_baselines {
@@ -45,4 +45,4 @@ classDiagram
   streamlit_app --> detection_baselines : baseline models
   streamlit_app --> judged_headline_metrics : CSV headlines
 
-  note for submission_package "Judged competition core boundary.\nOrganizer scoring is offline."
+  note for submission_package "Judged competition core boundary.\nOrganizer scoring is offline.\nPackages include leaderboard_v4-v14; adapter prefers v9 first."

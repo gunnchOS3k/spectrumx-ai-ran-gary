@@ -2,7 +2,9 @@
 
 **Lane:** *judged competition core* + *completed research extension* (Gary three anchors), as implemented in this repo. **Not** future research-adoption targets unless cross-linked.
 
-**Controller wording (authoritative):** *Detector-conditioned rule-based closed-loop policy baseline (RIC-style abstraction)* — **not** trained RL or contextual-bandit in the shipped Streamlit extension.
+**Controller wording (authoritative):** *Detector-conditioned rule-based closed-loop policy baseline (RIC-style abstraction)* — **not** trained RL or contextual-bandit in the shipped Streamlit extension. Gate 2 `twin_policies` is a **second** completed rule-based / SLSQP path under `src/airan_research`.
+
+**Audit vs this checkout:** competition `evaluate()` packages include `leaderboard_v14`; Streamlit `PREFERRED_SUBMISSION_ORDER` still prefers `leaderboard_v9` first. Sequence inference no longer references an undefined `LE` participant. `extract_features` returns a dict.
 
 **Gary anchors (current scope):** Gary City Hall · Gary Public Library & Cultural Center · West Side Leadership Academy.
 

@@ -22,6 +22,7 @@ Full definitions: `docs/PROVENANCE_LEGEND.md`.
 | Capability | Location / notes |
 |------------|------------------|
 | Judged detector packaging | `submissions/`, offline `evaluate()` |
+| Gate 2 twin-conditioned policies | `src/airan_research/gate2/twin_policies.py` — rule-based / SLSQP; tests skip without field-kit fixtures |
 | Gary twin UI + scenario **proxies** | `gary_scenario_engine.py`, Streamlit |
 | Manifest **loaders** (JSON / GeoJSON) | `simulation_integration_hooks.py` |
 | **Canonical** evidence + execution labels | `simulation_provenance.py` |
