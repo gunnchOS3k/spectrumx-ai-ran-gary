@@ -1,5 +1,18 @@
 \section{Method}
-Baselines first: uniform/rule-based allocation, then fairness-aware policy on synthetic snapshots (\texttt{scripts/demo\_airan\_policy.py --toy}).
-Learning-based controllers are out of scope until information-equivalent comparisons, seeds, CIs, ablations, domain shift, and switching/compute cost are logged.
-28~GHz in ReadyGary is FR2 mmWave~\cite{3gpp_ts38101_2}; DeepMIMO-style generators if used are cited~\cite{alkhateeb2019deepmimo} and remain synthetic unless a dataset provenance file says otherwise.
-Pre-registration: \texttt{paper/artifacts/PREREGISTRATION.md}.
+Protocol \texttt{paper/artifacts/experiment\_protocol.yaml} was frozen and committed before held-out JSON was generated.
+Experiment \texttt{rq2\_cross\_layer\_continuity} is \texttt{SYNTHETIC\_SIM}: seeded episode draws of latency, loss, outage, energy, blockage, and compute, scored by the configured Gate~2 analytical metric (not field KPIs, not competition IQ).
+
+\paragraph{Baselines.}
+\texttt{no\_adaptation}, \texttt{static} (first-slot rule freeze), \texttt{local\_only}, \texttt{cloud\_only}, \texttt{edge\_only}, \texttt{rule\_based} (service-priority + outage pick), \texttt{optimization\_based} (SLSQP on $\sum\log(1+x_i)$ when SciPy is present), \texttt{twin\_informed}, \texttt{information\_equivalent} (same slot feature vector, frozen linear action scores, uniform shares), and a current-slot model-\texttt{oracle} over discrete placement$\times$network including switch penalties.
+
+\paragraph{Splits.}
+Train seeds $\{0,1,2,3,4\}$; held-out seeds $\{100,\ldots,104\}$; 24 episodes $\times$ 16 slots.
+Domain-shift families: \texttt{high\_blockage}, \texttt{energy\_constrained}, \texttt{outage\_heavy}.
+Ablations include zeroing edge observations, twin context, continuity class, energy, local-edge, and switch penalties.
+Statistics: Student-$t$ 95\% CI and Cohen's $d$ versus \texttt{no\_adaptation}, aggregated seed-mean then CI (five seed means; df$=4$, $t_{0.975}=2.776$).
+Compute time is \texttt{HOST\_PROCESS\_TIMING}.
+
+\paragraph{ReadyGary companion.}
+Sibling experiment \texttt{rq2\_beam\_selection\_fr2} uses a seeded ULA TDL generator at $f_c=28\times10^9$~Hz (FR2, not Sub-6)~\cite{3gpp_ts38101_2}.
+The generator is not claimed as 3GPP TR~38.901-compliant.
+DeepMIMO is related prior art for ray datasets~\cite{alkhateeb2019deepmimo} and was not executed for these tables.

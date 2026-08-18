@@ -1,0 +1,17 @@
+\begin{table}[h]\centering
+\caption{Train-family policy continuity (SYNTHETIC\_SIM; t CI over train seeds). Not competition IQ.}
+\begin{tabular}{lrrrrrrr}\toprule
+policy & mean $U$ & CI low & CI high & lat (ms) & switch cost & compute ms & $d$ vs no-adapt \\
+\midrule
+no\_adaptation & 0.8045 & 0.8003 & 0.8086 & 82.5780 & 0.1513 & 0.0068 & 0.0000 \\
+static & 0.8194 & 0.8164 & 0.8224 & 79.6988 & 0.0000 & 0.0023 & 5.0855 \\
+local\_only & 0.6878 & 0.6839 & 0.6918 & 141.8731 & 0.0000 & 0.0087 & -35.5722 \\
+cloud\_only & 0.7810 & 0.7713 & 0.7907 & 93.5887 & 0.1513 & 0.0078 & -3.8932 \\
+edge\_only & 0.8209 & 0.8185 & 0.8233 & 78.0302 & 0.0000 & 0.0204 & 5.9807 \\
+rule\_based & 0.8020 & 0.7983 & 0.8058 & 77.2734 & 0.3555 & 0.0199 & -0.7546 \\
+optimization\_based & 0.8045 & 0.8003 & 0.8086 & 82.5780 & 0.1513 & 6.6134 & 0.0000 \\
+twin\_informed & 0.7907 & 0.7874 & 0.7940 & 78.4351 & 0.4806 & 4.3689 & -4.5152 \\
+information\_equivalent & 0.8255 & 0.8216 & 0.8294 & 71.8070 & 0.1513 & 0.0668 & 6.4464 \\
+oracle & 0.8248 & 0.8209 & 0.8287 & 75.3231 & 0.0354 & 0.3986 & 6.2199 \\
+\bottomrule\end{tabular}
+\end{table}

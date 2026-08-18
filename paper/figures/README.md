@@ -1,3 +1,3 @@
-# Figures
+Figures are generated from `results/experiments/*.json`.
 
-No measured-RF figures. ReadyGary sibling tables are `SYNTHETIC_SIM` / `HOST_PROCESS_TIMING`. Do not paste competition IQ plots as Paper II results without the judged-core provenance trail.
+- `rq2_heldout_continuity.png`: held-out continuity means with 95% t CIs. SYNTHETIC_SIM. Not RF.

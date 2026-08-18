@@ -10,7 +10,9 @@ env/
 data/raw/
 data/processed/
 data/synthetic/
-results/
+results/*
+!results/experiments/
+!results/experiments/**
 logs/
 .DS_Store
 # Competition dataset and data files (LOCAL ONLY, NEVER COMMIT)
