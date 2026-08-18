@@ -1,4 +1,4 @@
-.PHONY: setup lint test contract-test benchmark ablation demo-research e2e clean smoke reproduce
+.PHONY: setup lint test contract-test benchmark ablation demo-research e2e clean smoke reproduce paper paper-reproduce
 
 setup:
 	python3 -m pip install -r requirements.txt
@@ -14,6 +14,14 @@ contract-test:
 	PYTHONPATH=src pytest -q tests/gate2
 
 reproduce: test
+
+paper-reproduce:
+	python3 scripts/demo_airan_policy.py --toy || true
+	python3 paper/scripts/generate_tables.py
+
+paper: paper-reproduce
+	@test -f paper/manuscript.tex
+	@echo "Paper II: judged core preserved; toy tables SYNTHETIC_SIM"
 
 benchmark:
 	@test -n "$(TWIN_STATE)" || (echo "Set TWIN_STATE=path/to/02_twin_state.json" && exit 1)
