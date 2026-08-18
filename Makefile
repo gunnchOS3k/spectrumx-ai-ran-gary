@@ -1,4 +1,4 @@
-.PHONY: setup lint test contract-test benchmark ablation demo-research e2e clean
+.PHONY: setup lint test contract-test benchmark ablation demo-research e2e clean smoke reproduce
 
 setup:
 	python3 -m pip install -r requirements.txt
@@ -12,6 +12,8 @@ test:
 
 contract-test:
 	PYTHONPATH=src pytest -q tests/gate2
+
+reproduce: test
 
 benchmark:
 	@test -n "$(TWIN_STATE)" || (echo "Set TWIN_STATE=path/to/02_twin_state.json" && exit 1)
@@ -35,10 +37,8 @@ e2e:
 	$(MAKE) e2e-tooling 2>> results/e2e/e2e_terminal_output.txt || true
 	python3 scripts/e2e_check_required_artifacts.py
 
-
 # Smoke test only — not evidence of readiness
 smoke: e2e
-
 
 e2e-tooling:
 	@mkdir -p results/tool_exports

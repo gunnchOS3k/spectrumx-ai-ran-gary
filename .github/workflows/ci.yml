@@ -1,0 +1,24 @@
+name: CI
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install make test dependencies
+        run: python3 -m pip install pytest numpy scipy jsonschema
+      - name: make test
+        run: make test
+      - name: Supervisor-ready files
+        run: |
+          test -f LICENSE
+          test -f CITATION.cff
+          test -f REPRODUCIBILITY.md
+          test -f docs/uml/README.md
+          test -f docs/packets/EXTERNAL_REPRODUCTION_PACKET.md
+          test -f submissions/leaderboard_v14/main.py

@@ -7,12 +7,12 @@ Post-project, **GitHub-visible** architecture package for **spectrumx-ai-ran-gar
 | Lane | Meaning |
 |------|---------|
 | **Judged competition core** | Binary occupancy on official SpectrumX IQ; `submissions/*/main.py` + offline evaluation; Judge Mode microscope |
-| **Completed research extension** | Gary digital twin (**three anchors below**), scenario engine, **detector-conditioned rule-based closed-loop policy baseline (RIC-style abstraction)** |
+| **Completed research extension** | Gary digital twin (**three anchors below**), scenario engine, **detector-conditioned rule-based closed-loop policy baseline (RIC-style abstraction)**; Gate 2 `src/airan_research` twin policies (rule-based / SLSQP) |
 | **Future research-adoption** | AODT, full Sionna RT, pyAerial/cuPHY execution, OTA / data lake — **manifests and integration targets**; execution mostly **external** |
 
 **Three Gary anchors (current scope):** Gary City Hall · Gary Public Library & Cultural Center · West Side Leadership Academy.
 
-**Controller (current, authoritative):** *Detector-conditioned rule-based closed-loop policy baseline (RIC-style abstraction)* — **not** trained RL or contextual-bandit in the shipped Streamlit path. Planned arms appear only as **future** on the maturity ladder.
+**Controller (current, authoritative):** *Detector-conditioned rule-based closed-loop policy baseline (RIC-style abstraction)* — **not** trained RL or contextual-bandit in the shipped Streamlit path. Gate 2 `twin_policies` is a second **rule-based / SLSQP** path. Planned RL/bandit arms appear only as **future** on the maturity ladder.
 
 **Canonical evidence terms:** [`docs/PROVENANCE_LEGEND.md`](../PROVENANCE_LEGEND.md)  
 **Execution boundaries:** [`docs/EXTERNAL_RUNTIME_GAPS.md`](../EXTERNAL_RUNTIME_GAPS.md)  

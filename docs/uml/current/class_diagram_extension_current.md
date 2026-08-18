@@ -6,7 +6,7 @@
 | **Purpose** | Model scenario inputs/state, `gary_scenario_engine`, manifest hooks, provenance finalize, and pyAerial bridge **abstractions**. |
 | **Source** | [`docs/uml/class_diagram_extension_current.mmd`](../class_diagram_extension_current.mmd) |
 
-**Controller:** *Detector-conditioned rule-based closed-loop policy baseline (RIC-style abstraction)* — `select_closed_loop_action` / `apply_action_to_kpis`. Full PHY execution remains an **external** target.
+**Controller:** *Detector-conditioned rule-based closed-loop policy baseline (RIC-style abstraction)* — `select_closed_loop_action` / `apply_action_to_kpis`. Gate 2 `twin_policies` is a **separate** rule-based / SLSQP path (`src/airan_research/gate2`). Full PHY execution remains an **external** target.
 
 ```mermaid
 classDiagram
@@ -71,6 +71,22 @@ classDiagram
     cumac_scheduler_abstraction()
   }
 
+  class TwinContext {
+    <<airan_research.gate2>>
+    +site_id
+    +spectrum_budget
+    +from_twin_state()
+  }
+
+  class twin_policies {
+    <<module>>
+    policy_static_uniform()
+    policy_network_only()
+    policy_service_priority()
+    policy_optimization_based()
+    policy_twin_informed()
+  }
+
   ScenarioInputs --> gary_scenario_engine : drives
   gary_scenario_engine --> SiteScenarioState : emits per anchor
   gary_scenario_engine --> gary_scenario_engine : policy + KPI deltas
@@ -80,12 +96,16 @@ classDiagram
   streamlit_extension --> simulation_provenance : finalize + display
   simulation_integration_hooks ..> simulation_provenance : hook dicts
 
+  TwinContext --> twin_policies : rule-based / SLSQP
+  twin_policies ..> gary_scenario_engine : separate Gate 2 path, not Streamlit RIC
+
   pyaerial_bridge ..> PHYBridgeStatus : creates
   pyaerial_bridge ..> PHYControlPlaneHints : creates
   pyaerial_bridge ..> CUMACSchedulerAbstraction : creates
   streamlit_extension --> pyaerial_bridge : optional
 
   note for gary_scenario_engine "Detector-conditioned rule-based closed-loop policy baseline RIC-style abstraction"
+  note for twin_policies "Gate 2: still not RL. POLICY_NAMES static_uniform network_only service_priority optimization_based twin_informed"
 ```
 
 [← Current index](index.md)

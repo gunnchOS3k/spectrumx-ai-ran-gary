@@ -27,6 +27,7 @@ flowchart TB
     Docs[docs/ UML / runbooks / provenance]
     Sub[submissions/*/main.py\ncompetition packages]
     Src[src/edge_ran_gary/*]
+    Airan[src/airan_research/*\nGate 2 rule-based policies]
     Man[examples/simulation_exports/**\ndata/** drop zones]
   end
 
@@ -61,6 +62,7 @@ flowchart TB
   STlocal --> Sub
   STcloud --> Sub
   Sub --> Src
+  CLI --> Airan
 
   Man --> Src
   GPU -.->|simulation exports as JSON/GeoJSON| Man

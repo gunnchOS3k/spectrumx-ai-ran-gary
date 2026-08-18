@@ -9,6 +9,8 @@
 
 ![Container view — current](../rendered/container_view_current.svg)
 
+**Audit (this checkout):** `src/airan_research` (Gate 2) is a completed extension **beside** Streamlit, invoked by `make test` / `python -m airan_research`. PlantUML source updated; re-render SVG when `plantuml.jar` is available. Still **rule-based**, not RL.
+
 **Source (PlantUML):** [container_view_current.puml](../container_view_current.puml)
 
 [← Current index](index.md)

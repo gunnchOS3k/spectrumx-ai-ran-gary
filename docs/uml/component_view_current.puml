@@ -34,6 +34,11 @@ rectangle "Presentation" {
   [Streamlit panels /\nplotly / pydeck] as ui
 }
 
+rectangle "Gate 2 twin policies (CLI)" {
+  [TwinContext.from_twin_state] as tc
+  [policy_twin_informed /\nstatic_uniform / SLSQP] as g2p
+}
+
 iq --> ev
 iq --> base
 iq --> sig
@@ -48,6 +53,9 @@ cas --> pol
 pol --> kpi
 cas --> ui
 kpi --> ui
+
+tc --> g2p
+g2p ..> pol : parallel completed extension\nnot the Streamlit RIC loop
 
 lh --> fin
 fin --> ui

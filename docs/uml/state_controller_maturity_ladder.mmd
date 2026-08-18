@@ -1,8 +1,10 @@
 stateDiagram-v2
   [*] --> RuleBasedBaseline : current Streamlit extension
+  [*] --> Gate2Policies : make test / airan_research CLI
 
   state "Current (shipped)" as C {
     RuleBasedBaseline : Detector-conditioned rule-based\nclosed-loop policy baseline\nRIC-style abstraction
+    Gate2Policies : airan_research.gate2\nstatic_uniform / twin_informed / SLSQP
   }
 
   state "Planned study arms" as P {
@@ -16,3 +18,4 @@ stateDiagram-v2
   OfflineRL --> RICSurrogate : productionization path
 
   note right of RuleBasedBaseline : select_closed_loop_action\nheuristic KPI deltas
+  note right of Gate2Policies : not RL

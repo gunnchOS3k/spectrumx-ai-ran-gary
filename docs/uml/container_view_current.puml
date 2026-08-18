@@ -20,6 +20,7 @@ package "Completed Gary extension" #F3E5F5 {
   [gary_scenario_engine\nrule-based controller] as gse
   [gary_site_geometry +\noccupancy viz + mobility] as geom
   [digital_twin /\nmicro-twin generators] as dt
+  [airan_research.gate2\ntwin_policies rule-based] as g2
 }
 
 package "Simulation + provenance" #FFF8E1 {
@@ -51,6 +52,14 @@ st --> pyb
 st --> ota
 docs ..> st : human review
 cfg ..> hooks
+[make test / python -m airan_research] as cli
+cli --> g2
+
+note bottom of g2
+  Gate 2 twin_policies: rule-based /
+  SLSQP. **Not** Streamlit RL.
+  Needs field-kit twin JSON for tests.
+end note
 
 note bottom of hooks
   DeepMIMO, Sionna RT, AODT, pyAerial, OTA:

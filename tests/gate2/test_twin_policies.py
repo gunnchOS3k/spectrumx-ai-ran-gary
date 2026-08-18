@@ -12,6 +12,11 @@ FK = Path(__file__).resolve().parents[3] / "gunnchos-7gc-ai-ran-field-kit"
 TWIN = FK / "fixtures/valid/twin_state_bundle.valid.json"
 SCHEMA = FK / "contracts"
 
+pytestmark = pytest.mark.skipif(
+    not TWIN.is_file() or not SCHEMA.is_dir(),
+    reason="sibling gunnchos-7gc-ai-ran-field-kit fixtures not present; Gate 2 skipped (competition packages untouched)",
+)
+
 
 def test_uses_supplied_twin_state(tmp_path):
     out = tmp_path / "d.json"

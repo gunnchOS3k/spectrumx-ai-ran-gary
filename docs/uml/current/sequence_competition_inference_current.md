@@ -41,7 +41,7 @@ sequenceDiagram
   ST->>VZ: Time / PSD / spectrogram / microscope
   VZ-->>User: Rendered views
 
-  Note over PKG,LE: Official leaderboard scoring uses organizer pipeline\nnot this Streamlit session
+  Note over PKG: Official leaderboard scoring uses organizer pipeline, not this Streamlit session
 ```
 
 [← Current index](index.md)
