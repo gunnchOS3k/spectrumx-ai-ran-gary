@@ -56,6 +56,10 @@ policies:
   - twin_informed
   - information_equivalent
   - oracle
+  - fixed_target_fidelity
+  - adaptive_fidelity
+  - checkpoint_disabled
+  - adaptive_checkpoint
 
 policy_definitions:
   no_adaptation: Always cloud + terrestrial (or first listed network); equal shares; never switches.
@@ -67,7 +71,28 @@ policy_definitions:
   optimization_based: SLSQP on sum(log(1+share)) under spectrum budget if scipy is present; else static_uniform fallback recorded as such.
   twin_informed: Joint use of outage, energy, continuity class, latency, and compute nodes plus constrained shares.
   information_equivalent: Same feature vector as twin_informed; different policy (frozen linear action scores, uniform shares).
-  oracle: Model-oracle over discrete placement x network on the current slot under the same analytical metric including switch penalties. Not a future-peek. Not measured RF.
+  oracle: Model-oracle over discrete placement x network x fidelity on the current slot under the same analytical metric including switch penalties. Not a future-peek. Not measured RF.
+  fixed_target_fidelity: Baseline holding fidelity_level=target with checkpoint/recover disabled.
+  adaptive_fidelity: Chooses fidelity_level in {target, degraded, minimum_useful} from current-slot energy/latency/outage thresholds only.
+  checkpoint_disabled: Baseline with checkpoint_action/recover_action always none.
+  adaptive_checkpoint: Cross-layer checkpoint/recover from current-slot checkpoint availability/age/progress/budget; thrash prevention; safe degraded/offline continuation on failed recover.
+
+fidelity_levels:
+  - target
+  - degraded
+  - minimum_useful
+
+fidelity_service_profile: >
+  Continuity factors target=1.0, degraded=0.85, minimum_useful=0.65;
+  energy factors target=1.15, degraded=1.0, minimum_useful=0.75;
+  fidelity switch penalty=0.04. Utility reflects fidelity only via these documented thresholds/costs.
+
+checkpoint_recovery:
+  checkpoint_action_penalty: 0.03
+  recover_action_penalty: 0.06
+  stale_checkpoint_age_slots: 8
+  thrash_penalty: 0.08
+  note: Application persistence is NOT claimed; this is cross-layer policy control only. ReadyGary beam export not required.
 
 ablations:
   - full
@@ -92,6 +117,9 @@ metrics:
 costs:
   network_switch_penalty: 0.05
   placement_switch_penalty: 0.03
+  fidelity_switch_penalty: 0.04
+  checkpoint_action_penalty: 0.03
+  recover_action_penalty: 0.06
   compute_time_is: HOST_PROCESS_TIMING
 
 information_equivalent_weights:

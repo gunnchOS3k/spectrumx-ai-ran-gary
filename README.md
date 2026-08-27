@@ -185,7 +185,7 @@ This repository implements a **two-phase architecture**:
 
 1. **Competition Core (Phase 1)**: Real-time spectrum occupancy detection from 1-second IQ samples
    - Binary classification: occupied (signal present) vs. unoccupied (noise only)
-   - Production-ready detection pipeline with baseline and ML models
+   - Research-grade detection pipeline with baseline and ML model submissions (prototype; not production RAN, not carrier-grade, not field-validated)
    - Streamlit dashboard for visualization and model comparison
 
 2. **Research Extension (Phase 2)**: Gary digital twin + **detector-conditioned rule-based closed-loop policy baseline (RIC-style abstraction)** in Streamlit

@@ -1,0 +1,52 @@
+{
+  "observation_set": [
+    "blockage",
+    "checkpoint_age_slots",
+    "checkpoint_available",
+    "continuity_strict",
+    "edge_capacity",
+    "energy_budget",
+    "latency_ms",
+    "mobility",
+    "packet_loss_pct",
+    "recovery_budget",
+    "task_progress",
+    "terrestrial_outage"
+  ],
+  "observation_values": {
+    "latency_ms": 58.21770123928726,
+    "packet_loss_pct": 1.1521681836790942,
+    "terrestrial_outage": 1.0,
+    "energy_budget": 61.32221084228233,
+    "edge_capacity": 0.947653346366633,
+    "blockage": 0.2439810717600817,
+    "mobility": 0.8631789223498866,
+    "continuity_strict": 0.0,
+    "checkpoint_available": 0.0,
+    "checkpoint_age_slots": 11.0,
+    "task_progress": 0.8287936350994339,
+    "recovery_budget": 0.0453736920488743
+  },
+  "adaptive_policy": "adaptive_fidelity",
+  "baseline_policy": "fixed_target_fidelity",
+  "adaptive_uses_only_observation_set": true,
+  "baseline_uses_only_observation_set": true,
+  "oracle_privileged_future": false,
+  "hidden_state_used": false,
+  "adaptive_action": {
+    "network": "local_edge_wifi",
+    "placement": "edge",
+    "fidelity_level": "minimum_useful",
+    "checkpoint_action": "none",
+    "recover_action": "none"
+  },
+  "baseline_action": {
+    "network": "local_edge_wifi",
+    "placement": "cloud",
+    "fidelity_level": "target",
+    "checkpoint_action": "none",
+    "recover_action": "none"
+  },
+  "evidence_class": "SYNTHETIC_SIM",
+  "note": "Information-equivalent comparison documents the same Slot.feature_vector(); oracle policy is labeled separately and is not used as a fair adaptive baseline."
+}

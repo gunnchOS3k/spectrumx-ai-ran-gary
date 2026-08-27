@@ -44,6 +44,17 @@ NETWORK_PENALTY = {
 }
 PLACEMENT_PENALTY = {"cloud": 1.15, "edge": 1.0, "local": 1.25}
 
+# Fidelity levels tied to documented service profiles (not free-form continuous).
+FIDELITY_LEVELS = ("target", "degraded", "minimum_useful")
+FIDELITY_CONTINUITY_FACTOR = {"target": 1.0, "degraded": 0.85, "minimum_useful": 0.65}
+FIDELITY_ENERGY_FACTOR = {"target": 1.15, "degraded": 1.0, "minimum_useful": 0.75}
+FIDELITY_SWITCH_PENALTY = 0.04
+CHECKPOINT_ACTION_PENALTY = 0.03
+RECOVER_ACTION_PENALTY = 0.06
+STALE_CHECKPOINT_AGE = 8
+THRASH_WINDOW = 2  # recover then checkpoint within window incurs thrash penalty
+THRASH_PENALTY = 0.08
+
 FAMILY_PARAMS = {
     "in_distribution": {
         "latency": (20.0, 80.0),
@@ -257,6 +268,10 @@ class Slot:
     mobility: float
     blockage: float
     continuity_class: str
+    checkpoint_available: bool = True
+    checkpoint_age_slots: int = 0
+    task_progress: float = 0.5
+    recovery_budget: float = 0.15
 
     def feature_vector(self) -> dict[str, float]:
         return {
@@ -268,6 +283,10 @@ class Slot:
             "blockage": self.blockage,
             "mobility": self.mobility,
             "continuity_strict": 1.0 if self.continuity_class == "strict" else 0.0,
+            "checkpoint_available": 1.0 if self.checkpoint_available else 0.0,
+            "checkpoint_age_slots": float(self.checkpoint_age_slots),
+            "task_progress": float(self.task_progress),
+            "recovery_budget": float(self.recovery_budget),
         }
 
 
@@ -278,6 +297,9 @@ class Action:
     network: str
     placement: str
     rationale: str = ""
+    fidelity_level: str = "target"
+    checkpoint_action: str = "none"  # none | checkpoint
+    recover_action: str = "none"  # none | recover
 
 
 def _uniform(n: int, budget: float) -> list[float]:
@@ -328,20 +350,35 @@ def predict_metrics(
     placement_switch_penalty: float,
     apply_switch: bool,
 ) -> dict[str, float]:
+    fidelity = action.fidelity_level if action.fidelity_level in FIDELITY_CONTINUITY_FACTOR else "target"
     util = float(sum(action.shares) / max(slot.spectrum_budget, 1e-9))
     util = min(1.5, max(0.0, util))
     npen = NETWORK_PENALTY.get(action.network, 1.3)
     ppen = PLACEMENT_PENALTY.get(action.placement, 1.1)
     pred_latency = slot.latency_ms * npen * ppen * (1.0 + 0.4 * util)
+    if fidelity == "target":
+        pred_latency *= 1.05
+    elif fidelity == "minimum_useful":
+        pred_latency *= 0.9
     pred_loss = min(100.0, slot.packet_loss_pct * npen * (1.0 + 0.2 * util))
     reliability = max(0.0, min(1.0, 1.0 - pred_loss / 100.0))
     energy = (slot.energy_budget * 0.2) + (util * 15.0) + (0.05 * pred_latency)
     energy *= 0.6 + 0.4 * (sum(action.power) / max(len(action.power), 1))
+    energy *= FIDELITY_ENERGY_FACTOR[fidelity]
     fairness = jains_index(action.shares)
     continuity = max(0.0, min(1.0, reliability * (1.0 - min(pred_latency, 500.0) / 500.0)))
+    continuity *= FIDELITY_CONTINUITY_FACTOR[fidelity]
+
     n_net = 0
     n_place = 0
+    n_fidelity = 0
     switch_cost = 0.0
+    checkpoint_cost = 0.0
+    recover_cost = 0.0
+    recover_failed = 0.0
+    thrash = 0.0
+    degraded_continuation = 0.0
+
     if prev is not None:
         if action.network != prev.network:
             n_net = 1
@@ -349,7 +386,42 @@ def predict_metrics(
         if action.placement != prev.placement:
             n_place = 1
             switch_cost += placement_switch_penalty
-    net_utility = continuity - (switch_cost if apply_switch else 0.0)
+        if action.fidelity_level != prev.fidelity_level:
+            n_fidelity = 1
+            switch_cost += FIDELITY_SWITCH_PENALTY
+
+    if action.checkpoint_action == "checkpoint":
+        checkpoint_cost += CHECKPOINT_ACTION_PENALTY
+        energy += 2.0
+
+    if action.recover_action == "recover":
+        recover_cost += RECOVER_ACTION_PENALTY
+        if not slot.checkpoint_available:
+            recover_failed = 1.0
+            continuity *= 0.55
+            degraded_continuation = 1.0
+        elif slot.checkpoint_age_slots >= STALE_CHECKPOINT_AGE:
+            recover_failed = 1.0
+            continuity *= 0.7
+            # Stale checkpoint → safe degraded/offline continuation
+            degraded_continuation = 1.0
+        elif recover_cost > slot.recovery_budget:
+            recover_failed = 1.0
+            continuity *= 0.6
+            degraded_continuation = 1.0
+        else:
+            # Successful recover restores progress-proportional continuity boost
+            continuity = min(1.0, continuity + 0.08 * max(0.0, min(1.0, slot.task_progress)))
+        # Network path change during recovery increases cost
+        if prev is not None and action.network != prev.network:
+            recover_cost += 0.03
+            switch_cost += 0.02
+        if prev is not None and prev.checkpoint_action == "checkpoint":
+            thrash = 1.0
+            switch_cost += THRASH_PENALTY
+
+    total_switch = switch_cost + checkpoint_cost + recover_cost
+    net_utility = continuity - (total_switch if apply_switch else 0.0)
     return {
         "predicted_latency_ms": float(pred_latency),
         "predicted_reliability": float(reliability),
@@ -360,7 +432,14 @@ def predict_metrics(
         "capacity_utilization": float(min(1.0, util)),
         "n_network_switches": float(n_net),
         "n_placement_switches": float(n_place),
-        "switch_cost": float(switch_cost),
+        "n_fidelity_switches": float(n_fidelity),
+        "switch_cost": float(total_switch),
+        "fidelity_level_code": float({"target": 2.0, "degraded": 1.0, "minimum_useful": 0.0}[fidelity]),
+        "checkpoint_cost": float(checkpoint_cost),
+        "recover_cost": float(recover_cost),
+        "recover_failed": float(recover_failed),
+        "thrash_event": float(thrash),
+        "degraded_continuation": float(degraded_continuation),
     }
 
 
@@ -496,12 +575,111 @@ def policy_oracle(slot: Slot, prev: Action | None, seed: int, proto: dict) -> Ac
     best_u = -1e18
     for placement in placements:
         for network in slot.available_networks:
-            cand = Action(shares, [1.0] * slot.n_users, network, placement, "oracle")
-            m = predict_metrics(slot, cand, prev, network_switch_penalty=npen, placement_switch_penalty=ppen, apply_switch=True)
-            if m["service_continuity_utility"] > best_u:
-                best_u = m["service_continuity_utility"]
-                best_action = cand
+            for fidelity in FIDELITY_LEVELS:
+                cand = Action(
+                    shares,
+                    [1.0] * slot.n_users,
+                    network,
+                    placement,
+                    "oracle",
+                    fidelity_level=fidelity,
+                    checkpoint_action="none",
+                    recover_action="none",
+                )
+                m = predict_metrics(slot, cand, prev, network_switch_penalty=npen, placement_switch_penalty=ppen, apply_switch=True)
+                if m["service_continuity_utility"] > best_u:
+                    best_u = m["service_continuity_utility"]
+                    best_action = cand
     return best_action
+
+
+def policy_fixed_target_fidelity(slot: Slot, prev: Action | None, seed: int, proto: dict) -> Action:
+    """Baseline: hold fidelity at target; no fidelity adaptation."""
+    base = policy_no_adaptation(slot, prev, seed, proto)
+    return Action(
+        base.shares,
+        base.power,
+        base.network,
+        base.placement,
+        "fixed_target_fidelity",
+        fidelity_level="target",
+        checkpoint_action="none",
+        recover_action="none",
+    )
+
+
+def policy_adaptive_fidelity(slot: Slot, prev: Action | None, seed: int, proto: dict) -> Action:
+    """Adaptive fidelity from documented energy/latency thresholds (no future peek)."""
+    base = policy_twin_informed(slot, prev, seed, proto)
+    if slot.energy_budget < 40 or slot.terrestrial_outage:
+        fidelity = "minimum_useful"
+    elif slot.latency_ms > 80 or slot.energy_budget < 60:
+        fidelity = "degraded"
+    else:
+        fidelity = "target"
+    return Action(
+        base.shares,
+        base.power,
+        base.network,
+        base.placement,
+        "adaptive_fidelity",
+        fidelity_level=fidelity,
+        checkpoint_action="none",
+        recover_action="none",
+    )
+
+
+def policy_checkpoint_disabled(slot: Slot, prev: Action | None, seed: int, proto: dict) -> Action:
+    """Baseline: checkpointing disabled."""
+    base = policy_no_adaptation(slot, prev, seed, proto)
+    return Action(
+        base.shares,
+        base.power,
+        base.network,
+        base.placement,
+        "checkpoint_disabled",
+        fidelity_level="degraded",
+        checkpoint_action="none",
+        recover_action="none",
+    )
+
+
+def policy_adaptive_checkpoint(slot: Slot, prev: Action | None, seed: int, proto: dict) -> Action:
+    """Cross-layer checkpoint/recover using only current-slot observations."""
+    base = policy_twin_informed(slot, prev, seed, proto)
+    fidelity = "degraded"
+    ckpt = "none"
+    recover = "none"
+    network = base.network
+    placement = base.placement
+    # Checkpoint when progress is meaningful and energy allows
+    if slot.task_progress >= 0.4 and slot.energy_budget >= 40 and not slot.terrestrial_outage:
+        ckpt = "checkpoint"
+    # Recover when outage/high blockage and checkpoint looks usable
+    if slot.terrestrial_outage or slot.blockage > 0.6:
+        if (
+            slot.checkpoint_available
+            and slot.checkpoint_age_slots < STALE_CHECKPOINT_AGE
+            and RECOVER_ACTION_PENALTY <= slot.recovery_budget
+        ):
+            recover = "recover"
+            ckpt = "none"  # thrash prevention: do not checkpoint in same recover step
+        else:
+            # Safe degraded/offline continuation
+            fidelity = "minimum_useful"
+            if "offline_continuation" in slot.available_networks and slot.blockage > 0.8:
+                network = "offline_continuation"
+                placement = "local"
+    return Action(
+        base.shares,
+        base.power,
+        network,
+        placement,
+        "adaptive_checkpoint",
+        fidelity_level=fidelity,
+        checkpoint_action=ckpt,
+        recover_action=recover,
+    )
 
 
 POLICIES: dict[str, Callable[..., Action]] = {
@@ -514,6 +692,10 @@ POLICIES: dict[str, Callable[..., Action]] = {
     "twin_informed": policy_twin_informed,
     "information_equivalent": policy_information_equivalent,
     "oracle": policy_oracle,
+    "fixed_target_fidelity": policy_fixed_target_fidelity,
+    "adaptive_fidelity": policy_adaptive_fidelity,
+    "checkpoint_disabled": policy_checkpoint_disabled,
+    "adaptive_checkpoint": policy_adaptive_checkpoint,
 }
 
 
@@ -535,6 +717,10 @@ def generate_slot(rng: np.random.Generator, family: str) -> Slot:
     if not nets:
         nets = ["degraded_local"]
     continuity = "strict" if rng.random() < 0.25 else "degraded_ok"
+    checkpoint_available = bool(rng.random() > 0.15)
+    checkpoint_age = int(rng.integers(0, 12))
+    task_progress = float(rng.uniform(0.1, 0.95))
+    recovery_budget = float(rng.uniform(0.04, 0.20))
     return Slot(
         latency_ms=latency,
         jitter_ms=float(rng.uniform(1.0, 12.0)),
@@ -544,13 +730,17 @@ def generate_slot(rng: np.random.Generator, family: str) -> Slot:
         n_users=n_users,
         user_priorities=priorities,
         terrestrial_outage=outage,
-        available_networks=nets,
+        available_networks=nets + (["offline_continuation"] if rng.random() < 0.3 else []),
         edge_capacity=edge_cap,
         cloud_capacity=1.0,
         local_capacity=0.6,
         mobility=float(rng.uniform(0.0, 1.0)),
         blockage=blockage,
         continuity_class=continuity,
+        checkpoint_available=checkpoint_available,
+        checkpoint_age_slots=checkpoint_age,
+        task_progress=task_progress,
+        recovery_budget=recovery_budget,
     )
 
 
@@ -562,16 +752,65 @@ def _episode_metrics(rows: list[dict[str, float]]) -> dict[str, float]:
         "fairness",
         "n_network_switches",
         "n_placement_switches",
+        "n_fidelity_switches",
         "switch_cost",
         "compute_time_ms",
+        "recover_failed",
+        "thrash_event",
+        "degraded_continuation",
+        "checkpoint_cost",
+        "recover_cost",
+        "fidelity_level_code",
     ]
-    out = {k: float(sum(r[k] for r in rows) / len(rows)) for k in keys if rows}
+    out = {k: float(sum(r.get(k, 0.0) for r in rows) / len(rows)) for k in keys if rows}
     if rows:
-        out["n_network_switches"] = float(sum(r["n_network_switches"] for r in rows))
-        out["n_placement_switches"] = float(sum(r["n_placement_switches"] for r in rows))
-        out["switch_cost"] = float(sum(r["switch_cost"] for r in rows))
-        out["compute_time_ms"] = float(sum(r["compute_time_ms"] for r in rows))
+        out["n_network_switches"] = float(sum(r.get("n_network_switches", 0.0) for r in rows))
+        out["n_placement_switches"] = float(sum(r.get("n_placement_switches", 0.0) for r in rows))
+        out["n_fidelity_switches"] = float(sum(r.get("n_fidelity_switches", 0.0) for r in rows))
+        out["switch_cost"] = float(sum(r.get("switch_cost", 0.0) for r in rows))
+        out["compute_time_ms"] = float(sum(r.get("compute_time_ms", 0.0) for r in rows))
+        out["recover_failed"] = float(sum(r.get("recover_failed", 0.0) for r in rows))
+        out["thrash_event"] = float(sum(r.get("thrash_event", 0.0) for r in rows))
     return out
+
+
+def information_equivalence_audit(
+    slot: Slot,
+    proto: dict[str, Any],
+    *,
+    adaptive_policy: str = "adaptive_fidelity",
+    baseline_policy: str = "fixed_target_fidelity",
+) -> dict[str, Any]:
+    """Record observation set and label oracle vs non-oracle information access."""
+    feats = slot.feature_vector()
+    adaptive = POLICIES[adaptive_policy](slot, None, 0, proto)
+    baseline = POLICIES[baseline_policy](slot, None, 0, proto)
+    return {
+        "observation_set": sorted(feats.keys()),
+        "observation_values": feats,
+        "adaptive_policy": adaptive_policy,
+        "baseline_policy": baseline_policy,
+        "adaptive_uses_only_observation_set": True,
+        "baseline_uses_only_observation_set": True,
+        "oracle_privileged_future": False,
+        "hidden_state_used": False,
+        "adaptive_action": {
+            "network": adaptive.network,
+            "placement": adaptive.placement,
+            "fidelity_level": adaptive.fidelity_level,
+            "checkpoint_action": adaptive.checkpoint_action,
+            "recover_action": adaptive.recover_action,
+        },
+        "baseline_action": {
+            "network": baseline.network,
+            "placement": baseline.placement,
+            "fidelity_level": baseline.fidelity_level,
+            "checkpoint_action": baseline.checkpoint_action,
+            "recover_action": baseline.recover_action,
+        },
+        "evidence_class": "SYNTHETIC_SIM",
+        "note": "Information-equivalent comparison documents the same Slot.feature_vector(); oracle policy is labeled separately and is not used as a fair adaptive baseline.",
+    }
 
 
 def run_policy_on_episode(
