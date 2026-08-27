@@ -12,7 +12,7 @@
 | New actions | `fidelity_level ∈ {target,degraded,minimum_useful}`, `checkpoint_action`, `recover_action` |
 | Baselines | `fixed_target_fidelity`, `checkpoint_disabled` |
 | Adaptive | `adaptive_fidelity`, `adaptive_checkpoint` |
-| Observation contract | `PolicyObservation` + `ALLOWED_OBSERVATION_FIELDS`; audit booleans computed |
+| Observation contract | `PolicyObservation` (declared `required_fields` only) + `PolicyActionSpace`; runtime `PermissionError` on undeclared/oracle fields; audit PASS from runtime probes |
 | Checkpoint/recovery | Causal `CheckpointRuntimeState` (exists/age/progress/last slots); rolling `THRASH_WINDOW=2` |
 | Synthetic params | Versioned `synthetic_parameters` in protocol + predeclared sensitivity JSON |
 | Outputs | `rq2_fidelity_checkpoint_tiny.json`, `rq2_information_equivalence_audit.json`, `rq2_fidelity_recovery_sensitivity.json`, frozen Paper-II train/heldout/domain/ablation JSONs + tables |

@@ -86,6 +86,18 @@ NETWORK_CHANGE_RECOVER_EXTRA = 0.03
 SUCCESSFUL_RECOVER_CONTINUITY_BOOST = 0.08
 
 # Restricted current-slot observation contract (non-oracle).
+#
+# Access rule (OBSERVATION_ACCESS_RULE): each non-oracle policy may read ONLY the
+# fields listed in its POLICY_REQUIRED_FIELDS declaration. Fair fields that are
+# undeclared for that policy raise PermissionError at runtime. required_fields
+# therefore proves the accessible observation set (not merely a subset of a
+# larger global bag handed to the policy).
+#
+# Structural / action-space constraints (n_users, spectrum_budget, networks,
+# placement capacities, user_priorities) are NOT observations — see
+# PolicyActionSpace / ACTION_SPACE_FIELDS. Oracle-only privilege is explicit via
+# ORACLE_EXTRA_FIELDS (model_oracle_metric_eval) plus privileged_slot for metric eval.
+OBSERVATION_ACCESS_RULE = "declared_requirements_plus_action_space"
 ALLOWED_OBSERVATION_FIELDS = frozenset(
     {
         "latency_ms",
@@ -100,6 +112,17 @@ ALLOWED_OBSERVATION_FIELDS = frozenset(
         "checkpoint_age_slots",
         "task_progress",
         "recovery_budget",
+    }
+)
+ACTION_SPACE_FIELDS = frozenset(
+    {
+        "n_users",
+        "spectrum_budget",
+        "user_priorities",
+        "available_networks",
+        "edge_capacity",
+        "cloud_capacity",
+        "local_capacity",
     }
 )
 ORACLE_EXTRA_FIELDS = frozenset({"model_oracle_metric_eval"})
@@ -118,13 +141,19 @@ POLICY_REQUIRED_FIELDS: dict[str, frozenset[str]] = {
     ),
     "oracle": frozenset(ALLOWED_OBSERVATION_FIELDS | ORACLE_EXTRA_FIELDS),
     "fixed_target_fidelity": frozenset({"energy_budget"}),
-    "adaptive_fidelity": frozenset({"latency_ms", "terrestrial_outage", "energy_budget"}),
+    # Includes twin_informed base fields (transitive declaration).
+    "adaptive_fidelity": frozenset(
+        {"latency_ms", "terrestrial_outage", "energy_budget", "edge_capacity", "continuity_strict"}
+    ),
     "checkpoint_disabled": frozenset({"energy_budget"}),
+    # Includes twin_informed base fields (transitive declaration).
     "adaptive_checkpoint": frozenset(
         {
             "latency_ms",
             "terrestrial_outage",
             "energy_budget",
+            "edge_capacity",
+            "continuity_strict",
             "blockage",
             "checkpoint_available",
             "checkpoint_age_slots",
@@ -405,22 +434,62 @@ class Action:
 
 
 @dataclass(frozen=True)
-class PolicyObservation:
-    """Restricted current-slot observation view for non-oracle policies."""
+class PolicyActionSpace:
+    """Structural / feasibility constraints shared with every policy.
 
-    fields: dict[str, float]
+    These are not fair observations. They define who to allocate to and which
+    networks/placements are feasible. Documented separately from PolicyObservation.
+    """
+
+    n_users: int
+    spectrum_budget: float
+    user_priorities: tuple[int, ...]
+    available_networks: tuple[str, ...]
+    edge_capacity: float
+    cloud_capacity: float
+    local_capacity: float
+
+
+@dataclass(frozen=True)
+class PolicyObservation:
+    """Restricted current-slot observation view.
+
+    Access rule: OBSERVATION_ACCESS_RULE = declared_requirements_plus_action_space.
+    Non-oracle policies may only ``.get`` / attribute-read fields in their
+    POLICY_REQUIRED_FIELDS declaration. Undeclared fair fields and oracle-only
+    fields raise PermissionError. Direct Slot is never passed to non-oracle policies.
+    """
+
+    _fields: dict[str, float]
     policy_name: str
-    allowed_fields: frozenset[str] = ALLOWED_OBSERVATION_FIELDS
+    allowed_fields: frozenset[str] = field(default_factory=lambda: frozenset())
 
     def get(self, key: str) -> float:
         if key not in self.allowed_fields:
-            raise PermissionError(f"Policy {self.policy_name} prohibited observation field: {key}")
-        if key not in self.fields:
+            raise PermissionError(
+                f"Policy {self.policy_name} prohibited observation field: {key} "
+                f"(access_rule={OBSERVATION_ACCESS_RULE})"
+            )
+        if key not in self._fields:
             raise KeyError(key)
-        return float(self.fields[key])
+        return float(self._fields[key])
+
+    def __getattr__(self, name: str) -> float:
+        # Typed attribute access mirrors .get under the same permission check.
+        if name.startswith("_"):
+            raise AttributeError(name)
+        return self.get(name)
+
+    @property
+    def fields(self) -> dict[str, float]:
+        return {
+            k: float(self._fields[k])
+            for k in sorted(self._fields)
+            if k in self.allowed_fields and k in self._fields
+        }
 
     def as_dict(self) -> dict[str, float]:
-        return {k: float(self.fields[k]) for k in sorted(self.fields) if k in self.allowed_fields}
+        return self.fields
 
 
 @dataclass
@@ -476,31 +545,80 @@ class CheckpointRuntimeState:
         return "checkpoint" in window and "recover" in window
 
 
+def action_space_from_slot(slot: Slot) -> PolicyActionSpace:
+    return PolicyActionSpace(
+        n_users=int(slot.n_users),
+        spectrum_budget=float(slot.spectrum_budget),
+        user_priorities=tuple(int(p) for p in slot.user_priorities),
+        available_networks=tuple(str(n) for n in slot.available_networks),
+        edge_capacity=float(slot.edge_capacity),
+        cloud_capacity=float(slot.cloud_capacity),
+        local_capacity=float(slot.local_capacity),
+    )
+
+
+def policy_access_allowed_fields(policy_name: str) -> frozenset[str]:
+    """Runtime-accessible observation fields for a policy under OBSERVATION_ACCESS_RULE."""
+    required = POLICY_REQUIRED_FIELDS.get(policy_name, frozenset())
+    if policy_name == "oracle":
+        return frozenset(ALLOWED_OBSERVATION_FIELDS | ORACLE_EXTRA_FIELDS)
+    # Declared-only: accessible set == required declaration (must be ⊆ fair set).
+    return frozenset(required)
+
+
 def observation_from_slot(slot: Slot, policy_name: str) -> PolicyObservation:
     feats = slot.feature_vector()
     if policy_name == "oracle":
         feats = {**feats, "model_oracle_metric_eval": 1.0}
-        allowed = ALLOWED_OBSERVATION_FIELDS | ORACLE_EXTRA_FIELDS
-    else:
-        allowed = ALLOWED_OBSERVATION_FIELDS
-        feats = {k: v for k, v in feats.items() if k in allowed}
-    return PolicyObservation(fields=feats, policy_name=policy_name, allowed_fields=allowed)
+    allowed = policy_access_allowed_fields(policy_name)
+    # Materialize only accessible values; undeclared keys are absent and blocked by .get.
+    restricted = {k: float(feats[k]) for k in allowed if k in feats}
+    return PolicyObservation(_fields=restricted, policy_name=policy_name, allowed_fields=allowed)
 
 
 def validate_policy_observation_contract(policy_name: str) -> dict[str, Any]:
     required = POLICY_REQUIRED_FIELDS.get(policy_name, frozenset())
     if policy_name == "oracle":
-        allowed = ALLOWED_OBSERVATION_FIELDS | ORACLE_EXTRA_FIELDS
+        fair_ceiling = ALLOWED_OBSERVATION_FIELDS | ORACLE_EXTRA_FIELDS
     else:
-        allowed = ALLOWED_OBSERVATION_FIELDS
-    ok = required <= allowed
+        fair_ceiling = ALLOWED_OBSERVATION_FIELDS
+    access_allowed = policy_access_allowed_fields(policy_name)
+    ok = required <= fair_ceiling
     return {
         "policy": policy_name,
         "required_fields": sorted(required),
-        "allowed_observation_fields": sorted(allowed),
+        "allowed_observation_fields": sorted(access_allowed),
+        "fair_observation_ceiling": sorted(fair_ceiling),
+        "access_rule": OBSERVATION_ACCESS_RULE,
         "required_subseteq_allowed": ok,
-        "violations": sorted(required - allowed),
+        "violations": sorted(required - fair_ceiling),
     }
+
+
+def call_policy(
+    policy_name: str,
+    slot: Slot,
+    prev: Action | None,
+    seed: int,
+    proto: dict,
+) -> Action:
+    """Invoke a policy with runtime-restricted inputs (never full Slot for non-oracle)."""
+    name = policy_name
+    if name == "static":
+        name = "rule_based"
+    if name not in POLICIES:
+        raise ValueError(f"Unknown policy {policy_name}")
+    contract = validate_policy_observation_contract(name)
+    if not contract["required_subseteq_allowed"]:
+        raise PermissionError(
+            f"Policy {name} violates observation contract: {contract['violations']}"
+        )
+    obs = observation_from_slot(slot, name)
+    space = action_space_from_slot(slot)
+    fn = POLICIES[name]
+    if name == "oracle":
+        return fn(obs, space, prev, seed, proto, privileged_slot=slot)
+    return fn(obs, space, prev, seed, proto)
 
 
 def resolve_synthetic_params(proto: dict[str, Any]) -> dict[str, Any]:
@@ -578,39 +696,39 @@ def _uniform(n: int, budget: float) -> list[float]:
     return [budget / max(n, 1)] * n
 
 
-def _priority_shares(slot: Slot) -> list[float]:
-    weights = [1.0 / max(1, p) for p in slot.user_priorities[: slot.n_users]]
-    while len(weights) < slot.n_users:
+def _priority_shares(space: PolicyActionSpace) -> list[float]:
+    weights = [1.0 / max(1, p) for p in space.user_priorities[: space.n_users]]
+    while len(weights) < space.n_users:
         weights.append(1.0 / 3.0)
     total = sum(weights) or 1.0
-    return [slot.spectrum_budget * w / total for w in weights]
+    return [space.spectrum_budget * w / total for w in weights]
 
 
-def _optimize_shares(slot: Slot, seed: int) -> tuple[list[float], str]:
+def _optimize_shares(space: PolicyActionSpace, seed: int) -> tuple[list[float], str]:
     try:
         from scipy.optimize import minimize
     except ImportError:
-        return _uniform(slot.n_users, slot.spectrum_budget), "scipy_missing_static_uniform"
-    n = slot.n_users
+        return _uniform(space.n_users, space.spectrum_budget), "scipy_missing_static_uniform"
+    n = space.n_users
     rng = np.random.default_rng(seed)
-    x0 = np.full(n, slot.spectrum_budget / max(n, 1)) + rng.normal(0, 1e-6, size=n)
+    x0 = np.full(n, space.spectrum_budget / max(n, 1)) + rng.normal(0, 1e-6, size=n)
 
     def objective(x: np.ndarray) -> float:
         return -float(np.sum(np.log1p(np.maximum(x, 1e-9)))) + 0.01 * float(np.sum(x))
 
-    constraints = [{"type": "ineq", "fun": lambda x: slot.spectrum_budget - np.sum(x)}]
-    bounds = [(0.1, slot.spectrum_budget)] * n
+    constraints = [{"type": "ineq", "fun": lambda x: space.spectrum_budget - np.sum(x)}]
+    bounds = [(0.1, space.spectrum_budget)] * n
     res = minimize(objective, x0, method="SLSQP", bounds=bounds, constraints=constraints)
     if not res.success:
-        return _uniform(n, slot.spectrum_budget), "optimization_infeasible_static_uniform"
+        return _uniform(n, space.spectrum_budget), "optimization_infeasible_static_uniform"
     return [float(v) for v in res.x], "slsqp"
 
 
-def _pick_available(slot: Slot, preferred: list[str]) -> str:
+def _pick_available(space: PolicyActionSpace, preferred: list[str]) -> str:
     for name in preferred:
-        if name in slot.available_networks:
+        if name in space.available_networks:
             return name
-    return slot.available_networks[0] if slot.available_networks else "offline_continuation"
+    return space.available_networks[0] if space.available_networks else "offline_continuation"
 
 
 def predict_metrics(
@@ -762,68 +880,106 @@ def _ablate_slot(slot: Slot, ablation: str) -> Slot:
     return Slot(**data)
 
 
-def policy_no_adaptation(slot: Slot, prev: Action | None, seed: int, proto: dict) -> Action:
+def policy_no_adaptation(
+    obs: PolicyObservation, space: PolicyActionSpace, prev: Action | None, seed: int, proto: dict
+) -> Action:
+    _ = obs, prev, seed, proto
+    net = (
+        "terrestrial"
+        if "terrestrial" in space.available_networks
+        else _pick_available(space, ["terrestrial"])
+    )
+    return Action(
+        _uniform(space.n_users, space.spectrum_budget),
+        [1.0] * space.n_users,
+        net,
+        "cloud",
+        "no_adaptation",
+    )
+
+
+def policy_local_only(
+    obs: PolicyObservation, space: PolicyActionSpace, prev: Action | None, seed: int, proto: dict
+) -> Action:
+    _ = obs, prev, seed, proto
+    net = _pick_available(space, ["degraded_local", "device_to_device", "local_edge_wifi"])
+    return Action(
+        _uniform(space.n_users, space.spectrum_budget),
+        [0.7] * space.n_users,
+        net,
+        "local",
+        "local_only",
+    )
+
+
+def policy_cloud_only(
+    obs: PolicyObservation, space: PolicyActionSpace, prev: Action | None, seed: int, proto: dict
+) -> Action:
+    _ = obs, prev, seed, proto
+    net = _pick_available(space, ["terrestrial", "ntn_fallback"])
+    return Action(
+        _uniform(space.n_users, space.spectrum_budget),
+        [1.0] * space.n_users,
+        net,
+        "cloud",
+        "cloud_only",
+    )
+
+
+def policy_edge_only(
+    obs: PolicyObservation, space: PolicyActionSpace, prev: Action | None, seed: int, proto: dict
+) -> Action:
+    _ = obs, prev, seed, proto
+    net = _pick_available(space, ["local_edge_wifi", "degraded_local"])
+    return Action(_priority_shares(space), [0.9] * space.n_users, net, "edge", "edge_only")
+
+
+def policy_rule_based(
+    obs: PolicyObservation, space: PolicyActionSpace, prev: Action | None, seed: int, proto: dict
+) -> Action:
     _ = prev, seed, proto
-    net = "terrestrial" if "terrestrial" in slot.available_networks else _pick_available(slot, ["terrestrial"])
-    return Action(_uniform(slot.n_users, slot.spectrum_budget), [1.0] * slot.n_users, net, "cloud", "no_adaptation")
-
-
-def policy_local_only(slot: Slot, prev: Action | None, seed: int, proto: dict) -> Action:
-    _ = prev, seed, proto
-    net = _pick_available(slot, ["degraded_local", "device_to_device", "local_edge_wifi"])
-    return Action(_uniform(slot.n_users, slot.spectrum_budget), [0.7] * slot.n_users, net, "local", "local_only")
-
-
-def policy_cloud_only(slot: Slot, prev: Action | None, seed: int, proto: dict) -> Action:
-    _ = prev, seed, proto
-    net = _pick_available(slot, ["terrestrial", "ntn_fallback"])
-    return Action(_uniform(slot.n_users, slot.spectrum_budget), [1.0] * slot.n_users, net, "cloud", "cloud_only")
-
-
-def policy_edge_only(slot: Slot, prev: Action | None, seed: int, proto: dict) -> Action:
-    _ = prev, seed, proto
-    net = _pick_available(slot, ["local_edge_wifi", "degraded_local"])
-    return Action(_priority_shares(slot), [0.9] * slot.n_users, net, "edge", "edge_only")
-
-
-def policy_rule_based(slot: Slot, prev: Action | None, seed: int, proto: dict) -> Action:
-    _ = prev, seed, proto
-    if slot.terrestrial_outage:
-        net = _pick_available(slot, ["local_edge_wifi", "degraded_local", "ntn_fallback"])
+    if obs.get("terrestrial_outage") > 0:
+        net = _pick_available(space, ["local_edge_wifi", "degraded_local", "ntn_fallback"])
     else:
-        net = _pick_available(slot, ["terrestrial", "local_edge_wifi"])
-    placement = "edge" if slot.edge_capacity > 0 and slot.latency_ms > 60 else "cloud"
-    return Action(_priority_shares(slot), [1.0] * slot.n_users, net, placement, "rule_based")
+        net = _pick_available(space, ["terrestrial", "local_edge_wifi"])
+    placement = "edge" if obs.get("edge_capacity") > 0 and obs.get("latency_ms") > 60 else "cloud"
+    return Action(_priority_shares(space), [1.0] * space.n_users, net, placement, "rule_based")
 
 
-def policy_optimization_based(slot: Slot, prev: Action | None, seed: int, proto: dict) -> Action:
+def policy_optimization_based(
+    obs: PolicyObservation, space: PolicyActionSpace, prev: Action | None, seed: int, proto: dict
+) -> Action:
+    _ = obs, prev, proto
+    shares, note = _optimize_shares(space, seed)
+    net = _pick_available(space, ["terrestrial", "local_edge_wifi", "ntn_fallback"])
+    return Action(shares, [1.0] * space.n_users, net, "cloud", f"optimization_based:{note}")
+
+
+def policy_twin_informed(
+    obs: PolicyObservation, space: PolicyActionSpace, prev: Action | None, seed: int, proto: dict
+) -> Action:
     _ = prev, proto
-    shares, note = _optimize_shares(slot, seed)
-    net = _pick_available(slot, ["terrestrial", "local_edge_wifi", "ntn_fallback"])
-    return Action(shares, [1.0] * slot.n_users, net, "cloud", f"optimization_based:{note}")
-
-
-def policy_twin_informed(slot: Slot, prev: Action | None, seed: int, proto: dict) -> Action:
-    _ = prev, proto
-    if slot.terrestrial_outage:
-        net = _pick_available(slot, ["local_edge_wifi", "degraded_local", "ntn_fallback"])
-    elif slot.latency_ms > 40 and "local_edge_wifi" in slot.available_networks:
+    if obs.get("terrestrial_outage") > 0:
+        net = _pick_available(space, ["local_edge_wifi", "degraded_local", "ntn_fallback"])
+    elif obs.get("latency_ms") > 40 and "local_edge_wifi" in space.available_networks:
         net = "local_edge_wifi"
     else:
-        net = _pick_available(slot, ["terrestrial", "local_edge_wifi"])
-    if slot.continuity_class == "strict" or (slot.latency_ms > 40 and slot.edge_capacity > 0):
+        net = _pick_available(space, ["terrestrial", "local_edge_wifi"])
+    if obs.get("continuity_strict") > 0 or (obs.get("latency_ms") > 40 and obs.get("edge_capacity") > 0):
         placement = "edge"
-    elif slot.energy_budget < 50:
-        placement = "local" if slot.local_capacity > 0 else "edge"
+    elif obs.get("energy_budget") < 50:
+        placement = "local" if space.local_capacity > 0 else "edge"
     else:
         placement = "cloud"
-    shares, note = _optimize_shares(slot, seed)
-    power = [0.6] * slot.n_users if slot.energy_budget < 50 else [1.0] * slot.n_users
+    shares, note = _optimize_shares(space, seed)
+    power = [0.6] * space.n_users if obs.get("energy_budget") < 50 else [1.0] * space.n_users
     return Action(shares, power, net, placement, f"twin_informed:{note}")
 
 
-def policy_information_equivalent(slot: Slot, prev: Action | None, seed: int, proto: dict) -> Action:
-    """Same feature vector as twin_informed; frozen linear scores, uniform shares."""
+def policy_information_equivalent(
+    obs: PolicyObservation, space: PolicyActionSpace, prev: Action | None, seed: int, proto: dict
+) -> Action:
+    """Same declared observation features as twin_informed continuum; frozen linear scores."""
     _ = prev, seed
     weights = proto.get("information_equivalent_weights") or {}
     w_lat = float(weights.get("latency", 0.004))
@@ -832,16 +988,35 @@ def policy_information_equivalent(slot: Slot, prev: Action | None, seed: int, pr
     w_en = float(weights.get("energy", 0.002))
     w_cont = float(weights.get("continuity_match", 0.25))
     w_edge = float(weights.get("edge_bonus_if_high_latency", 0.15))
-    feats = slot.feature_vector()
+    feats = {
+        "latency_ms": obs.get("latency_ms"),
+        "packet_loss_pct": obs.get("packet_loss_pct"),
+        "terrestrial_outage": obs.get("terrestrial_outage"),
+        "energy_budget": obs.get("energy_budget"),
+        "continuity_strict": obs.get("continuity_strict"),
+    }
     best: tuple[str, str] | None = None
     best_score = -1e18
-    placements = [p for p, cap in (("cloud", slot.cloud_capacity), ("edge", slot.edge_capacity), ("local", slot.local_capacity)) if cap > 0]
+    placements = [
+        p
+        for p, cap in (
+            ("cloud", space.cloud_capacity),
+            ("edge", space.edge_capacity),
+            ("local", space.local_capacity),
+        )
+        if cap > 0
+    ]
     if not placements:
         placements = ["cloud"]
     for placement in placements:
-        for network in slot.available_networks:
+        for network in space.available_networks:
             score = 0.0
-            score -= w_lat * feats["latency_ms"] * NETWORK_PENALTY.get(network, 1.3) * PLACEMENT_PENALTY.get(placement, 1.1)
+            score -= (
+                w_lat
+                * feats["latency_ms"]
+                * NETWORK_PENALTY.get(network, 1.3)
+                * PLACEMENT_PENALTY.get(placement, 1.1)
+            )
             score -= w_loss * feats["packet_loss_pct"]
             if feats["terrestrial_outage"] > 0 and network == "terrestrial":
                 score -= w_out
@@ -854,26 +1029,56 @@ def policy_information_equivalent(slot: Slot, prev: Action | None, seed: int, pr
             if score > best_score:
                 best_score = score
                 best = (placement, network)
-    placement, network = best or ("cloud", slot.available_networks[0])
-    return Action(_uniform(slot.n_users, slot.spectrum_budget), [1.0] * slot.n_users, network, placement, "information_equivalent")
+    placement, network = best or ("cloud", space.available_networks[0])
+    return Action(
+        _uniform(space.n_users, space.spectrum_budget),
+        [1.0] * space.n_users,
+        network,
+        placement,
+        "information_equivalent",
+    )
 
 
-def policy_oracle(slot: Slot, prev: Action | None, seed: int, proto: dict) -> Action:
-    """Model-oracle over discrete placement×network on the current slot."""
+def policy_oracle(
+    obs: PolicyObservation,
+    space: PolicyActionSpace,
+    prev: Action | None,
+    seed: int,
+    proto: dict,
+    *,
+    privileged_slot: Slot,
+) -> Action:
+    """Model-oracle over discrete placement×network on the current slot.
+
+    Privileged: requires explicit model_oracle_metric_eval observation and the
+    privileged_slot kwarg for analytical metric evaluation (not future peek).
+    """
     _ = seed
+    # Explicit privileged observation access (oracle-only).
+    _ = obs.get("model_oracle_metric_eval")
     costs = proto.get("costs") or {}
     npen = float(costs.get("network_switch_penalty", 0.05))
     ppen = float(costs.get("placement_switch_penalty", 0.03))
-    placements = [p for p, cap in (("cloud", slot.cloud_capacity), ("edge", slot.edge_capacity), ("local", slot.local_capacity)) if cap > 0] or ["cloud"]
-    shares = _uniform(slot.n_users, slot.spectrum_budget)
-    best_action = Action(shares, [1.0] * slot.n_users, slot.available_networks[0], placements[0], "oracle")
+    placements = [
+        p
+        for p, cap in (
+            ("cloud", space.cloud_capacity),
+            ("edge", space.edge_capacity),
+            ("local", space.local_capacity),
+        )
+        if cap > 0
+    ] or ["cloud"]
+    shares = _uniform(space.n_users, space.spectrum_budget)
+    best_action = Action(
+        shares, [1.0] * space.n_users, space.available_networks[0], placements[0], "oracle"
+    )
     best_u = -1e18
     for placement in placements:
-        for network in slot.available_networks:
+        for network in space.available_networks:
             for fidelity in FIDELITY_LEVELS:
                 cand = Action(
                     shares,
-                    [1.0] * slot.n_users,
+                    [1.0] * space.n_users,
                     network,
                     placement,
                     "oracle",
@@ -881,16 +1086,25 @@ def policy_oracle(slot: Slot, prev: Action | None, seed: int, proto: dict) -> Ac
                     checkpoint_action="none",
                     recover_action="none",
                 )
-                m = predict_metrics(slot, cand, prev, network_switch_penalty=npen, placement_switch_penalty=ppen, apply_switch=True)
+                m = predict_metrics(
+                    privileged_slot,
+                    cand,
+                    prev,
+                    network_switch_penalty=npen,
+                    placement_switch_penalty=ppen,
+                    apply_switch=True,
+                )
                 if m["service_continuity_utility"] > best_u:
                     best_u = m["service_continuity_utility"]
                     best_action = cand
     return best_action
 
 
-def policy_fixed_target_fidelity(slot: Slot, prev: Action | None, seed: int, proto: dict) -> Action:
+def policy_fixed_target_fidelity(
+    obs: PolicyObservation, space: PolicyActionSpace, prev: Action | None, seed: int, proto: dict
+) -> Action:
     """Baseline: hold fidelity at target; no fidelity adaptation."""
-    base = policy_no_adaptation(slot, prev, seed, proto)
+    base = policy_no_adaptation(obs, space, prev, seed, proto)
     return Action(
         base.shares,
         base.power,
@@ -903,12 +1117,14 @@ def policy_fixed_target_fidelity(slot: Slot, prev: Action | None, seed: int, pro
     )
 
 
-def policy_adaptive_fidelity(slot: Slot, prev: Action | None, seed: int, proto: dict) -> Action:
+def policy_adaptive_fidelity(
+    obs: PolicyObservation, space: PolicyActionSpace, prev: Action | None, seed: int, proto: dict
+) -> Action:
     """Adaptive fidelity from documented energy/latency thresholds (no future peek)."""
-    base = policy_twin_informed(slot, prev, seed, proto)
-    if slot.energy_budget < 40 or slot.terrestrial_outage:
+    base = policy_twin_informed(obs, space, prev, seed, proto)
+    if obs.get("energy_budget") < 40 or obs.get("terrestrial_outage") > 0:
         fidelity = "minimum_useful"
-    elif slot.latency_ms > 80 or slot.energy_budget < 60:
+    elif obs.get("latency_ms") > 80 or obs.get("energy_budget") < 60:
         fidelity = "degraded"
     else:
         fidelity = "target"
@@ -924,9 +1140,11 @@ def policy_adaptive_fidelity(slot: Slot, prev: Action | None, seed: int, proto: 
     )
 
 
-def policy_checkpoint_disabled(slot: Slot, prev: Action | None, seed: int, proto: dict) -> Action:
+def policy_checkpoint_disabled(
+    obs: PolicyObservation, space: PolicyActionSpace, prev: Action | None, seed: int, proto: dict
+) -> Action:
     """Baseline: checkpointing disabled."""
-    base = policy_no_adaptation(slot, prev, seed, proto)
+    base = policy_no_adaptation(obs, space, prev, seed, proto)
     return Action(
         base.shares,
         base.power,
@@ -939,9 +1157,11 @@ def policy_checkpoint_disabled(slot: Slot, prev: Action | None, seed: int, proto
     )
 
 
-def policy_adaptive_checkpoint(slot: Slot, prev: Action | None, seed: int, proto: dict) -> Action:
-    """Cross-layer checkpoint/recover using only current-slot observations."""
-    base = policy_twin_informed(slot, prev, seed, proto)
+def policy_adaptive_checkpoint(
+    obs: PolicyObservation, space: PolicyActionSpace, prev: Action | None, seed: int, proto: dict
+) -> Action:
+    """Cross-layer checkpoint/recover using only declared current-slot observations."""
+    base = policy_twin_informed(obs, space, prev, seed, proto)
     params = resolve_synthetic_params(proto)
     stale_age = int(params["stale_checkpoint_age_slots"])
     recover_pen = float(params["recover_action_penalty"])
@@ -951,21 +1171,23 @@ def policy_adaptive_checkpoint(slot: Slot, prev: Action | None, seed: int, proto
     network = base.network
     placement = base.placement
     # Checkpoint when progress is meaningful and energy allows
-    if slot.task_progress >= 0.4 and slot.energy_budget >= 40 and not slot.terrestrial_outage:
+    if obs.get("task_progress") >= 0.4 and obs.get("energy_budget") >= 40 and not (
+        obs.get("terrestrial_outage") > 0
+    ):
         ckpt = "checkpoint"
     # Recover when outage/high blockage and checkpoint looks usable
-    if slot.terrestrial_outage or slot.blockage > 0.6:
+    if obs.get("terrestrial_outage") > 0 or obs.get("blockage") > 0.6:
         if (
-            slot.checkpoint_available
-            and slot.checkpoint_age_slots < stale_age
-            and recover_pen <= slot.recovery_budget
+            obs.get("checkpoint_available") > 0
+            and obs.get("checkpoint_age_slots") < stale_age
+            and recover_pen <= obs.get("recovery_budget")
         ):
             recover = "recover"
             ckpt = "none"  # thrash prevention: do not checkpoint in same recover step
         else:
             # Safe degraded/offline continuation
             fidelity = "minimum_useful"
-            if "offline_continuation" in slot.available_networks and slot.blockage > 0.8:
+            if "offline_continuation" in space.available_networks and obs.get("blockage") > 0.8:
                 network = "offline_continuation"
                 placement = "local"
     return Action(
@@ -1079,26 +1301,93 @@ def information_equivalence_audit(
     adaptive_policy: str = "adaptive_fidelity",
     baseline_policy: str = "fixed_target_fidelity",
 ) -> dict[str, Any]:
-    """Compute observation-contract audit (booleans derived, not hard-coded)."""
+    """Compute observation-contract audit from runtime-enforced contracts (not hard-coded PASS)."""
     contracts = {
         name: validate_policy_observation_contract(name)
         for name in (adaptive_policy, baseline_policy, "oracle", "adaptive_checkpoint")
     }
     adaptive_obs = observation_from_slot(slot, adaptive_policy)
     baseline_obs = observation_from_slot(slot, baseline_policy)
-    adaptive = POLICIES[adaptive_policy](slot, None, 0, proto)
-    baseline = POLICIES[baseline_policy](slot, None, 0, proto)
+    oracle_obs = observation_from_slot(slot, "oracle")
+
+    # Runtime probes — PASS requires these to hold under OBSERVATION_ACCESS_RULE.
+    prohibited_oracle_field_raises = False
+    try:
+        adaptive_obs.get("model_oracle_metric_eval")
+    except PermissionError:
+        prohibited_oracle_field_raises = True
+
+    undeclared_fair = sorted(
+        ALLOWED_OBSERVATION_FIELDS - frozenset(POLICY_REQUIRED_FIELDS.get(adaptive_policy, frozenset()))
+    )
+    undeclared_fair_field_raises = False
+    if undeclared_fair:
+        try:
+            adaptive_obs.get(undeclared_fair[0])
+        except PermissionError:
+            undeclared_fair_field_raises = True
+    else:
+        undeclared_fair_field_raises = True
+
+    oracle_privileged_access_ok = False
+    try:
+        _ = oracle_obs.get("model_oracle_metric_eval")
+        oracle_privileged_access_ok = True
+    except PermissionError:
+        oracle_privileged_access_ok = False
 
     adaptive_ok = contracts[adaptive_policy]["required_subseteq_allowed"]
     baseline_ok = contracts[baseline_policy]["required_subseteq_allowed"]
+    adaptive_action: dict[str, Any] | None = None
+    baseline_action: dict[str, Any] | None = None
+    policy_invoke_error: str | None = None
+    if adaptive_ok and baseline_ok:
+        try:
+            adaptive = call_policy(adaptive_policy, slot, None, 0, proto)
+            baseline = call_policy(baseline_policy, slot, None, 0, proto)
+            adaptive_action = {
+                "network": adaptive.network,
+                "placement": adaptive.placement,
+                "fidelity_level": adaptive.fidelity_level,
+                "checkpoint_action": adaptive.checkpoint_action,
+                "recover_action": adaptive.recover_action,
+            }
+            baseline_action = {
+                "network": baseline.network,
+                "placement": baseline.placement,
+                "fidelity_level": baseline.fidelity_level,
+                "checkpoint_action": baseline.checkpoint_action,
+                "recover_action": baseline.recover_action,
+            }
+        except PermissionError as exc:
+            policy_invoke_error = str(exc)
+    else:
+        policy_invoke_error = "skipped_invoke_due_to_contract_violation"
+
     # Oracle is labeled separately: privileged model eval on the current slot, not a future peek.
     oracle_privileged_model = bool(ORACLE_EXTRA_FIELDS & set(POLICY_REQUIRED_FIELDS["oracle"]))
     oracle_privileged_future = False
     hidden_state_used = not adaptive_ok or not baseline_ok
+    runtime_enforced = (
+        prohibited_oracle_field_raises
+        and undeclared_fair_field_raises
+        and oracle_privileged_access_ok
+        and policy_invoke_error is None
+    )
+    info_pass = (
+        adaptive_ok
+        and baseline_ok
+        and not hidden_state_used
+        and runtime_enforced
+        and not oracle_privileged_future
+    )
 
     return {
         "observation_set": sorted(ALLOWED_OBSERVATION_FIELDS),
+        "action_space_fields": sorted(ACTION_SPACE_FIELDS),
+        "observation_access_rule": OBSERVATION_ACCESS_RULE,
         "observation_values": adaptive_obs.as_dict(),
+        "baseline_observation_values": baseline_obs.as_dict(),
         "adaptive_policy": adaptive_policy,
         "baseline_policy": baseline_policy,
         "policy_contracts": contracts,
@@ -1106,27 +1395,25 @@ def information_equivalence_audit(
         "baseline_uses_only_observation_set": baseline_ok,
         "oracle_privileged_future": oracle_privileged_future,
         "oracle_privileged_model_eval": oracle_privileged_model,
+        "runtime_observation_enforced": runtime_enforced,
+        "runtime_probes": {
+            "non_oracle_oracle_field_raises": prohibited_oracle_field_raises,
+            "undeclared_fair_field_raises": undeclared_fair_field_raises,
+            "undeclared_fair_probe_field": undeclared_fair[0] if undeclared_fair else None,
+            "oracle_privileged_access_ok": oracle_privileged_access_ok,
+            "policy_invoke_error": policy_invoke_error,
+        },
         "hidden_state_used": hidden_state_used,
-        "information_equivalence_pass": adaptive_ok and baseline_ok and not hidden_state_used,
-        "adaptive_action": {
-            "network": adaptive.network,
-            "placement": adaptive.placement,
-            "fidelity_level": adaptive.fidelity_level,
-            "checkpoint_action": adaptive.checkpoint_action,
-            "recover_action": adaptive.recover_action,
-        },
-        "baseline_action": {
-            "network": baseline.network,
-            "placement": baseline.placement,
-            "fidelity_level": baseline.fidelity_level,
-            "checkpoint_action": baseline.checkpoint_action,
-            "recover_action": baseline.recover_action,
-        },
+        "information_equivalence_pass": info_pass,
+        "adaptive_action": adaptive_action,
+        "baseline_action": baseline_action,
         "evidence_class": "SYNTHETIC_SIM",
         "note": (
-            "Non-oracle policies are restricted to ALLOWED_OBSERVATION_FIELDS; "
-            "oracle separately declares model_oracle_metric_eval on the current slot (not future peek). "
-            "Audit booleans are computed from required_fields ⊆ allowed_observation_fields."
+            f"Access rule={OBSERVATION_ACCESS_RULE}: non-oracle policies receive PolicyObservation "
+            "restricted to their declared required_fields plus PolicyActionSpace structural "
+            "constraints; undeclared fair fields and oracle-only fields raise PermissionError. "
+            "Oracle declares model_oracle_metric_eval and receives privileged_slot for current-slot "
+            "metric eval (not future peek). Audit PASS requires contract checks AND runtime probes."
         ),
     }
 
@@ -1149,27 +1436,17 @@ def run_policy_on_episode(
     prev: Action | None = None
     frozen: Action | None = None
     rows: list[dict[str, float]] = []
-    fn = POLICIES[policy_name] if policy_name != "static" else policy_rule_based
     for slot_idx, slot in enumerate(slots):
         ckpt_state.advance_age()
         use = _ablate_slot(ckpt_state.overlay_slot(slot), ablation)
-        # Enforce observation contract for non-oracle policies (raises on prohibited access).
-        if policy_name != "static":
-            _ = observation_from_slot(use, policy_name if policy_name in POLICIES else "rule_based")
-            contract = validate_policy_observation_contract(
-                policy_name if policy_name in POLICIES else "rule_based"
-            )
-            if not contract["required_subseteq_allowed"]:
-                raise PermissionError(
-                    f"Policy {policy_name} violates observation contract: {contract['violations']}"
-                )
         t0 = time.perf_counter()
         if policy_name == "static":
             if frozen is None:
-                frozen = policy_rule_based(use, None, seed, proto)
+                frozen = call_policy("rule_based", use, None, seed, proto)
             action = frozen
         else:
-            action = fn(use, prev, seed, proto)
+            # Non-oracle: PolicyObservation + PolicyActionSpace only (via call_policy).
+            action = call_policy(policy_name, use, prev, seed, proto)
         compute_ms = (time.perf_counter() - t0) * 1000.0
         thrash = ckpt_state.record_and_apply(
             action,

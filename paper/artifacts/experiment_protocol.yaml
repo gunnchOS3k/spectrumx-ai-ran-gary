@@ -77,6 +77,21 @@ policy_definitions:
   checkpoint_disabled: Baseline with checkpoint_action/recover_action always none.
   adaptive_checkpoint: Cross-layer checkpoint/recover from current-slot checkpoint availability/age/progress/budget; thrash prevention; safe degraded/offline continuation on failed recover.
 
+# Observation / action-space / oracle privilege boundary (runtime-enforced).
+# Access rule: declared_requirements_plus_action_space
+# - Fair observations: ALLOWED_OBSERVATION_FIELDS in digital_programme.py; each
+#   non-oracle policy may read ONLY its POLICY_REQUIRED_FIELDS declaration.
+# - Action-space / feasibility (NOT observations): n_users, spectrum_budget,
+#   user_priorities, available_networks, edge/cloud/local_capacity via PolicyActionSpace.
+# - Oracle-only: model_oracle_metric_eval + privileged_slot for current-slot metric eval
+#   (not future peek). Non-oracle access raises PermissionError.
+observation_contract:
+  access_rule: declared_requirements_plus_action_space
+  runtime_enforced: true
+  non_oracle_input: PolicyObservation + PolicyActionSpace
+  oracle_privileged_fields:
+    - model_oracle_metric_eval
+
 fidelity_levels:
   - target
   - degraded

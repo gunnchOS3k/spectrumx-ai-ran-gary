@@ -8,6 +8,8 @@ import pytest
 
 from airan_research.experiments.digital_programme import (
     ALLOWED_OBSERVATION_FIELDS,
+    OBSERVATION_ACCESS_RULE,
+    ORACLE_EXTRA_FIELDS,
     PROTOCOL_RELPATH,
     RECOVER_ACTION_PENALTY,
     STALE_CHECKPOINT_AGE,
@@ -17,17 +19,16 @@ from airan_research.experiments.digital_programme import (
     CheckpointRuntimeState,
     PolicyObservation,
     Slot,
+    action_space_from_slot,
+    call_policy,
     information_equivalence_audit,
     load_protocol,
     mean_ci,
     observation_from_slot,
-    policy_adaptive_checkpoint,
-    policy_adaptive_fidelity,
-    policy_checkpoint_disabled,
-    policy_fixed_target_fidelity,
     predict_metrics,
     resolve_synthetic_params,
     run_family,
+    run_policy_on_episode,
     run_predeclared_sensitivity,
     t_crit_975,
     validate_policy_observation_contract,
@@ -106,7 +107,7 @@ def test_protocol_lists_fidelity_and_checkpoint_policies():
 def test_fixed_fidelity_baseline_holds_target():
     proto = load_protocol(ROOT / PROTOCOL_RELPATH)
     slot = _slot(energy_budget=20, terrestrial_outage=True)
-    a = policy_fixed_target_fidelity(slot, None, 0, proto)
+    a = call_policy("fixed_target_fidelity", slot, None, 0, proto)
     assert a.fidelity_level == "target"
     assert a.checkpoint_action == "none"
     assert a.recover_action == "none"
@@ -115,8 +116,8 @@ def test_fixed_fidelity_baseline_holds_target():
 def test_adaptive_fidelity_vs_fixed_baseline():
     proto = load_protocol(ROOT / PROTOCOL_RELPATH)
     stressed = _slot(energy_budget=25, terrestrial_outage=True, latency_ms=120)
-    fixed = policy_fixed_target_fidelity(stressed, None, 0, proto)
-    adaptive = policy_adaptive_fidelity(stressed, None, 0, proto)
+    fixed = call_policy("fixed_target_fidelity", stressed, None, 0, proto)
+    adaptive = call_policy("adaptive_fidelity", stressed, None, 0, proto)
     assert fixed.fidelity_level == "target"
     assert adaptive.fidelity_level == "minimum_useful"
     params = resolve_synthetic_params(proto)
@@ -138,7 +139,7 @@ def test_adaptive_fidelity_vs_fixed_baseline():
 
 def test_checkpoint_disabled_baseline():
     proto = load_protocol(ROOT / PROTOCOL_RELPATH)
-    a = policy_checkpoint_disabled(_slot(), None, 0, proto)
+    a = call_policy("checkpoint_disabled", _slot(), None, 0, proto)
     assert a.checkpoint_action == "none"
     assert a.recover_action == "none"
 
@@ -248,25 +249,101 @@ def test_rolling_thrash_window_enforced():
 def test_adaptive_checkpoint_avoids_simultaneous_ckpt_and_recover():
     proto = load_protocol(ROOT / PROTOCOL_RELPATH)
     slot = _slot(terrestrial_outage=True, blockage=0.7, task_progress=0.9, energy_budget=90)
-    a = policy_adaptive_checkpoint(slot, None, 0, proto)
+    a = call_policy("adaptive_checkpoint", slot, None, 0, proto)
     if a.recover_action == "recover":
         assert a.checkpoint_action == "none"
+
+
+def test_checkpoint_recovery_causal_sequence_via_episode():
+    """checkpoint(t) → age advances → recover(t+k) reads that checkpoint."""
+    proto = load_protocol(ROOT / PROTOCOL_RELPATH)
+    # Slot 0: progress high, no outage → adaptive_checkpoint should checkpoint
+    # Slot 1+: outage + usable checkpoint → recover
+    slots = [
+        _slot(
+            terrestrial_outage=False,
+            blockage=0.1,
+            task_progress=0.8,
+            energy_budget=90,
+            checkpoint_available=False,
+            checkpoint_age_slots=0,
+        ),
+        _slot(
+            terrestrial_outage=True,
+            blockage=0.7,
+            task_progress=0.2,
+            energy_budget=90,
+            checkpoint_available=False,
+            checkpoint_age_slots=99,
+            recovery_budget=0.2,
+        ),
+        _slot(
+            terrestrial_outage=True,
+            blockage=0.7,
+            task_progress=0.2,
+            energy_budget=90,
+            checkpoint_available=False,
+            checkpoint_age_slots=99,
+            recovery_budget=0.2,
+        ),
+    ]
+    # Drive one episode and inspect causal overlay through policy decisions
+    from airan_research.experiments.digital_programme import (
+        CheckpointRuntimeState,
+        initial_checkpoint_state,
+    )
+
+    state = initial_checkpoint_state(proto)
+    assert state.exists is False
+    prev = None
+    actions = []
+    for i, slot in enumerate(slots):
+        state.advance_age()
+        viewed = state.overlay_slot(slot)
+        if i == 0:
+            assert viewed.checkpoint_available is False
+        action = call_policy("adaptive_checkpoint", viewed, prev, 0, proto)
+        thrash = state.record_and_apply(
+            action, slot_idx=i, task_progress=viewed.task_progress, thrash_window=THRASH_WINDOW
+        )
+        actions.append((action, thrash, state.exists, state.age_slots))
+        prev = action
+    assert actions[0][0].checkpoint_action == "checkpoint"
+    assert actions[0][2] is True
+    assert actions[0][3] == 0
+    # Age advanced before slot 1 decision; overlay must expose checkpoint
+    assert actions[1][2] is True
+    assert actions[1][3] >= 1
+    # After checkpoint then recover within window → thrash
+    if actions[1][0].recover_action == "recover":
+        assert actions[1][1] is True
 
 
 def test_information_equivalence_audit_computes_booleans():
     proto = load_protocol(ROOT / PROTOCOL_RELPATH)
     audit = information_equivalence_audit(_slot(), proto)
+    assert OBSERVATION_ACCESS_RULE == "declared_requirements_plus_action_space"
+    assert audit["observation_access_rule"] == OBSERVATION_ACCESS_RULE
     assert "latency_ms" in audit["observation_set"]
     assert "checkpoint_available" in audit["observation_set"]
+    assert "n_users" in audit["action_space_fields"]
     assert audit["oracle_privileged_future"] is False
     assert audit["oracle_privileged_model_eval"] is True
     assert audit["hidden_state_used"] is False
     assert audit["adaptive_uses_only_observation_set"] is True
     assert audit["baseline_uses_only_observation_set"] is True
+    assert audit["runtime_observation_enforced"] is True
+    assert audit["runtime_probes"]["non_oracle_oracle_field_raises"] is True
+    assert audit["runtime_probes"]["undeclared_fair_field_raises"] is True
+    assert audit["runtime_probes"]["oracle_privileged_access_ok"] is True
     assert audit["information_equivalence_pass"] is True
     assert audit["evidence_class"] == "SYNTHETIC_SIM"
     for name in ("adaptive_fidelity", "fixed_target_fidelity"):
         assert audit["policy_contracts"][name]["required_subseteq_allowed"] is True
+        # Declared-only: allowed_observation_fields == required_fields
+        assert audit["policy_contracts"][name]["allowed_observation_fields"] == audit[
+            "policy_contracts"
+        ][name]["required_fields"]
 
 
 def test_prohibited_observation_access_fails_audit():
@@ -292,15 +369,118 @@ def test_prohibited_observation_access_fails_audit():
         dp.POLICY_REQUIRED_FIELDS["adaptive_fidelity"] = original
 
 
+def test_1_normal_non_oracle_policy_runs():
+    """Proof 1: normal non-oracle policy runs successfully under restricted inputs."""
+    proto = load_protocol(ROOT / PROTOCOL_RELPATH)
+    action = call_policy("adaptive_fidelity", _slot(), None, 0, proto)
+    assert action.rationale == "adaptive_fidelity"
+    assert action.fidelity_level in {"target", "degraded", "minimum_useful"}
+    metrics = run_policy_on_episode([_slot(), _slot(energy_budget=30)], "twin_informed", proto, seed=0)
+    assert "service_continuity_utility" in metrics
+
+
+def test_2_bad_policy_prohibited_field_raises():
+    """Proof 2: deliberately bad policy reading prohibited field raises."""
+    proto = load_protocol(ROOT / PROTOCOL_RELPATH)
+    slot = _slot()
+
+    def bad_policy(obs, space, prev, seed, proto_):
+        _ = space, prev, seed, proto_
+        _ = obs.get("jitter_ms")  # never an allowed observation
+        return Action([5] * space.n_users, [1] * space.n_users, space.available_networks[0], "cloud", "bad")
+
+    from airan_research.experiments import digital_programme as dp
+
+    original = dp.POLICIES.get("bad_probe")
+    dp.POLICIES["bad_probe"] = bad_policy
+    dp.POLICY_REQUIRED_FIELDS["bad_probe"] = frozenset({"energy_budget"})
+    try:
+        with pytest.raises(PermissionError):
+            call_policy("bad_probe", slot, None, 0, proto)
+    finally:
+        if original is None:
+            dp.POLICIES.pop("bad_probe", None)
+            dp.POLICY_REQUIRED_FIELDS.pop("bad_probe", None)
+        else:
+            dp.POLICIES["bad_probe"] = original
+
+
+def test_3_undeclared_fair_field_raises_under_declared_only_rule():
+    """Proof 3: declares A but accesses undeclared allowed fair field B → PermissionError."""
+    assert OBSERVATION_ACCESS_RULE == "declared_requirements_plus_action_space"
+    # fixed_target_fidelity declares only energy_budget; latency_ms is fair but undeclared.
+    obs = observation_from_slot(_slot(), "fixed_target_fidelity")
+    assert "energy_budget" in obs.allowed_fields
+    assert "latency_ms" in ALLOWED_OBSERVATION_FIELDS
+    assert "latency_ms" not in obs.allowed_fields
+    with pytest.raises(PermissionError, match="latency_ms"):
+        obs.get("latency_ms")
+    with pytest.raises(PermissionError, match="latency_ms"):
+        _ = obs.latency_ms
+
+
+def test_4_oracle_can_access_privileged_field():
+    """Proof 4: oracle can access explicitly labeled privileged field."""
+    obs = observation_from_slot(_slot(), "oracle")
+    assert "model_oracle_metric_eval" in ORACLE_EXTRA_FIELDS
+    assert obs.get("model_oracle_metric_eval") == 1.0
+    proto = load_protocol(ROOT / PROTOCOL_RELPATH)
+    action = call_policy("oracle", _slot(), None, 0, proto)
+    assert action.rationale == "oracle"
+
+
+def test_5_non_oracle_cannot_access_oracle_only_field():
+    """Proof 5: no non-oracle policy can access oracle-only field."""
+    for name in (
+        "adaptive_fidelity",
+        "fixed_target_fidelity",
+        "twin_informed",
+        "adaptive_checkpoint",
+        "no_adaptation",
+    ):
+        obs = observation_from_slot(_slot(), name)
+        with pytest.raises(PermissionError, match="model_oracle_metric_eval"):
+            obs.get("model_oracle_metric_eval")
+
+
+def test_6_audit_pass_derives_from_runtime_enforced_contracts():
+    """Proof 6: generated audit PASS derives from runtime-enforced contracts."""
+    proto = load_protocol(ROOT / PROTOCOL_RELPATH)
+    audit = information_equivalence_audit(_slot(), proto)
+    assert audit["runtime_observation_enforced"] is True
+    assert audit["information_equivalence_pass"] is True
+    # Flip a runtime probe precondition by narrowing oracle privilege away
+    from airan_research.experiments import digital_programme as dp
+
+    original_extra = dp.ORACLE_EXTRA_FIELDS
+    original_required = dp.POLICY_REQUIRED_FIELDS["oracle"]
+    try:
+        # Remove privileged field from oracle allowed set via empty extra + required without it
+        dp.ORACLE_EXTRA_FIELDS = frozenset()
+        dp.POLICY_REQUIRED_FIELDS["oracle"] = frozenset(ALLOWED_OBSERVATION_FIELDS)
+        audit2 = information_equivalence_audit(_slot(), proto)
+        # Oracle can no longer read model_oracle_metric_eval → runtime_enforced fails → PASS false
+        assert audit2["runtime_probes"]["oracle_privileged_access_ok"] is False
+        assert audit2["runtime_observation_enforced"] is False
+        assert audit2["information_equivalence_pass"] is False
+    finally:
+        dp.ORACLE_EXTRA_FIELDS = original_extra
+        dp.POLICY_REQUIRED_FIELDS["oracle"] = original_required
+
+
 def test_policy_observation_restricted_fields():
     obs = PolicyObservation(
-        fields={"latency_ms": 1.0, "energy_budget": 2.0},
+        _fields={"latency_ms": 1.0, "energy_budget": 2.0},
         policy_name="probe",
-        allowed_fields=ALLOWED_OBSERVATION_FIELDS,
+        allowed_fields=frozenset({"latency_ms", "energy_budget"}),
     )
     assert obs.get("latency_ms") == 1.0
+    assert obs.latency_ms == 1.0
     with pytest.raises(PermissionError):
         obs.get("model_oracle_metric_eval")
+    space = action_space_from_slot(_slot())
+    assert space.n_users == 4
+    assert "terrestrial" in space.available_networks
 
 
 def test_predeclared_sensitivity_runs():
