@@ -14,25 +14,139 @@
     "terrestrial_outage"
   ],
   "observation_values": {
-    "latency_ms": 58.21770123928726,
-    "packet_loss_pct": 1.1521681836790942,
-    "terrestrial_outage": 1.0,
-    "energy_budget": 61.32221084228233,
-    "edge_capacity": 0.947653346366633,
     "blockage": 0.2439810717600817,
-    "mobility": 0.8631789223498866,
-    "continuity_strict": 0.0,
+    "checkpoint_age_slots": 0.0,
     "checkpoint_available": 0.0,
-    "checkpoint_age_slots": 11.0,
-    "task_progress": 0.8287936350994339,
-    "recovery_budget": 0.0453736920488743
+    "continuity_strict": 0.0,
+    "edge_capacity": 0.947653346366633,
+    "energy_budget": 61.32221084228233,
+    "latency_ms": 58.21770123928726,
+    "mobility": 0.17565562060255901,
+    "packet_loss_pct": 1.1521681836790942,
+    "recovery_budget": 0.1771846842540111,
+    "task_progress": 0.10232772514462589,
+    "terrestrial_outage": 1.0
   },
   "adaptive_policy": "adaptive_fidelity",
   "baseline_policy": "fixed_target_fidelity",
+  "policy_contracts": {
+    "adaptive_fidelity": {
+      "policy": "adaptive_fidelity",
+      "required_fields": [
+        "energy_budget",
+        "latency_ms",
+        "terrestrial_outage"
+      ],
+      "allowed_observation_fields": [
+        "blockage",
+        "checkpoint_age_slots",
+        "checkpoint_available",
+        "continuity_strict",
+        "edge_capacity",
+        "energy_budget",
+        "latency_ms",
+        "mobility",
+        "packet_loss_pct",
+        "recovery_budget",
+        "task_progress",
+        "terrestrial_outage"
+      ],
+      "required_subseteq_allowed": true,
+      "violations": []
+    },
+    "fixed_target_fidelity": {
+      "policy": "fixed_target_fidelity",
+      "required_fields": [
+        "energy_budget"
+      ],
+      "allowed_observation_fields": [
+        "blockage",
+        "checkpoint_age_slots",
+        "checkpoint_available",
+        "continuity_strict",
+        "edge_capacity",
+        "energy_budget",
+        "latency_ms",
+        "mobility",
+        "packet_loss_pct",
+        "recovery_budget",
+        "task_progress",
+        "terrestrial_outage"
+      ],
+      "required_subseteq_allowed": true,
+      "violations": []
+    },
+    "oracle": {
+      "policy": "oracle",
+      "required_fields": [
+        "blockage",
+        "checkpoint_age_slots",
+        "checkpoint_available",
+        "continuity_strict",
+        "edge_capacity",
+        "energy_budget",
+        "latency_ms",
+        "mobility",
+        "model_oracle_metric_eval",
+        "packet_loss_pct",
+        "recovery_budget",
+        "task_progress",
+        "terrestrial_outage"
+      ],
+      "allowed_observation_fields": [
+        "blockage",
+        "checkpoint_age_slots",
+        "checkpoint_available",
+        "continuity_strict",
+        "edge_capacity",
+        "energy_budget",
+        "latency_ms",
+        "mobility",
+        "model_oracle_metric_eval",
+        "packet_loss_pct",
+        "recovery_budget",
+        "task_progress",
+        "terrestrial_outage"
+      ],
+      "required_subseteq_allowed": true,
+      "violations": []
+    },
+    "adaptive_checkpoint": {
+      "policy": "adaptive_checkpoint",
+      "required_fields": [
+        "blockage",
+        "checkpoint_age_slots",
+        "checkpoint_available",
+        "energy_budget",
+        "latency_ms",
+        "recovery_budget",
+        "task_progress",
+        "terrestrial_outage"
+      ],
+      "allowed_observation_fields": [
+        "blockage",
+        "checkpoint_age_slots",
+        "checkpoint_available",
+        "continuity_strict",
+        "edge_capacity",
+        "energy_budget",
+        "latency_ms",
+        "mobility",
+        "packet_loss_pct",
+        "recovery_budget",
+        "task_progress",
+        "terrestrial_outage"
+      ],
+      "required_subseteq_allowed": true,
+      "violations": []
+    }
+  },
   "adaptive_uses_only_observation_set": true,
   "baseline_uses_only_observation_set": true,
   "oracle_privileged_future": false,
+  "oracle_privileged_model_eval": true,
   "hidden_state_used": false,
+  "information_equivalence_pass": true,
   "adaptive_action": {
     "network": "local_edge_wifi",
     "placement": "edge",
@@ -48,5 +162,5 @@
     "recover_action": "none"
   },
   "evidence_class": "SYNTHETIC_SIM",
-  "note": "Information-equivalent comparison documents the same Slot.feature_vector(); oracle policy is labeled separately and is not used as a fair adaptive baseline."
+  "note": "Non-oracle policies are restricted to ALLOWED_OBSERVATION_FIELDS; oracle separately declares model_oracle_metric_eval on the current slot (not future peek). Audit booleans are computed from required_fields \u2286 allowed_observation_fields."
 }

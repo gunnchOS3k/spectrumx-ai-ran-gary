@@ -1,876 +1,1270 @@
 {
-  "family": "in_distribution",
-  "ablation": "full",
-  "seeds": [
-    0,
-    1
-  ],
-  "n_episodes_per_seed": 2,
-  "n_slots_per_episode": 4,
-  "policies": {
-    "fixed_target_fidelity": {
-      "service_continuity_utility": {
-        "n": 2,
-        "mean": 0.7851699360946682,
-        "ci_low": 0.6812492288079174,
-        "ci_high": 0.8890906433814191,
-        "sd": 0.01156666721677377
+  "in_distribution": {
+    "family": "in_distribution",
+    "ablation": "full",
+    "seeds": [
+      0
+    ],
+    "n_seeds": 1,
+    "n_episodes_per_seed": 2,
+    "n_slots_per_episode": 8,
+    "policies": {
+      "fixed_target_fidelity": {
+        "service_continuity_utility": {
+          "n": 1,
+          "mean": 0.7832630717837243,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "predicted_latency_ms": {
+          "n": 1,
+          "mean": 87.12004649089899,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "energy_use_j": {
+          "n": 1,
+          "mean": 46.29436119808001,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "fairness": {
+          "n": 1,
+          "mean": 1.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "n_network_switches": {
+          "n": 1,
+          "mean": 2.5,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "n_placement_switches": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "n_fidelity_switches": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "switch_cost": {
+          "n": 1,
+          "mean": 0.125,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "compute_time_ms": {
+          "n": 1,
+          "mean": 0.011209456715732813,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "recover_failed": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "thrash_event": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "degraded_continuation": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "checkpoint_cost": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "recover_cost": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "fidelity_level_code": {
+          "n": 1,
+          "mean": 2.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "seed_means": {
+          "service_continuity_utility": [
+            0.7832630717837243
+          ],
+          "predicted_latency_ms": [
+            87.12004649089899
+          ],
+          "energy_use_j": [
+            46.29436119808001
+          ],
+          "fairness": [
+            1.0
+          ],
+          "n_network_switches": [
+            2.5
+          ],
+          "n_placement_switches": [
+            0.0
+          ],
+          "n_fidelity_switches": [
+            0.0
+          ],
+          "switch_cost": [
+            0.125
+          ],
+          "compute_time_ms": [
+            0.011209456715732813
+          ],
+          "recover_failed": [
+            0.0
+          ],
+          "thrash_event": [
+            0.0
+          ],
+          "degraded_continuation": [
+            0.0
+          ],
+          "checkpoint_cost": [
+            0.0
+          ],
+          "recover_cost": [
+            0.0
+          ],
+          "fidelity_level_code": [
+            2.0
+          ]
+        }
       },
-      "predicted_latency_ms": {
-        "n": 2,
-        "mean": 90.83605206544568,
-        "ci_low": 73.84339507865035,
-        "ci_high": 107.82870905224102,
-        "sd": 1.8913305502502682
+      "adaptive_fidelity": {
+        "service_continuity_utility": {
+          "n": 1,
+          "mean": 0.683497444406347,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "predicted_latency_ms": {
+          "n": 1,
+          "mean": 79.04308826577889,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "energy_use_j": {
+          "n": 1,
+          "mean": 42.097812575865525,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "fairness": {
+          "n": 1,
+          "mean": 0.9999999999999827,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "n_network_switches": {
+          "n": 1,
+          "mean": 4.5,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "n_placement_switches": {
+          "n": 1,
+          "mean": 4.5,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "n_fidelity_switches": {
+          "n": 1,
+          "mean": 2.5,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "switch_cost": {
+          "n": 1,
+          "mean": 0.46,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "compute_time_ms": {
+          "n": 1,
+          "mean": 2.182207506848499,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "recover_failed": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "thrash_event": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "degraded_continuation": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "checkpoint_cost": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "recover_cost": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "fidelity_level_code": {
+          "n": 1,
+          "mean": 1.5,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "seed_means": {
+          "service_continuity_utility": [
+            0.683497444406347
+          ],
+          "predicted_latency_ms": [
+            79.04308826577889
+          ],
+          "energy_use_j": [
+            42.097812575865525
+          ],
+          "fairness": [
+            0.9999999999999827
+          ],
+          "n_network_switches": [
+            4.5
+          ],
+          "n_placement_switches": [
+            4.5
+          ],
+          "n_fidelity_switches": [
+            2.5
+          ],
+          "switch_cost": [
+            0.46
+          ],
+          "compute_time_ms": [
+            2.182207506848499
+          ],
+          "recover_failed": [
+            0.0
+          ],
+          "thrash_event": [
+            0.0
+          ],
+          "degraded_continuation": [
+            0.0
+          ],
+          "checkpoint_cost": [
+            0.0
+          ],
+          "recover_cost": [
+            0.0
+          ],
+          "fidelity_level_code": [
+            1.5
+          ]
+        }
       },
-      "energy_use_j": {
-        "n": 2,
-        "mean": 46.44022136017037,
-        "ci_low": 36.4436397221918,
-        "ci_high": 56.43680299814894,
-        "sd": 1.112647672737222
+      "checkpoint_disabled": {
+        "service_continuity_utility": {
+          "n": 1,
+          "mean": 0.6702615392040796,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "predicted_latency_ms": {
+          "n": 1,
+          "mean": 82.97147284847523,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "energy_use_j": {
+          "n": 1,
+          "mean": 40.048537577078825,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "fairness": {
+          "n": 1,
+          "mean": 1.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "n_network_switches": {
+          "n": 1,
+          "mean": 2.5,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "n_placement_switches": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "n_fidelity_switches": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "switch_cost": {
+          "n": 1,
+          "mean": 0.125,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "compute_time_ms": {
+          "n": 1,
+          "mean": 0.00918656587600708,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "recover_failed": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "thrash_event": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "degraded_continuation": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "checkpoint_cost": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "recover_cost": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "fidelity_level_code": {
+          "n": 1,
+          "mean": 1.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "seed_means": {
+          "service_continuity_utility": [
+            0.6702615392040796
+          ],
+          "predicted_latency_ms": [
+            82.97147284847523
+          ],
+          "energy_use_j": [
+            40.048537577078825
+          ],
+          "fairness": [
+            1.0
+          ],
+          "n_network_switches": [
+            2.5
+          ],
+          "n_placement_switches": [
+            0.0
+          ],
+          "n_fidelity_switches": [
+            0.0
+          ],
+          "switch_cost": [
+            0.125
+          ],
+          "compute_time_ms": [
+            0.00918656587600708
+          ],
+          "recover_failed": [
+            0.0
+          ],
+          "thrash_event": [
+            0.0
+          ],
+          "degraded_continuation": [
+            0.0
+          ],
+          "checkpoint_cost": [
+            0.0
+          ],
+          "recover_cost": [
+            0.0
+          ],
+          "fidelity_level_code": [
+            1.0
+          ]
+        }
       },
-      "fairness": {
-        "n": 2,
-        "mean": 1.0,
-        "ci_low": 1.0,
-        "ci_high": 1.0,
-        "sd": 0.0
-      },
-      "n_network_switches": {
-        "n": 2,
-        "mean": 0.75,
-        "ci_low": -2.4265,
-        "ci_high": 3.9265,
-        "sd": 0.3535533905932738
-      },
-      "n_placement_switches": {
-        "n": 2,
-        "mean": 0.0,
-        "ci_low": 0.0,
-        "ci_high": 0.0,
-        "sd": 0.0
-      },
-      "n_fidelity_switches": {
-        "n": 2,
-        "mean": 0.0,
-        "ci_low": 0.0,
-        "ci_high": 0.0,
-        "sd": 0.0
-      },
-      "switch_cost": {
-        "n": 2,
-        "mean": 0.037500000000000006,
-        "ci_low": -0.12132500000000002,
-        "ci_high": 0.19632500000000003,
-        "sd": 0.01767766952966369
-      },
-      "compute_time_ms": {
-        "n": 2,
-        "mean": 0.006635455065406859,
-        "ci_low": -0.02394811241538264,
-        "ci_high": 0.037219022546196356,
-        "sd": 0.0034040371412785504
-      },
-      "recover_failed": {
-        "n": 2,
-        "mean": 0.0,
-        "ci_low": 0.0,
-        "ci_high": 0.0,
-        "sd": 0.0
-      },
-      "thrash_event": {
-        "n": 2,
-        "mean": 0.0,
-        "ci_low": 0.0,
-        "ci_high": 0.0,
-        "sd": 0.0
-      },
-      "degraded_continuation": {
-        "n": 2,
-        "mean": 0.0,
-        "ci_low": 0.0,
-        "ci_high": 0.0,
-        "sd": 0.0
-      },
-      "checkpoint_cost": {
-        "n": 2,
-        "mean": 0.0,
-        "ci_low": 0.0,
-        "ci_high": 0.0,
-        "sd": 0.0
-      },
-      "recover_cost": {
-        "n": 2,
-        "mean": 0.0,
-        "ci_low": 0.0,
-        "ci_high": 0.0,
-        "sd": 0.0
-      },
-      "fidelity_level_code": {
-        "n": 2,
-        "mean": 2.0,
-        "ci_low": 2.0,
-        "ci_high": 2.0,
-        "sd": 0.0
-      },
-      "seed_means": {
-        "service_continuity_utility": [
-          0.7933488049193771,
-          0.7769910672699594
-        ],
-        "predicted_latency_ms": [
-          92.17342472299293,
-          89.49867940789844
-        ],
-        "energy_use_j": [
-          45.65346064570645,
-          47.22698207463429
-        ],
-        "fairness": [
-          1.0,
-          1.0
-        ],
-        "n_network_switches": [
-          0.5,
-          1.0
-        ],
-        "n_placement_switches": [
-          0.0,
-          0.0
-        ],
-        "n_fidelity_switches": [
-          0.0,
-          0.0
-        ],
-        "switch_cost": [
-          0.025,
-          0.05
-        ],
-        "compute_time_ms": [
-          0.009042472811415792,
-          0.004228437319397926
-        ],
-        "recover_failed": [
-          0.0,
-          0.0
-        ],
-        "thrash_event": [
-          0.0,
-          0.0
-        ],
-        "degraded_continuation": [
-          0.0,
-          0.0
-        ],
-        "checkpoint_cost": [
-          0.0,
-          0.0
-        ],
-        "recover_cost": [
-          0.0,
-          0.0
-        ],
-        "fidelity_level_code": [
-          2.0,
-          2.0
-        ]
+      "adaptive_checkpoint": {
+        "service_continuity_utility": {
+          "n": 1,
+          "mean": 0.5960019457096218,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "predicted_latency_ms": {
+          "n": 1,
+          "mean": 77.52841517690334,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "energy_use_j": {
+          "n": 1,
+          "mean": 40.78733918639061,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "fairness": {
+          "n": 1,
+          "mean": 0.9999999999999827,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "n_network_switches": {
+          "n": 1,
+          "mean": 4.5,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "n_placement_switches": {
+          "n": 1,
+          "mean": 4.5,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "n_fidelity_switches": {
+          "n": 1,
+          "mean": 0.5,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "switch_cost": {
+          "n": 1,
+          "mean": 0.81,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "compute_time_ms": {
+          "n": 1,
+          "mean": 1.9773950334638357,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "recover_failed": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "thrash_event": {
+          "n": 1,
+          "mean": 2.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "degraded_continuation": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "checkpoint_cost": {
+          "n": 1,
+          "mean": 0.0225,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "recover_cost": {
+          "n": 1,
+          "mean": 0.01125,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "fidelity_level_code": {
+          "n": 1,
+          "mean": 0.9375,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "seed_means": {
+          "service_continuity_utility": [
+            0.5960019457096218
+          ],
+          "predicted_latency_ms": [
+            77.52841517690334
+          ],
+          "energy_use_j": [
+            40.78733918639061
+          ],
+          "fairness": [
+            0.9999999999999827
+          ],
+          "n_network_switches": [
+            4.5
+          ],
+          "n_placement_switches": [
+            4.5
+          ],
+          "n_fidelity_switches": [
+            0.5
+          ],
+          "switch_cost": [
+            0.81
+          ],
+          "compute_time_ms": [
+            1.9773950334638357
+          ],
+          "recover_failed": [
+            0.0
+          ],
+          "thrash_event": [
+            2.0
+          ],
+          "degraded_continuation": [
+            0.0
+          ],
+          "checkpoint_cost": [
+            0.0225
+          ],
+          "recover_cost": [
+            0.01125
+          ],
+          "fidelity_level_code": [
+            0.9375
+          ]
+        }
       }
     },
-    "adaptive_fidelity": {
-      "service_continuity_utility": {
-        "n": 2,
-        "mean": 0.7525098374406738,
-        "ci_low": 0.5241557659938596,
-        "ci_high": 0.980863908887488,
-        "sd": 0.025416450878577003
-      },
-      "predicted_latency_ms": {
-        "n": 2,
-        "mean": 84.17334061246223,
-        "ci_low": 69.75479042393148,
-        "ci_high": 98.59189080099297,
-        "sd": 1.604825218509156
-      },
-      "energy_use_j": {
-        "n": 2,
-        "mean": 44.28983494890171,
-        "ci_low": 36.71610127859057,
-        "ci_high": 51.86356861921284,
-        "sd": 0.8429778745754577
-      },
-      "fairness": {
-        "n": 2,
-        "mean": 0.999999999999967,
-        "ci_low": 0.9999999999997964,
-        "ci_high": 1.0000000000001377,
-        "sd": 1.8998118750073677e-14
-      },
-      "n_network_switches": {
-        "n": 2,
-        "mean": 0.5,
-        "ci_low": -5.853,
-        "ci_high": 6.853,
-        "sd": 0.7071067811865476
-      },
-      "n_placement_switches": {
-        "n": 2,
-        "mean": 0.5,
-        "ci_low": -5.853,
-        "ci_high": 6.853,
-        "sd": 0.7071067811865476
-      },
-      "n_fidelity_switches": {
-        "n": 2,
-        "mean": 0.75,
-        "ci_low": -2.4265,
-        "ci_high": 3.9265,
-        "sd": 0.3535533905932738
-      },
-      "switch_cost": {
-        "n": 2,
-        "mean": 0.06999999999999999,
-        "ci_low": -0.5652999999999999,
-        "ci_high": 0.7052999999999998,
-        "sd": 0.07071067811865475
-      },
-      "compute_time_ms": {
-        "n": 2,
-        "mean": 58.86817697319202,
-        "ci_low": -672.9594382331123,
-        "ci_high": 790.6957921794964,
-        "sd": 81.45447337823977
-      },
-      "recover_failed": {
-        "n": 2,
-        "mean": 0.0,
-        "ci_low": 0.0,
-        "ci_high": 0.0,
-        "sd": 0.0
-      },
-      "thrash_event": {
-        "n": 2,
-        "mean": 0.0,
-        "ci_low": 0.0,
-        "ci_high": 0.0,
-        "sd": 0.0
-      },
-      "degraded_continuation": {
-        "n": 2,
-        "mean": 0.0,
-        "ci_low": 0.0,
-        "ci_high": 0.0,
-        "sd": 0.0
-      },
-      "checkpoint_cost": {
-        "n": 2,
-        "mean": 0.0,
-        "ci_low": 0.0,
-        "ci_high": 0.0,
-        "sd": 0.0
-      },
-      "recover_cost": {
-        "n": 2,
-        "mean": 0.0,
-        "ci_low": 0.0,
-        "ci_high": 0.0,
-        "sd": 0.0
-      },
-      "fidelity_level_code": {
-        "n": 2,
-        "mean": 1.75,
-        "ci_low": 1.75,
-        "ci_high": 1.75,
-        "sd": 0.0
-      },
-      "seed_means": {
-        "service_continuity_utility": [
-          0.7704819822106104,
-          0.7345376926707372
-        ],
-        "predicted_latency_ms": [
-          85.30812340708923,
-          83.03855781783521
-        ],
-        "energy_use_j": [
-          43.69375957739918,
-          44.885910320404236
-        ],
-        "fairness": [
-          0.9999999999999805,
-          0.9999999999999536
-        ],
-        "n_network_switches": [
-          0.0,
-          1.0
-        ],
-        "n_placement_switches": [
-          0.0,
-          1.0
-        ],
-        "n_fidelity_switches": [
-          0.5,
-          1.0
-        ],
-        "switch_cost": [
-          0.02,
-          0.12
-        ],
-        "compute_time_ms": [
-          116.46518745692447,
-          1.2711664894595742
-        ],
-        "recover_failed": [
-          0.0,
-          0.0
-        ],
-        "thrash_event": [
-          0.0,
-          0.0
-        ],
-        "degraded_continuation": [
-          0.0,
-          0.0
-        ],
-        "checkpoint_cost": [
-          0.0,
-          0.0
-        ],
-        "recover_cost": [
-          0.0,
-          0.0
-        ],
-        "fidelity_level_code": [
-          1.75,
-          1.75
-        ]
-      }
-    },
-    "checkpoint_disabled": {
-      "service_continuity_utility": {
-        "n": 2,
-        "mean": 0.6731246101102879,
-        "ci_low": 0.5765762407905495,
-        "ci_high": 0.7696729794300263,
-        "sd": 0.010746105250824851
-      },
-      "predicted_latency_ms": {
-        "n": 2,
-        "mean": 86.51052577661494,
-        "ci_low": 70.32704293204792,
-        "ci_high": 102.69400862118196,
-        "sd": 1.801267190714545
-      },
-      "energy_use_j": {
-        "n": 2,
-        "mean": 40.16652486831531,
-        "ci_low": 31.433386476005136,
-        "ci_high": 48.89966326062547,
-        "sd": 0.9720228834004575
-      },
-      "fairness": {
-        "n": 2,
-        "mean": 1.0,
-        "ci_low": 1.0,
-        "ci_high": 1.0,
-        "sd": 0.0
-      },
-      "n_network_switches": {
-        "n": 2,
-        "mean": 0.75,
-        "ci_low": -2.4265,
-        "ci_high": 3.9265,
-        "sd": 0.3535533905932738
-      },
-      "n_placement_switches": {
-        "n": 2,
-        "mean": 0.0,
-        "ci_low": 0.0,
-        "ci_high": 0.0,
-        "sd": 0.0
-      },
-      "n_fidelity_switches": {
-        "n": 2,
-        "mean": 0.0,
-        "ci_low": 0.0,
-        "ci_high": 0.0,
-        "sd": 0.0
-      },
-      "switch_cost": {
-        "n": 2,
-        "mean": 0.037500000000000006,
-        "ci_low": -0.12132500000000002,
-        "ci_high": 0.19632500000000003,
-        "sd": 0.01767766952966369
-      },
-      "compute_time_ms": {
-        "n": 2,
-        "mean": 0.005385023541748524,
-        "ci_low": 0.004463868506718427,
-        "ci_high": 0.0063061785767786205,
-        "sd": 0.0001025271480865596
-      },
-      "recover_failed": {
-        "n": 2,
-        "mean": 0.0,
-        "ci_low": 0.0,
-        "ci_high": 0.0,
-        "sd": 0.0
-      },
-      "thrash_event": {
-        "n": 2,
-        "mean": 0.0,
-        "ci_low": 0.0,
-        "ci_high": 0.0,
-        "sd": 0.0
-      },
-      "degraded_continuation": {
-        "n": 2,
-        "mean": 0.0,
-        "ci_low": 0.0,
-        "ci_high": 0.0,
-        "sd": 0.0
-      },
-      "checkpoint_cost": {
-        "n": 2,
-        "mean": 0.0,
-        "ci_low": 0.0,
-        "ci_high": 0.0,
-        "sd": 0.0
-      },
-      "recover_cost": {
-        "n": 2,
-        "mean": 0.0,
-        "ci_low": 0.0,
-        "ci_high": 0.0,
-        "sd": 0.0
-      },
-      "fidelity_level_code": {
-        "n": 2,
-        "mean": 1.0,
-        "ci_low": 1.0,
-        "ci_high": 1.0,
-        "sd": 0.0
-      },
-      "seed_means": {
-        "service_continuity_utility": [
-          0.6807232540044905,
-          0.6655259662160853
-        ],
-        "predicted_latency_ms": [
-          87.78421402189804,
-          85.23683753133184
-        ],
-        "energy_use_j": [
-          39.479200895994346,
-          40.853848840636275
-        ],
-        "fairness": [
-          1.0,
-          1.0
-        ],
-        "n_network_switches": [
-          0.5,
-          1.0
-        ],
-        "n_placement_switches": [
-          0.0,
-          0.0
-        ],
-        "n_fidelity_switches": [
-          0.0,
-          0.0
-        ],
-        "switch_cost": [
-          0.025,
-          0.05
-        ],
-        "compute_time_ms": [
-          0.005457521183416247,
-          0.0053125259000808
-        ],
-        "recover_failed": [
-          0.0,
-          0.0
-        ],
-        "thrash_event": [
-          0.0,
-          0.0
-        ],
-        "degraded_continuation": [
-          0.0,
-          0.0
-        ],
-        "checkpoint_cost": [
-          0.0,
-          0.0
-        ],
-        "recover_cost": [
-          0.0,
-          0.0
-        ],
-        "fidelity_level_code": [
-          1.0,
-          1.0
-        ]
-      }
-    },
-    "adaptive_checkpoint": {
-      "service_continuity_utility": {
-        "n": 2,
-        "mean": 0.6382948236981929,
-        "ci_low": 0.5667352606042279,
-        "ci_high": 0.709854386792158,
-        "sd": 0.007964780784273458
-      },
-      "predicted_latency_ms": {
-        "n": 2,
-        "mean": 81.1859620426709,
-        "ci_low": 74.32261522644768,
-        "ci_high": 88.04930885889411,
-        "sd": 0.7639098182569704
-      },
-      "energy_use_j": {
-        "n": 2,
-        "mean": 40.911251026341006,
-        "ci_low": 28.674791273333224,
-        "ci_high": 53.147710779348785,
-        "sd": 1.361952411312462
-      },
-      "fairness": {
-        "n": 2,
-        "mean": 0.999999999999967,
-        "ci_low": 0.9999999999997964,
-        "ci_high": 1.0000000000001377,
-        "sd": 1.8998118750073677e-14
-      },
-      "n_network_switches": {
-        "n": 2,
-        "mean": 0.5,
-        "ci_low": -5.853,
-        "ci_high": 6.853,
-        "sd": 0.7071067811865476
-      },
-      "n_placement_switches": {
-        "n": 2,
-        "mean": 0.5,
-        "ci_low": -5.853,
-        "ci_high": 6.853,
-        "sd": 0.7071067811865476
-      },
-      "n_fidelity_switches": {
-        "n": 2,
-        "mean": 0.25,
-        "ci_low": -2.9265,
-        "ci_high": 3.4265,
-        "sd": 0.3535533905932738
-      },
-      "switch_cost": {
-        "n": 2,
-        "mean": 0.175,
-        "ci_low": -0.4603000000000001,
-        "ci_high": 0.8103,
-        "sd": 0.07071067811865477
-      },
-      "compute_time_ms": {
-        "n": 2,
-        "mean": 1.0377497965237126,
-        "ci_low": 0.5496261934458744,
-        "ci_high": 1.5258733996015508,
-        "sd": 0.054329530897772725
-      },
-      "recover_failed": {
-        "n": 2,
-        "mean": 0.0,
-        "ci_low": 0.0,
-        "ci_high": 0.0,
-        "sd": 0.0
-      },
-      "thrash_event": {
-        "n": 2,
-        "mean": 0.25,
-        "ci_low": -2.9265,
-        "ci_high": 3.4265,
-        "sd": 0.3535533905932738
-      },
-      "degraded_continuation": {
-        "n": 2,
-        "mean": 0.0,
-        "ci_low": 0.0,
-        "ci_high": 0.0,
-        "sd": 0.0
-      },
-      "checkpoint_cost": {
-        "n": 2,
-        "mean": 0.0225,
-        "ci_low": -0.025147499999999996,
-        "ci_high": 0.0701475,
-        "sd": 0.005303300858899107
-      },
-      "recover_cost": {
-        "n": 2,
-        "mean": 0.00375,
-        "ci_low": -0.04389749999999999,
-        "ci_high": 0.0513975,
-        "sd": 0.005303300858899107
-      },
-      "fidelity_level_code": {
-        "n": 2,
-        "mean": 0.9375,
-        "ci_low": 0.14337500000000003,
-        "ci_high": 1.731625,
-        "sd": 0.08838834764831845
-      },
-      "seed_means": {
-        "service_continuity_utility": [
-          0.643926774201417,
-          0.6326628731949688
-        ],
-        "predicted_latency_ms": [
-          81.72612785537538,
-          80.64579622996641
-        ],
-        "energy_use_j": [
-          39.94820524064859,
-          41.874296812033414
-        ],
-        "fairness": [
-          0.9999999999999805,
-          0.9999999999999536
-        ],
-        "n_network_switches": [
-          0.0,
-          1.0
-        ],
-        "n_placement_switches": [
-          0.0,
-          1.0
-        ],
-        "n_fidelity_switches": [
-          0.5,
-          0.0
-        ],
-        "switch_cost": [
-          0.125,
-          0.225
-        ],
-        "compute_time_ms": [
-          0.9993330168072134,
-          1.0761665762402117
-        ],
-        "recover_failed": [
-          0.0,
-          0.0
-        ],
-        "thrash_event": [
-          0.0,
-          0.5
-        ],
-        "degraded_continuation": [
-          0.0,
-          0.0
-        ],
-        "checkpoint_cost": [
-          0.02625,
-          0.01875
-        ],
-        "recover_cost": [
-          0.0,
-          0.0075
-        ],
-        "fidelity_level_code": [
-          0.875,
-          1.0
-        ]
-      }
-    },
-    "no_adaptation": {
-      "service_continuity_utility": {
-        "n": 2,
-        "mean": 0.7851699360946682,
-        "ci_low": 0.6812492288079174,
-        "ci_high": 0.8890906433814191,
-        "sd": 0.01156666721677377
-      },
-      "predicted_latency_ms": {
-        "n": 2,
-        "mean": 90.83605206544568,
-        "ci_low": 73.84339507865035,
-        "ci_high": 107.82870905224102,
-        "sd": 1.8913305502502682
-      },
-      "energy_use_j": {
-        "n": 2,
-        "mean": 46.44022136017037,
-        "ci_low": 36.4436397221918,
-        "ci_high": 56.43680299814894,
-        "sd": 1.112647672737222
-      },
-      "fairness": {
-        "n": 2,
-        "mean": 1.0,
-        "ci_low": 1.0,
-        "ci_high": 1.0,
-        "sd": 0.0
-      },
-      "n_network_switches": {
-        "n": 2,
-        "mean": 0.75,
-        "ci_low": -2.4265,
-        "ci_high": 3.9265,
-        "sd": 0.3535533905932738
-      },
-      "n_placement_switches": {
-        "n": 2,
-        "mean": 0.0,
-        "ci_low": 0.0,
-        "ci_high": 0.0,
-        "sd": 0.0
-      },
-      "n_fidelity_switches": {
-        "n": 2,
-        "mean": 0.0,
-        "ci_low": 0.0,
-        "ci_high": 0.0,
-        "sd": 0.0
-      },
-      "switch_cost": {
-        "n": 2,
-        "mean": 0.037500000000000006,
-        "ci_low": -0.12132500000000002,
-        "ci_high": 0.19632500000000003,
-        "sd": 0.01767766952966369
-      },
-      "compute_time_ms": {
-        "n": 2,
-        "mean": 0.0025002664187923074,
-        "ci_low": 0.0017098333046305925,
-        "ci_high": 0.0032906995329540223,
-        "sd": 8.79774303633164e-05
-      },
-      "recover_failed": {
-        "n": 2,
-        "mean": 0.0,
-        "ci_low": 0.0,
-        "ci_high": 0.0,
-        "sd": 0.0
-      },
-      "thrash_event": {
-        "n": 2,
-        "mean": 0.0,
-        "ci_low": 0.0,
-        "ci_high": 0.0,
-        "sd": 0.0
-      },
-      "degraded_continuation": {
-        "n": 2,
-        "mean": 0.0,
-        "ci_low": 0.0,
-        "ci_high": 0.0,
-        "sd": 0.0
-      },
-      "checkpoint_cost": {
-        "n": 2,
-        "mean": 0.0,
-        "ci_low": 0.0,
-        "ci_high": 0.0,
-        "sd": 0.0
-      },
-      "recover_cost": {
-        "n": 2,
-        "mean": 0.0,
-        "ci_low": 0.0,
-        "ci_high": 0.0,
-        "sd": 0.0
-      },
-      "fidelity_level_code": {
-        "n": 2,
-        "mean": 2.0,
-        "ci_low": 2.0,
-        "ci_high": 2.0,
-        "sd": 0.0
-      },
-      "seed_means": {
-        "service_continuity_utility": [
-          0.7933488049193771,
-          0.7769910672699594
-        ],
-        "predicted_latency_ms": [
-          92.17342472299293,
-          89.49867940789844
-        ],
-        "energy_use_j": [
-          45.65346064570645,
-          47.22698207463429
-        ],
-        "fairness": [
-          1.0,
-          1.0
-        ],
-        "n_network_switches": [
-          0.5,
-          1.0
-        ],
-        "n_placement_switches": [
-          0.0,
-          0.0
-        ],
-        "n_fidelity_switches": [
-          0.0,
-          0.0
-        ],
-        "switch_cost": [
-          0.025,
-          0.05
-        ],
-        "compute_time_ms": [
-          0.0025624758563935757,
-          0.002438056981191039
-        ],
-        "recover_failed": [
-          0.0,
-          0.0
-        ],
-        "thrash_event": [
-          0.0,
-          0.0
-        ],
-        "degraded_continuation": [
-          0.0,
-          0.0
-        ],
-        "checkpoint_cost": [
-          0.0,
-          0.0
-        ],
-        "recover_cost": [
-          0.0,
-          0.0
-        ],
-        "fidelity_level_code": [
-          2.0,
-          2.0
-        ]
-      }
-    }
+    "effect_sizes": {},
+    "evidence_class": "SYNTHETIC_SIM",
+    "latency_class": "HOST_PROCESS_TIMING",
+    "t_crit_verification_source": "SciPy 1.18.0 scipy.stats.t.ppf(0.975, df) preferred at runtime; stdlib table + 1/df interpolation + Cornish\u2013Fisher fallback (no silent 1.96 substitution for finite missing df)",
+    "synthetic_modeling_boundary": "SYNTHETIC_SIM cross-layer continuity model; not application-persistence evidence"
   },
-  "effect_sizes": {
-    "fixed_target_fidelity": {
-      "cohens_d_vs_no_adaptation_continuity": 0.0
+  "held_out": {
+    "family": "held_out",
+    "ablation": "full",
+    "seeds": [
+      100
+    ],
+    "n_seeds": 1,
+    "n_episodes_per_seed": 2,
+    "n_slots_per_episode": 8,
+    "policies": {
+      "fixed_target_fidelity": {
+        "service_continuity_utility": {
+          "n": 1,
+          "mean": 0.7844847198863132,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "predicted_latency_ms": {
+          "n": 1,
+          "mean": 94.683432793288,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "energy_use_j": {
+          "n": 1,
+          "mean": 46.88606264496845,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "fairness": {
+          "n": 1,
+          "mean": 1.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "n_network_switches": {
+          "n": 1,
+          "mean": 1.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "n_placement_switches": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "n_fidelity_switches": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "switch_cost": {
+          "n": 1,
+          "mean": 0.05,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "compute_time_ms": {
+          "n": 1,
+          "mean": 0.00981349148787558,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "recover_failed": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "thrash_event": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "degraded_continuation": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "checkpoint_cost": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "recover_cost": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "fidelity_level_code": {
+          "n": 1,
+          "mean": 2.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "seed_means": {
+          "service_continuity_utility": [
+            0.7844847198863132
+          ],
+          "predicted_latency_ms": [
+            94.683432793288
+          ],
+          "energy_use_j": [
+            46.88606264496845
+          ],
+          "fairness": [
+            1.0
+          ],
+          "n_network_switches": [
+            1.0
+          ],
+          "n_placement_switches": [
+            0.0
+          ],
+          "n_fidelity_switches": [
+            0.0
+          ],
+          "switch_cost": [
+            0.05
+          ],
+          "compute_time_ms": [
+            0.00981349148787558
+          ],
+          "recover_failed": [
+            0.0
+          ],
+          "thrash_event": [
+            0.0
+          ],
+          "degraded_continuation": [
+            0.0
+          ],
+          "checkpoint_cost": [
+            0.0
+          ],
+          "recover_cost": [
+            0.0
+          ],
+          "fidelity_level_code": [
+            2.0
+          ]
+        }
+      },
+      "adaptive_fidelity": {
+        "service_continuity_utility": {
+          "n": 1,
+          "mean": 0.7551906680749958,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "predicted_latency_ms": {
+          "n": 1,
+          "mean": 89.37870671117814,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "energy_use_j": {
+          "n": 1,
+          "mean": 45.64241378157251,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "fairness": {
+          "n": 1,
+          "mean": 0.9999999999999482,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "n_network_switches": {
+          "n": 1,
+          "mean": 2.5,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "n_placement_switches": {
+          "n": 1,
+          "mean": 1.5,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "n_fidelity_switches": {
+          "n": 1,
+          "mean": 1.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "switch_cost": {
+          "n": 1,
+          "mean": 0.21,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "compute_time_ms": {
+          "n": 1,
+          "mean": 1.968500087969005,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "recover_failed": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "thrash_event": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "degraded_continuation": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "checkpoint_cost": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "recover_cost": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "fidelity_level_code": {
+          "n": 1,
+          "mean": 1.875,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "seed_means": {
+          "service_continuity_utility": [
+            0.7551906680749958
+          ],
+          "predicted_latency_ms": [
+            89.37870671117814
+          ],
+          "energy_use_j": [
+            45.64241378157251
+          ],
+          "fairness": [
+            0.9999999999999482
+          ],
+          "n_network_switches": [
+            2.5
+          ],
+          "n_placement_switches": [
+            1.5
+          ],
+          "n_fidelity_switches": [
+            1.0
+          ],
+          "switch_cost": [
+            0.21
+          ],
+          "compute_time_ms": [
+            1.968500087969005
+          ],
+          "recover_failed": [
+            0.0
+          ],
+          "thrash_event": [
+            0.0
+          ],
+          "degraded_continuation": [
+            0.0
+          ],
+          "checkpoint_cost": [
+            0.0
+          ],
+          "recover_cost": [
+            0.0
+          ],
+          "fidelity_level_code": [
+            1.875
+          ]
+        }
+      },
+      "checkpoint_disabled": {
+        "service_continuity_utility": {
+          "n": 1,
+          "mean": 0.6733619490414902,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "predicted_latency_ms": {
+          "n": 1,
+          "mean": 90.17469789836953,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "energy_use_j": {
+          "n": 1,
+          "mean": 40.54505251174838,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "fairness": {
+          "n": 1,
+          "mean": 1.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "n_network_switches": {
+          "n": 1,
+          "mean": 1.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "n_placement_switches": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "n_fidelity_switches": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "switch_cost": {
+          "n": 1,
+          "mean": 0.05,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "compute_time_ms": {
+          "n": 1,
+          "mean": 0.008394505130127072,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "recover_failed": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "thrash_event": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "degraded_continuation": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "checkpoint_cost": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "recover_cost": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "fidelity_level_code": {
+          "n": 1,
+          "mean": 1.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "seed_means": {
+          "service_continuity_utility": [
+            0.6733619490414902
+          ],
+          "predicted_latency_ms": [
+            90.17469789836953
+          ],
+          "energy_use_j": [
+            40.54505251174838
+          ],
+          "fairness": [
+            1.0
+          ],
+          "n_network_switches": [
+            1.0
+          ],
+          "n_placement_switches": [
+            0.0
+          ],
+          "n_fidelity_switches": [
+            0.0
+          ],
+          "switch_cost": [
+            0.05
+          ],
+          "compute_time_ms": [
+            0.008394505130127072
+          ],
+          "recover_failed": [
+            0.0
+          ],
+          "thrash_event": [
+            0.0
+          ],
+          "degraded_continuation": [
+            0.0
+          ],
+          "checkpoint_cost": [
+            0.0
+          ],
+          "recover_cost": [
+            0.0
+          ],
+          "fidelity_level_code": [
+            1.0
+          ]
+        }
+      },
+      "adaptive_checkpoint": {
+        "service_continuity_utility": {
+          "n": 1,
+          "mean": 0.6252667390246678,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "predicted_latency_ms": {
+          "n": 1,
+          "mean": 85.81137638182011,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "energy_use_j": {
+          "n": 1,
+          "mean": 42.07688649629284,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "fairness": {
+          "n": 1,
+          "mean": 0.9999999999999482,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "n_network_switches": {
+          "n": 1,
+          "mean": 2.5,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "n_placement_switches": {
+          "n": 1,
+          "mean": 1.5,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "n_fidelity_switches": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "switch_cost": {
+          "n": 1,
+          "mean": 0.515,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "compute_time_ms": {
+          "n": 1,
+          "mean": 2.0256664138287306,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "recover_failed": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "thrash_event": {
+          "n": 1,
+          "mean": 1.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "degraded_continuation": {
+          "n": 1,
+          "mean": 0.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "checkpoint_cost": {
+          "n": 1,
+          "mean": 0.02625,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "recover_cost": {
+          "n": 1,
+          "mean": 0.005625,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "fidelity_level_code": {
+          "n": 1,
+          "mean": 1.0,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "seed_means": {
+          "service_continuity_utility": [
+            0.6252667390246678
+          ],
+          "predicted_latency_ms": [
+            85.81137638182011
+          ],
+          "energy_use_j": [
+            42.07688649629284
+          ],
+          "fairness": [
+            0.9999999999999482
+          ],
+          "n_network_switches": [
+            2.5
+          ],
+          "n_placement_switches": [
+            1.5
+          ],
+          "n_fidelity_switches": [
+            0.0
+          ],
+          "switch_cost": [
+            0.515
+          ],
+          "compute_time_ms": [
+            2.0256664138287306
+          ],
+          "recover_failed": [
+            0.0
+          ],
+          "thrash_event": [
+            1.0
+          ],
+          "degraded_continuation": [
+            0.0
+          ],
+          "checkpoint_cost": [
+            0.02625
+          ],
+          "recover_cost": [
+            0.005625
+          ],
+          "fidelity_level_code": [
+            1.0
+          ]
+        }
+      }
     },
-    "adaptive_fidelity": {
-      "cohens_d_vs_no_adaptation_continuity": -1.6540376668317323
-    },
-    "checkpoint_disabled": {
-      "cohens_d_vs_no_adaptation_continuity": -10.036371412485478
-    },
-    "adaptive_checkpoint": {
-      "cohens_d_vs_no_adaptation_continuity": -14.79045897326921
-    },
-    "no_adaptation": {
-      "cohens_d_vs_no_adaptation_continuity": 0.0
-    }
+    "effect_sizes": {},
+    "evidence_class": "SYNTHETIC_SIM",
+    "latency_class": "HOST_PROCESS_TIMING",
+    "t_crit_verification_source": "SciPy 1.18.0 scipy.stats.t.ppf(0.975, df) preferred at runtime; stdlib table + 1/df interpolation + Cornish\u2013Fisher fallback (no silent 1.96 substitution for finite missing df)",
+    "synthetic_modeling_boundary": "SYNTHETIC_SIM cross-layer continuity model; not application-persistence evidence"
   },
   "evidence_class": "SYNTHETIC_SIM",
-  "latency_class": "HOST_PROCESS_TIMING"
+  "note": "Synthetic cross-layer modeling; not application-persistence evidence"
 }

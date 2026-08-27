@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 import math
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Callable
 
@@ -17,22 +17,50 @@ import numpy as np
 
 PROTOCOL_RELPATH = Path("paper/artifacts/experiment_protocol.yaml")
 
-T_CRIT_975 = {
-    1: 12.706,
-    2: 4.303,
-    3: 3.182,
-    4: 2.776,
-    5: 2.571,
-    6: 2.447,
-    7: 2.365,
-    8: 2.306,
-    9: 2.262,
-    10: 2.228,
-    20: 2.086,
-    30: 2.042,
-    60: 2.000,
-    120: 1.980,
+# Two-sided 95% Student-t critical values from SciPy 1.18.0 t.ppf(0.975, df).
+# SciPy is a declared dependency (requirements.txt); ppf is preferred at runtime.
+T_CRIT_975: dict[int, float] = {
+    1: 12.7062047362,
+    2: 4.3026527297,
+    3: 3.1824463053,
+    4: 2.7764451052,
+    5: 2.5705818356,
+    6: 2.4469118511,
+    7: 2.3646242516,
+    8: 2.3060041352,
+    9: 2.2621571628,
+    10: 2.2281388520,
+    11: 2.2009851601,
+    12: 2.1788128297,
+    13: 2.1603686565,
+    14: 2.1447866879,
+    15: 2.1314495456,
+    16: 2.1199052992,
+    17: 2.1098155778,
+    18: 2.1009220402,
+    19: 2.0930240544,
+    20: 2.0859634473,
+    21: 2.0796138447,
+    22: 2.0738730679,
+    23: 2.0686576104,
+    24: 2.0638985616,
+    25: 2.0595385528,
+    26: 2.0555294386,
+    27: 2.0518305165,
+    28: 2.0484071418,
+    29: 2.0452296421,
+    30: 2.0422724563,
+    40: 2.0210753903,
+    60: 2.0002978220,
+    120: 1.9799304051,
 }
+_Z_975 = 1.959963984540054
+SUPPORTED_CI_LEVEL = 0.95
+T_CRIT_VERIFICATION_SOURCE = (
+    "SciPy 1.18.0 scipy.stats.t.ppf(0.975, df) preferred at runtime; "
+    "stdlib table + 1/df interpolation + Cornish–Fisher fallback "
+    "(no silent 1.96 substitution for finite missing df)"
+)
 
 NETWORK_PENALTY = {
     "terrestrial": 1.0,
@@ -44,7 +72,7 @@ NETWORK_PENALTY = {
 }
 PLACEMENT_PENALTY = {"cloud": 1.15, "edge": 1.0, "local": 1.25}
 
-# Fidelity levels tied to documented service profiles (not free-form continuous).
+# Default synthetic factors (overridden by versioned protocol synthetic_parameters).
 FIDELITY_LEVELS = ("target", "degraded", "minimum_useful")
 FIDELITY_CONTINUITY_FACTOR = {"target": 1.0, "degraded": 0.85, "minimum_useful": 0.65}
 FIDELITY_ENERGY_FACTOR = {"target": 1.15, "degraded": 1.0, "minimum_useful": 0.75}
@@ -52,8 +80,59 @@ FIDELITY_SWITCH_PENALTY = 0.04
 CHECKPOINT_ACTION_PENALTY = 0.03
 RECOVER_ACTION_PENALTY = 0.06
 STALE_CHECKPOINT_AGE = 8
-THRASH_WINDOW = 2  # recover then checkpoint within window incurs thrash penalty
+THRASH_WINDOW = 2  # rolling window of recent checkpoint/recover actions
 THRASH_PENALTY = 0.08
+NETWORK_CHANGE_RECOVER_EXTRA = 0.03
+SUCCESSFUL_RECOVER_CONTINUITY_BOOST = 0.08
+
+# Restricted current-slot observation contract (non-oracle).
+ALLOWED_OBSERVATION_FIELDS = frozenset(
+    {
+        "latency_ms",
+        "packet_loss_pct",
+        "terrestrial_outage",
+        "energy_budget",
+        "edge_capacity",
+        "blockage",
+        "mobility",
+        "continuity_strict",
+        "checkpoint_available",
+        "checkpoint_age_slots",
+        "task_progress",
+        "recovery_budget",
+    }
+)
+ORACLE_EXTRA_FIELDS = frozenset({"model_oracle_metric_eval"})
+POLICY_REQUIRED_FIELDS: dict[str, frozenset[str]] = {
+    "no_adaptation": frozenset({"energy_budget"}),
+    "local_only": frozenset({"energy_budget"}),
+    "cloud_only": frozenset({"energy_budget"}),
+    "edge_only": frozenset({"energy_budget", "edge_capacity"}),
+    "rule_based": frozenset({"latency_ms", "terrestrial_outage", "edge_capacity"}),
+    "optimization_based": frozenset({"energy_budget"}),
+    "twin_informed": frozenset(
+        {"latency_ms", "terrestrial_outage", "energy_budget", "edge_capacity", "continuity_strict"}
+    ),
+    "information_equivalent": frozenset(
+        {"latency_ms", "packet_loss_pct", "terrestrial_outage", "energy_budget", "continuity_strict"}
+    ),
+    "oracle": frozenset(ALLOWED_OBSERVATION_FIELDS | ORACLE_EXTRA_FIELDS),
+    "fixed_target_fidelity": frozenset({"energy_budget"}),
+    "adaptive_fidelity": frozenset({"latency_ms", "terrestrial_outage", "energy_budget"}),
+    "checkpoint_disabled": frozenset({"energy_budget"}),
+    "adaptive_checkpoint": frozenset(
+        {
+            "latency_ms",
+            "terrestrial_outage",
+            "energy_budget",
+            "blockage",
+            "checkpoint_available",
+            "checkpoint_age_slots",
+            "task_progress",
+            "recovery_budget",
+        }
+    ),
+}
 
 FAMILY_PARAMS = {
     "in_distribution": {
@@ -207,25 +286,48 @@ def load_protocol(path: Path) -> dict[str, Any]:
 
 
 def t_crit_975(df: int) -> float:
+    """Two-sided 95% Student-t critical value. Prefer SciPy; never silent 1.96 for finite df."""
     if df <= 0:
-        return float("nan")
+        raise ValueError(f"degrees of freedom must be positive, got {df}")
+    try:
+        from scipy.stats import t as student_t  # type: ignore
+
+        return float(student_t.ppf(0.975, df))
+    except Exception:
+        pass
     if df in T_CRIT_975:
         return T_CRIT_975[df]
-    return 1.96
+    keys = sorted(T_CRIT_975)
+    if df > keys[-1]:
+        z = _Z_975
+        inv = 1.0 / float(df)
+        return float(
+            z
+            + (z**3 + z) * inv / 4.0
+            + (5.0 * z**5 + 16.0 * z**3 + 3.0 * z) * inv * inv / 96.0
+        )
+    lo = max(k for k in keys if k < df)
+    hi = min(k for k in keys if k > df)
+    w = (1.0 / df - 1.0 / lo) / (1.0 / hi - 1.0 / lo)
+    return float(T_CRIT_975[lo] + w * (T_CRIT_975[hi] - T_CRIT_975[lo]))
 
 
-def mean_ci(values: list[float], level: float = 0.95) -> dict[str, float]:
+def mean_ci(values: list[float], level: float = SUPPORTED_CI_LEVEL) -> dict[str, float]:
+    if abs(float(level) - SUPPORTED_CI_LEVEL) > 1e-15:
+        raise ValueError(
+            f"Only confidence level {SUPPORTED_CI_LEVEL} is supported; got {level}. "
+            "Refusing to silently reuse the 95% t table for other levels."
+        )
     arr = [float(v) for v in values]
     n = len(arr)
+    nan = float("nan")
     if n == 0:
-        return {"n": 0, "mean": float("nan"), "ci_low": float("nan"), "ci_high": float("nan"), "sd": float("nan")}
+        return {"n": 0, "mean": nan, "ci_low": nan, "ci_high": nan, "sd": nan}
     m = float(sum(arr) / n)
-    if n == 1:
-        return {"n": 1, "mean": m, "ci_low": m, "ci_high": m, "sd": 0.0}
+    if n < 2:
+        return {"n": n, "mean": m, "ci_low": nan, "ci_high": nan, "sd": nan}
     var = sum((x - m) ** 2 for x in arr) / (n - 1)
     sd = math.sqrt(var)
-    # Protocol ci_level is 0.95; other levels fall back to the same t table.
-    _ = level
     half = t_crit_975(n - 1) * sd / math.sqrt(n)
     return {"n": n, "mean": m, "ci_low": m - half, "ci_high": m + half, "sd": sd}
 
@@ -302,6 +404,176 @@ class Action:
     recover_action: str = "none"  # none | recover
 
 
+@dataclass(frozen=True)
+class PolicyObservation:
+    """Restricted current-slot observation view for non-oracle policies."""
+
+    fields: dict[str, float]
+    policy_name: str
+    allowed_fields: frozenset[str] = ALLOWED_OBSERVATION_FIELDS
+
+    def get(self, key: str) -> float:
+        if key not in self.allowed_fields:
+            raise PermissionError(f"Policy {self.policy_name} prohibited observation field: {key}")
+        if key not in self.fields:
+            raise KeyError(key)
+        return float(self.fields[key])
+
+    def as_dict(self) -> dict[str, float]:
+        return {k: float(self.fields[k]) for k in sorted(self.fields) if k in self.allowed_fields}
+
+
+@dataclass
+class CheckpointRuntimeState:
+    """Causal checkpoint/recovery state across slots (not independently resampled).
+
+    Explicit boundary: synthetic cross-layer modeling of continuity, NOT
+    application-persistence evidence.
+    """
+
+    exists: bool = False
+    age_slots: int = 0
+    progress: float = 0.0
+    last_checkpoint_slot: int | None = None
+    last_recovery_slot: int | None = None
+    recent_ckpt_recover: list[str] = field(default_factory=list)
+
+    def advance_age(self) -> None:
+        if self.exists:
+            self.age_slots += 1
+
+    def overlay_slot(self, slot: Slot) -> Slot:
+        data = asdict(slot)
+        data["checkpoint_available"] = bool(self.exists)
+        data["checkpoint_age_slots"] = int(self.age_slots)
+        # Task progress observed is max of scenario draw and checkpointed progress continuity.
+        data["task_progress"] = float(max(slot.task_progress, self.progress if self.exists else 0.0))
+        return Slot(**data)
+
+    def record_and_apply(
+        self,
+        action: Action,
+        *,
+        slot_idx: int,
+        task_progress: float,
+        thrash_window: int,
+    ) -> bool:
+        """Apply checkpoint/recover side-effects; return True if thrash in rolling window."""
+        tag = "none"
+        if action.recover_action == "recover":
+            tag = "recover"
+            self.last_recovery_slot = slot_idx
+        elif action.checkpoint_action == "checkpoint":
+            tag = "checkpoint"
+            self.exists = True
+            self.age_slots = 0
+            self.progress = float(max(0.0, min(1.0, task_progress)))
+            self.last_checkpoint_slot = slot_idx
+        self.recent_ckpt_recover.append(tag)
+        if len(self.recent_ckpt_recover) > max(1, thrash_window):
+            self.recent_ckpt_recover = self.recent_ckpt_recover[-thrash_window:]
+        window = self.recent_ckpt_recover[-thrash_window:]
+        return "checkpoint" in window and "recover" in window
+
+
+def observation_from_slot(slot: Slot, policy_name: str) -> PolicyObservation:
+    feats = slot.feature_vector()
+    if policy_name == "oracle":
+        feats = {**feats, "model_oracle_metric_eval": 1.0}
+        allowed = ALLOWED_OBSERVATION_FIELDS | ORACLE_EXTRA_FIELDS
+    else:
+        allowed = ALLOWED_OBSERVATION_FIELDS
+        feats = {k: v for k, v in feats.items() if k in allowed}
+    return PolicyObservation(fields=feats, policy_name=policy_name, allowed_fields=allowed)
+
+
+def validate_policy_observation_contract(policy_name: str) -> dict[str, Any]:
+    required = POLICY_REQUIRED_FIELDS.get(policy_name, frozenset())
+    if policy_name == "oracle":
+        allowed = ALLOWED_OBSERVATION_FIELDS | ORACLE_EXTRA_FIELDS
+    else:
+        allowed = ALLOWED_OBSERVATION_FIELDS
+    ok = required <= allowed
+    return {
+        "policy": policy_name,
+        "required_fields": sorted(required),
+        "allowed_observation_fields": sorted(allowed),
+        "required_subseteq_allowed": ok,
+        "violations": sorted(required - allowed),
+    }
+
+
+def resolve_synthetic_params(proto: dict[str, Any]) -> dict[str, Any]:
+    """Load versioned synthetic factors from protocol with documented defaults."""
+    sp = proto.get("synthetic_parameters") or {}
+    cr = proto.get("checkpoint_recovery") or {}
+    costs = proto.get("costs") or {}
+
+    def _leaf(node: Any, default: float) -> float:
+        if isinstance(node, dict) and "value" in node:
+            return float(node["value"])
+        if node is None:
+            return float(default)
+        return float(node)
+
+    cont = sp.get("fidelity_continuity_factor") or {}
+    energy = sp.get("fidelity_energy_factor") or {}
+    return {
+        "fidelity_continuity_factor": {
+            "target": _leaf(cont.get("target"), FIDELITY_CONTINUITY_FACTOR["target"]),
+            "degraded": _leaf(cont.get("degraded"), FIDELITY_CONTINUITY_FACTOR["degraded"]),
+            "minimum_useful": _leaf(
+                cont.get("minimum_useful"), FIDELITY_CONTINUITY_FACTOR["minimum_useful"]
+            ),
+        },
+        "fidelity_energy_factor": {
+            "target": _leaf(energy.get("target"), FIDELITY_ENERGY_FACTOR["target"]),
+            "degraded": _leaf(energy.get("degraded"), FIDELITY_ENERGY_FACTOR["degraded"]),
+            "minimum_useful": _leaf(
+                energy.get("minimum_useful"), FIDELITY_ENERGY_FACTOR["minimum_useful"]
+            ),
+        },
+        "fidelity_switch_penalty": _leaf(
+            sp.get("fidelity_switch_penalty", costs.get("fidelity_switch_penalty")),
+            FIDELITY_SWITCH_PENALTY,
+        ),
+        "checkpoint_action_penalty": _leaf(
+            cr.get("checkpoint_action_penalty", costs.get("checkpoint_action_penalty")),
+            CHECKPOINT_ACTION_PENALTY,
+        ),
+        "recover_action_penalty": _leaf(
+            cr.get("recover_action_penalty", costs.get("recover_action_penalty")),
+            RECOVER_ACTION_PENALTY,
+        ),
+        "stale_checkpoint_age_slots": int(
+            cr.get("stale_checkpoint_age_slots", STALE_CHECKPOINT_AGE)
+        ),
+        "thrash_window": int(cr.get("thrash_window", THRASH_WINDOW)),
+        "thrash_penalty": _leaf(cr.get("thrash_penalty"), THRASH_PENALTY),
+        "network_change_recover_extra": _leaf(
+            sp.get("network_change_recover_extra", cr.get("network_change_recover_extra")),
+            NETWORK_CHANGE_RECOVER_EXTRA,
+        ),
+        "successful_recover_continuity_boost": _leaf(
+            sp.get("successful_recover_continuity_boost"),
+            SUCCESSFUL_RECOVER_CONTINUITY_BOOST,
+        ),
+        "initial_checkpoint": dict(
+            cr.get("initial_checkpoint") or {"exists": False, "age_slots": 0, "progress": 0.0}
+        ),
+    }
+
+
+def initial_checkpoint_state(proto: dict[str, Any]) -> CheckpointRuntimeState:
+    params = resolve_synthetic_params(proto)
+    init = params["initial_checkpoint"]
+    return CheckpointRuntimeState(
+        exists=bool(init.get("exists", False)),
+        age_slots=int(init.get("age_slots", 0)),
+        progress=float(init.get("progress", 0.0)),
+    )
+
+
 def _uniform(n: int, budget: float) -> list[float]:
     return [budget / max(n, 1)] * n
 
@@ -349,8 +621,23 @@ def predict_metrics(
     network_switch_penalty: float,
     placement_switch_penalty: float,
     apply_switch: bool,
+    params: dict[str, Any] | None = None,
+    thrash_event: bool = False,
 ) -> dict[str, float]:
-    fidelity = action.fidelity_level if action.fidelity_level in FIDELITY_CONTINUITY_FACTOR else "target"
+    p = params or {
+        "fidelity_continuity_factor": FIDELITY_CONTINUITY_FACTOR,
+        "fidelity_energy_factor": FIDELITY_ENERGY_FACTOR,
+        "fidelity_switch_penalty": FIDELITY_SWITCH_PENALTY,
+        "checkpoint_action_penalty": CHECKPOINT_ACTION_PENALTY,
+        "recover_action_penalty": RECOVER_ACTION_PENALTY,
+        "stale_checkpoint_age_slots": STALE_CHECKPOINT_AGE,
+        "thrash_penalty": THRASH_PENALTY,
+        "network_change_recover_extra": NETWORK_CHANGE_RECOVER_EXTRA,
+        "successful_recover_continuity_boost": SUCCESSFUL_RECOVER_CONTINUITY_BOOST,
+    }
+    cont_factor = p["fidelity_continuity_factor"]
+    energy_factor = p["fidelity_energy_factor"]
+    fidelity = action.fidelity_level if action.fidelity_level in cont_factor else "target"
     util = float(sum(action.shares) / max(slot.spectrum_budget, 1e-9))
     util = min(1.5, max(0.0, util))
     npen = NETWORK_PENALTY.get(action.network, 1.3)
@@ -364,10 +651,10 @@ def predict_metrics(
     reliability = max(0.0, min(1.0, 1.0 - pred_loss / 100.0))
     energy = (slot.energy_budget * 0.2) + (util * 15.0) + (0.05 * pred_latency)
     energy *= 0.6 + 0.4 * (sum(action.power) / max(len(action.power), 1))
-    energy *= FIDELITY_ENERGY_FACTOR[fidelity]
+    energy *= float(energy_factor[fidelity])
     fairness = jains_index(action.shares)
     continuity = max(0.0, min(1.0, reliability * (1.0 - min(pred_latency, 500.0) / 500.0)))
-    continuity *= FIDELITY_CONTINUITY_FACTOR[fidelity]
+    continuity *= float(cont_factor[fidelity])
 
     n_net = 0
     n_place = 0
@@ -378,6 +665,13 @@ def predict_metrics(
     recover_failed = 0.0
     thrash = 0.0
     degraded_continuation = 0.0
+    fid_switch_pen = float(p["fidelity_switch_penalty"])
+    ckpt_pen = float(p["checkpoint_action_penalty"])
+    recover_pen = float(p["recover_action_penalty"])
+    stale_age = int(p["stale_checkpoint_age_slots"])
+    thrash_pen = float(p["thrash_penalty"])
+    net_recover_extra = float(p["network_change_recover_extra"])
+    recover_boost = float(p["successful_recover_continuity_boost"])
 
     if prev is not None:
         if action.network != prev.network:
@@ -388,19 +682,19 @@ def predict_metrics(
             switch_cost += placement_switch_penalty
         if action.fidelity_level != prev.fidelity_level:
             n_fidelity = 1
-            switch_cost += FIDELITY_SWITCH_PENALTY
+            switch_cost += fid_switch_pen
 
     if action.checkpoint_action == "checkpoint":
-        checkpoint_cost += CHECKPOINT_ACTION_PENALTY
+        checkpoint_cost += ckpt_pen
         energy += 2.0
 
     if action.recover_action == "recover":
-        recover_cost += RECOVER_ACTION_PENALTY
+        recover_cost += recover_pen
         if not slot.checkpoint_available:
             recover_failed = 1.0
             continuity *= 0.55
             degraded_continuation = 1.0
-        elif slot.checkpoint_age_slots >= STALE_CHECKPOINT_AGE:
+        elif slot.checkpoint_age_slots >= stale_age:
             recover_failed = 1.0
             continuity *= 0.7
             # Stale checkpoint → safe degraded/offline continuation
@@ -411,14 +705,15 @@ def predict_metrics(
             degraded_continuation = 1.0
         else:
             # Successful recover restores progress-proportional continuity boost
-            continuity = min(1.0, continuity + 0.08 * max(0.0, min(1.0, slot.task_progress)))
+            continuity = min(1.0, continuity + recover_boost * max(0.0, min(1.0, slot.task_progress)))
         # Network path change during recovery increases cost
         if prev is not None and action.network != prev.network:
-            recover_cost += 0.03
+            recover_cost += net_recover_extra
             switch_cost += 0.02
-        if prev is not None and prev.checkpoint_action == "checkpoint":
-            thrash = 1.0
-            switch_cost += THRASH_PENALTY
+
+    if thrash_event:
+        thrash = 1.0
+        switch_cost += thrash_pen
 
     total_switch = switch_cost + checkpoint_cost + recover_cost
     net_utility = continuity - (total_switch if apply_switch else 0.0)
@@ -647,6 +942,9 @@ def policy_checkpoint_disabled(slot: Slot, prev: Action | None, seed: int, proto
 def policy_adaptive_checkpoint(slot: Slot, prev: Action | None, seed: int, proto: dict) -> Action:
     """Cross-layer checkpoint/recover using only current-slot observations."""
     base = policy_twin_informed(slot, prev, seed, proto)
+    params = resolve_synthetic_params(proto)
+    stale_age = int(params["stale_checkpoint_age_slots"])
+    recover_pen = float(params["recover_action_penalty"])
     fidelity = "degraded"
     ckpt = "none"
     recover = "none"
@@ -659,8 +957,8 @@ def policy_adaptive_checkpoint(slot: Slot, prev: Action | None, seed: int, proto
     if slot.terrestrial_outage or slot.blockage > 0.6:
         if (
             slot.checkpoint_available
-            and slot.checkpoint_age_slots < STALE_CHECKPOINT_AGE
-            and RECOVER_ACTION_PENALTY <= slot.recovery_budget
+            and slot.checkpoint_age_slots < stale_age
+            and recover_pen <= slot.recovery_budget
         ):
             recover = "recover"
             ckpt = "none"  # thrash prevention: do not checkpoint in same recover step
@@ -717,8 +1015,8 @@ def generate_slot(rng: np.random.Generator, family: str) -> Slot:
     if not nets:
         nets = ["degraded_local"]
     continuity = "strict" if rng.random() < 0.25 else "degraded_ok"
-    checkpoint_available = bool(rng.random() > 0.15)
-    checkpoint_age = int(rng.integers(0, 12))
+    # Checkpoint availability/age are NOT independently randomized per slot.
+    # They are overlaid from CheckpointRuntimeState during episode execution.
     task_progress = float(rng.uniform(0.1, 0.95))
     recovery_budget = float(rng.uniform(0.04, 0.20))
     return Slot(
@@ -737,8 +1035,8 @@ def generate_slot(rng: np.random.Generator, family: str) -> Slot:
         mobility=float(rng.uniform(0.0, 1.0)),
         blockage=blockage,
         continuity_class=continuity,
-        checkpoint_available=checkpoint_available,
-        checkpoint_age_slots=checkpoint_age,
+        checkpoint_available=False,
+        checkpoint_age_slots=0,
         task_progress=task_progress,
         recovery_budget=recovery_budget,
     )
@@ -781,19 +1079,35 @@ def information_equivalence_audit(
     adaptive_policy: str = "adaptive_fidelity",
     baseline_policy: str = "fixed_target_fidelity",
 ) -> dict[str, Any]:
-    """Record observation set and label oracle vs non-oracle information access."""
-    feats = slot.feature_vector()
+    """Compute observation-contract audit (booleans derived, not hard-coded)."""
+    contracts = {
+        name: validate_policy_observation_contract(name)
+        for name in (adaptive_policy, baseline_policy, "oracle", "adaptive_checkpoint")
+    }
+    adaptive_obs = observation_from_slot(slot, adaptive_policy)
+    baseline_obs = observation_from_slot(slot, baseline_policy)
     adaptive = POLICIES[adaptive_policy](slot, None, 0, proto)
     baseline = POLICIES[baseline_policy](slot, None, 0, proto)
+
+    adaptive_ok = contracts[adaptive_policy]["required_subseteq_allowed"]
+    baseline_ok = contracts[baseline_policy]["required_subseteq_allowed"]
+    # Oracle is labeled separately: privileged model eval on the current slot, not a future peek.
+    oracle_privileged_model = bool(ORACLE_EXTRA_FIELDS & set(POLICY_REQUIRED_FIELDS["oracle"]))
+    oracle_privileged_future = False
+    hidden_state_used = not adaptive_ok or not baseline_ok
+
     return {
-        "observation_set": sorted(feats.keys()),
-        "observation_values": feats,
+        "observation_set": sorted(ALLOWED_OBSERVATION_FIELDS),
+        "observation_values": adaptive_obs.as_dict(),
         "adaptive_policy": adaptive_policy,
         "baseline_policy": baseline_policy,
-        "adaptive_uses_only_observation_set": True,
-        "baseline_uses_only_observation_set": True,
-        "oracle_privileged_future": False,
-        "hidden_state_used": False,
+        "policy_contracts": contracts,
+        "adaptive_uses_only_observation_set": adaptive_ok,
+        "baseline_uses_only_observation_set": baseline_ok,
+        "oracle_privileged_future": oracle_privileged_future,
+        "oracle_privileged_model_eval": oracle_privileged_model,
+        "hidden_state_used": hidden_state_used,
+        "information_equivalence_pass": adaptive_ok and baseline_ok and not hidden_state_used,
         "adaptive_action": {
             "network": adaptive.network,
             "placement": adaptive.placement,
@@ -809,7 +1123,11 @@ def information_equivalence_audit(
             "recover_action": baseline.recover_action,
         },
         "evidence_class": "SYNTHETIC_SIM",
-        "note": "Information-equivalent comparison documents the same Slot.feature_vector(); oracle policy is labeled separately and is not used as a fair adaptive baseline.",
+        "note": (
+            "Non-oracle policies are restricted to ALLOWED_OBSERVATION_FIELDS; "
+            "oracle separately declares model_oracle_metric_eval on the current slot (not future peek). "
+            "Audit booleans are computed from required_fields ⊆ allowed_observation_fields."
+        ),
     }
 
 
@@ -825,12 +1143,26 @@ def run_policy_on_episode(
     npen = float(costs.get("network_switch_penalty", 0.05))
     ppen = float(costs.get("placement_switch_penalty", 0.03))
     apply_switch = ablation != "no_switch_cost"
+    params = resolve_synthetic_params(proto)
+    thrash_window = int(params["thrash_window"])
+    ckpt_state = initial_checkpoint_state(proto)
     prev: Action | None = None
     frozen: Action | None = None
     rows: list[dict[str, float]] = []
     fn = POLICIES[policy_name] if policy_name != "static" else policy_rule_based
-    for slot in slots:
-        use = _ablate_slot(slot, ablation)
+    for slot_idx, slot in enumerate(slots):
+        ckpt_state.advance_age()
+        use = _ablate_slot(ckpt_state.overlay_slot(slot), ablation)
+        # Enforce observation contract for non-oracle policies (raises on prohibited access).
+        if policy_name != "static":
+            _ = observation_from_slot(use, policy_name if policy_name in POLICIES else "rule_based")
+            contract = validate_policy_observation_contract(
+                policy_name if policy_name in POLICIES else "rule_based"
+            )
+            if not contract["required_subseteq_allowed"]:
+                raise PermissionError(
+                    f"Policy {policy_name} violates observation contract: {contract['violations']}"
+                )
         t0 = time.perf_counter()
         if policy_name == "static":
             if frozen is None:
@@ -839,8 +1171,25 @@ def run_policy_on_episode(
         else:
             action = fn(use, prev, seed, proto)
         compute_ms = (time.perf_counter() - t0) * 1000.0
-        metrics = predict_metrics(use, action, prev, network_switch_penalty=npen, placement_switch_penalty=ppen, apply_switch=apply_switch)
+        thrash = ckpt_state.record_and_apply(
+            action,
+            slot_idx=slot_idx,
+            task_progress=use.task_progress,
+            thrash_window=thrash_window,
+        )
+        metrics = predict_metrics(
+            use,
+            action,
+            prev,
+            network_switch_penalty=npen,
+            placement_switch_penalty=ppen,
+            apply_switch=apply_switch,
+            params=params,
+            thrash_event=thrash,
+        )
         metrics["compute_time_ms"] = float(compute_ms)
+        metrics["checkpoint_exists"] = 1.0 if ckpt_state.exists else 0.0
+        metrics["checkpoint_age_slots"] = float(ckpt_state.age_slots)
         rows.append(metrics)
         prev = action
     return _episode_metrics(rows)
@@ -889,12 +1238,77 @@ def run_family(
         "family": family,
         "ablation": ablation,
         "seeds": list(seeds),
+        "n_seeds": len(seeds),
         "n_episodes_per_seed": n_ep,
         "n_slots_per_episode": n_slots,
         "policies": summaries,
         "effect_sizes": effects,
         "evidence_class": proto.get("evidence_class", "SYNTHETIC_SIM"),
         "latency_class": proto.get("latency_class", "HOST_PROCESS_TIMING"),
+        "t_crit_verification_source": T_CRIT_VERIFICATION_SOURCE,
+        "synthetic_modeling_boundary": (
+            "SYNTHETIC_SIM cross-layer continuity model; not application-persistence evidence"
+        ),
+    }
+
+
+def run_predeclared_sensitivity(proto: dict[str, Any]) -> dict[str, Any]:
+    """Small predeclared sensitivity check (not tuned after seeing favorable outcomes)."""
+    sp = proto.get("synthetic_parameters") or {}
+    sens = sp.get("sensitivity_predeclared") or {}
+    if not sens:
+        return {"ran": False, "reason": "no sensitivity_predeclared block"}
+    param_path = str(sens["parameter"])
+    values = list(sens["values"])
+    seeds = list(sens.get("seeds") or [0])
+    policies = list(sens.get("policies") or ["fixed_target_fidelity", "adaptive_fidelity"])
+    split_override = {
+        **proto["split"],
+        "train_seeds": seeds,
+        "held_out_seeds": seeds,
+        "n_episodes_per_seed": int(sens.get("n_episodes_per_seed", 1)),
+        "n_slots_per_episode": int(sens.get("n_slots_per_episode", 4)),
+    }
+    rows = []
+    for val in values:
+        local = json.loads(json.dumps(proto))
+        local["split"] = split_override
+        # Apply sensitivity value into synthetic_parameters tree
+        parts = param_path.split(".")
+        node = local.setdefault("synthetic_parameters", {})
+        for part in parts[:-1]:
+            node = node.setdefault(part, {})
+        leaf = node.get(parts[-1])
+        if isinstance(leaf, dict):
+            leaf["value"] = float(val)
+        else:
+            node[parts[-1]] = {"value": float(val), "provenance": "SYNTHETIC_ASSUMPTION"}
+        out = run_family(
+            local,
+            family="in_distribution",
+            seeds=seeds,
+            policies=policies,
+        )
+        rows.append(
+            {
+                "parameter": param_path,
+                "value": float(val),
+                "policies": {
+                    p: out["policies"][p]["service_continuity_utility"] for p in policies if p in out["policies"]
+                },
+            }
+        )
+    return {
+        "ran": True,
+        "parameter": param_path,
+        "values": values,
+        "seeds": seeds,
+        "n_seeds": len(seeds),
+        "predeclared": True,
+        "outcome_tuned": False,
+        "rows": rows,
+        "evidence_class": "SYNTHETIC_SIM",
+        "note": sens.get("note", "Predeclared sensitivity; not tuned post-hoc."),
     }
 
 

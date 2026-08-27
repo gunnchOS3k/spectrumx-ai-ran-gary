@@ -1,0 +1,79 @@
+{
+  "ran": true,
+  "parameter": "fidelity_continuity_factor.degraded",
+  "values": [
+    0.75,
+    0.85,
+    0.9
+  ],
+  "seeds": [
+    0
+  ],
+  "n_seeds": 1,
+  "predeclared": true,
+  "outcome_tuned": false,
+  "rows": [
+    {
+      "parameter": "fidelity_continuity_factor.degraded",
+      "value": 0.75,
+      "policies": {
+        "fixed_target_fidelity": {
+          "n": 1,
+          "mean": 0.783474859051254,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "adaptive_fidelity": {
+          "n": 1,
+          "mean": 0.691339056828666,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        }
+      }
+    },
+    {
+      "parameter": "fidelity_continuity_factor.degraded",
+      "value": 0.85,
+      "policies": {
+        "fixed_target_fidelity": {
+          "n": 1,
+          "mean": 0.783474859051254,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "adaptive_fidelity": {
+          "n": 1,
+          "mean": 0.691339056828666,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        }
+      }
+    },
+    {
+      "parameter": "fidelity_continuity_factor.degraded",
+      "value": 0.9,
+      "policies": {
+        "fixed_target_fidelity": {
+          "n": 1,
+          "mean": 0.783474859051254,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        },
+        "adaptive_fidelity": {
+          "n": 1,
+          "mean": 0.691339056828666,
+          "ci_low": NaN,
+          "ci_high": NaN,
+          "sd": NaN
+        }
+      }
+    }
+  ],
+  "evidence_class": "SYNTHETIC_SIM",
+  "note": "Predeclared before outcome inspection; not tuned post-hoc."
+}
