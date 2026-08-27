@@ -4,6 +4,7 @@
 |-------|-------|
 | Repo | `spectrumx-ai-ran-gary` |
 | Accepted base SHA | `cef3900af100c0526e8f75efd238303fd6a268bd` |
+| Candidate SHA | `6591d268b8c3cb86bc0f3cf146cb270ecc047336` |
 | Branch | `research/rq2-fidelity-checkpoint-001` |
 | Environment | `.venv` Python (local); lean pytest path |
 | Exact command (tiny fidelity repro) | `PYTHONPATH=src python -c "from airan_research.experiments.digital_programme import *; ... run_family(...)"` (see `results/experiments/rq2_fidelity_checkpoint_tiny.json`) |
