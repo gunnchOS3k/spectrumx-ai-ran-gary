@@ -9,12 +9,10 @@ from airan_research.experiments.digital_programme import (
     PROTOCOL_RELPATH,
     Action,
     Slot,
+    call_policy,
     generate_slot,
     load_protocol,
     mean_ci,
-    policy_information_equivalent,
-    policy_no_adaptation,
-    policy_twin_informed,
     predict_metrics,
     run_family,
 )
@@ -63,8 +61,8 @@ def test_info_equiv_and_twin_use_same_slot_features():
     rng = np.random.default_rng(0)
     slot = generate_slot(rng, "in_distribution")
     proto = load_protocol(ROOT / PROTOCOL_RELPATH)
-    a = policy_twin_informed(slot, None, 0, proto)
-    b = policy_information_equivalent(slot, None, 0, proto)
+    a = call_policy("twin_informed", slot, None, 0, proto)
+    b = call_policy("information_equivalent", slot, None, 0, proto)
     assert a.rationale.startswith("twin_informed")
     assert b.rationale == "information_equivalent"
     feats = slot.feature_vector()
@@ -90,8 +88,8 @@ def test_no_adaptation_never_switches_network_when_terrestrial_stays():
         blockage=0.1,
         continuity_class="degraded_ok",
     )
-    a1 = policy_no_adaptation(slot, None, 0, proto)
-    a2 = policy_no_adaptation(slot, a1, 0, proto)
+    a1 = call_policy("no_adaptation", slot, None, 0, proto)
+    a2 = call_policy("no_adaptation", slot, a1, 0, proto)
     m = predict_metrics(slot, a2, a1, network_switch_penalty=0.05, placement_switch_penalty=0.03, apply_switch=True)
     assert a1.network == a2.network == "terrestrial"
     assert m["n_network_switches"] == 0.0

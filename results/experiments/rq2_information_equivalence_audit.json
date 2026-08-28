@@ -1,0 +1,225 @@
+{
+  "observation_set": [
+    "blockage",
+    "checkpoint_age_slots",
+    "checkpoint_available",
+    "continuity_strict",
+    "edge_capacity",
+    "energy_budget",
+    "latency_ms",
+    "mobility",
+    "packet_loss_pct",
+    "recovery_budget",
+    "task_progress",
+    "terrestrial_outage"
+  ],
+  "action_space_fields": [
+    "available_networks",
+    "cloud_capacity",
+    "edge_capacity",
+    "local_capacity",
+    "n_users",
+    "spectrum_budget",
+    "user_priorities"
+  ],
+  "observation_access_rule": "declared_requirements_plus_action_space",
+  "observation_values": {
+    "continuity_strict": 0.0,
+    "edge_capacity": 0.947653346366633,
+    "energy_budget": 61.32221084228233,
+    "latency_ms": 58.21770123928726,
+    "terrestrial_outage": 1.0
+  },
+  "baseline_observation_values": {
+    "energy_budget": 61.32221084228233
+  },
+  "adaptive_policy": "adaptive_fidelity",
+  "baseline_policy": "fixed_target_fidelity",
+  "policy_contracts": {
+    "adaptive_fidelity": {
+      "policy": "adaptive_fidelity",
+      "required_fields": [
+        "continuity_strict",
+        "edge_capacity",
+        "energy_budget",
+        "latency_ms",
+        "terrestrial_outage"
+      ],
+      "allowed_observation_fields": [
+        "continuity_strict",
+        "edge_capacity",
+        "energy_budget",
+        "latency_ms",
+        "terrestrial_outage"
+      ],
+      "fair_observation_ceiling": [
+        "blockage",
+        "checkpoint_age_slots",
+        "checkpoint_available",
+        "continuity_strict",
+        "edge_capacity",
+        "energy_budget",
+        "latency_ms",
+        "mobility",
+        "packet_loss_pct",
+        "recovery_budget",
+        "task_progress",
+        "terrestrial_outage"
+      ],
+      "access_rule": "declared_requirements_plus_action_space",
+      "required_subseteq_allowed": true,
+      "violations": []
+    },
+    "fixed_target_fidelity": {
+      "policy": "fixed_target_fidelity",
+      "required_fields": [
+        "energy_budget"
+      ],
+      "allowed_observation_fields": [
+        "energy_budget"
+      ],
+      "fair_observation_ceiling": [
+        "blockage",
+        "checkpoint_age_slots",
+        "checkpoint_available",
+        "continuity_strict",
+        "edge_capacity",
+        "energy_budget",
+        "latency_ms",
+        "mobility",
+        "packet_loss_pct",
+        "recovery_budget",
+        "task_progress",
+        "terrestrial_outage"
+      ],
+      "access_rule": "declared_requirements_plus_action_space",
+      "required_subseteq_allowed": true,
+      "violations": []
+    },
+    "oracle": {
+      "policy": "oracle",
+      "required_fields": [
+        "blockage",
+        "checkpoint_age_slots",
+        "checkpoint_available",
+        "continuity_strict",
+        "edge_capacity",
+        "energy_budget",
+        "latency_ms",
+        "mobility",
+        "model_oracle_metric_eval",
+        "packet_loss_pct",
+        "recovery_budget",
+        "task_progress",
+        "terrestrial_outage"
+      ],
+      "allowed_observation_fields": [
+        "blockage",
+        "checkpoint_age_slots",
+        "checkpoint_available",
+        "continuity_strict",
+        "edge_capacity",
+        "energy_budget",
+        "latency_ms",
+        "mobility",
+        "model_oracle_metric_eval",
+        "packet_loss_pct",
+        "recovery_budget",
+        "task_progress",
+        "terrestrial_outage"
+      ],
+      "fair_observation_ceiling": [
+        "blockage",
+        "checkpoint_age_slots",
+        "checkpoint_available",
+        "continuity_strict",
+        "edge_capacity",
+        "energy_budget",
+        "latency_ms",
+        "mobility",
+        "model_oracle_metric_eval",
+        "packet_loss_pct",
+        "recovery_budget",
+        "task_progress",
+        "terrestrial_outage"
+      ],
+      "access_rule": "declared_requirements_plus_action_space",
+      "required_subseteq_allowed": true,
+      "violations": []
+    },
+    "adaptive_checkpoint": {
+      "policy": "adaptive_checkpoint",
+      "required_fields": [
+        "blockage",
+        "checkpoint_age_slots",
+        "checkpoint_available",
+        "continuity_strict",
+        "edge_capacity",
+        "energy_budget",
+        "latency_ms",
+        "recovery_budget",
+        "task_progress",
+        "terrestrial_outage"
+      ],
+      "allowed_observation_fields": [
+        "blockage",
+        "checkpoint_age_slots",
+        "checkpoint_available",
+        "continuity_strict",
+        "edge_capacity",
+        "energy_budget",
+        "latency_ms",
+        "recovery_budget",
+        "task_progress",
+        "terrestrial_outage"
+      ],
+      "fair_observation_ceiling": [
+        "blockage",
+        "checkpoint_age_slots",
+        "checkpoint_available",
+        "continuity_strict",
+        "edge_capacity",
+        "energy_budget",
+        "latency_ms",
+        "mobility",
+        "packet_loss_pct",
+        "recovery_budget",
+        "task_progress",
+        "terrestrial_outage"
+      ],
+      "access_rule": "declared_requirements_plus_action_space",
+      "required_subseteq_allowed": true,
+      "violations": []
+    }
+  },
+  "adaptive_uses_only_observation_set": true,
+  "baseline_uses_only_observation_set": true,
+  "oracle_privileged_future": false,
+  "oracle_privileged_model_eval": true,
+  "runtime_observation_enforced": true,
+  "runtime_probes": {
+    "non_oracle_oracle_field_raises": true,
+    "undeclared_fair_field_raises": true,
+    "undeclared_fair_probe_field": "blockage",
+    "oracle_privileged_access_ok": true,
+    "policy_invoke_error": null
+  },
+  "hidden_state_used": false,
+  "information_equivalence_pass": true,
+  "adaptive_action": {
+    "network": "local_edge_wifi",
+    "placement": "edge",
+    "fidelity_level": "minimum_useful",
+    "checkpoint_action": "none",
+    "recover_action": "none"
+  },
+  "baseline_action": {
+    "network": "local_edge_wifi",
+    "placement": "cloud",
+    "fidelity_level": "target",
+    "checkpoint_action": "none",
+    "recover_action": "none"
+  },
+  "evidence_class": "SYNTHETIC_SIM",
+  "note": "Access rule=declared_requirements_plus_action_space: non-oracle policies receive PolicyObservation restricted to their declared required_fields plus PolicyActionSpace structural constraints; undeclared fair fields and oracle-only fields raise PermissionError. Oracle declares model_oracle_metric_eval and receives privileged_slot for current-slot metric eval (not future peek). Audit PASS requires contract checks AND runtime probes."
+}
