@@ -223,3 +223,9 @@ For security concerns, contact:
 ---
 
 **Remember:** Security is everyone's responsibility. When in doubt, ask before committing sensitive information.
+
+## Reporting a vulnerability (private only)
+
+**Do not open public GitHub issues for security vulnerabilities.** Prefer Private Security Advisories. Cross-route via gunnchos-research-portal if unsure.
+
+Do not post exploitable security details publicly. Prefer private advisories: https://github.com/gunnchOS3k/gunnchos-research-portal/security/advisories/new
