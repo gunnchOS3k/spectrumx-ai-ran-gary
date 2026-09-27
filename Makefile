@@ -10,7 +10,7 @@ lint:
 	PYTHONPATH=src $(PY) -m compileall -q src/airan_research/gate2
 
 test:
-	PYTHONPATH=src $(PY) -m pytest -q tests/test_airan_research.py tests/test_paper_ii_digital.py tests/gate2
+	PYTHONPATH=src $(PY) -m pytest -q tests/test_airan_research.py tests/test_paper_ii_digital.py tests/gate2 tests/test_planning_closed_loop.py
 
 contract-test:
 	PYTHONPATH=src pytest -q tests/gate2
