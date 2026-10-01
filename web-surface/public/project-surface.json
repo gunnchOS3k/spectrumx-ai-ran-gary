@@ -1,0 +1,21 @@
+{
+  "repo": "spectrumx-ai-ran-gary",
+  "productName": "AI-RAN Gary",
+  "family": "7GC",
+  "classification": "STATIC_RESEARCH_SURFACE_WORKER",
+  "acceptedSha": "9591d6a135ccdb37dfd1ea489e6837ec3dde288d",
+  "status": "STAGING_WORKER",
+  "summary": "Research repository for an AI-native RAN controller and equitable spectrum allocation experiments.",
+  "capabilities": [
+    "Read scope and evidence location",
+    "Open the source repository"
+  ],
+  "limitations": [
+    "Not a live RAN controller",
+    "No SpectrumX or carrier endorsement is claimed"
+  ],
+  "sourceUrl": "https://github.com/gunnchOS3k/spectrumx-ai-ran-gary",
+  "returnUrlEnv": "GUNNCHOS_PORTAL_URL",
+  "returnUrl": "https://gunnchos-site.gunnchos-finds.workers.dev",
+  "workerName": "gunnchos-spectrumx"
+}
