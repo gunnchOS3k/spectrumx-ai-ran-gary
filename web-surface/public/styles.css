@@ -1,23 +1,31 @@
-:root { color-scheme: dark; }
+:root { color-scheme: dark; --bg:#10141a; --ink:#eef2f4; --muted:#b7c0c7; --line:#31404a; --accent:#7dcea0; --card:#182028; }
+[data-theme="light"] { color-scheme: light; --bg:#f4f7f8; --ink:#142028; --muted:#3d4c55; --line:#c5d0d6; --card:#fff; }
 * { box-sizing: border-box; }
-body { margin: 0; font-family: "Iowan Old Style", Palatino, Georgia, serif; background: #12151c; color: #f4f1ea; line-height: 1.5; }
-a { color: var(--accent, #f4f1ea); }
-a:focus-visible, .skip:focus { outline: 3px solid var(--accent, #f4f1ea); outline-offset: 3px; }
-.skip { position: absolute; left: 0.5rem; top: -4rem; background: #12151c; padding: 0.5rem; }
-.skip:focus { top: 0.5rem; }
-.top { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1rem 1.25rem; border-bottom: 1px solid #2a3142; }
-.mark { margin: 0; font-weight: 700; letter-spacing: 0.04em; }
-#portal-return { min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; padding: 0.4rem 0.8rem; border: 1px solid var(--accent, #f4f1ea); border-radius: 8px; text-decoration: none; }
-main { max-width: 46rem; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
-h1 { font-size: 2.2rem; line-height: 1.15; margin: 0.2rem 0; }
-h2 { font-size: 1.15rem; margin-top: 1.6rem; }
-.kicker { text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.78rem; color: var(--accent, #f4f1ea); margin: 0; }
-.badge { display: inline-block; border: 1px solid var(--accent, #f4f1ea); border-radius: 999px; padding: 0.1rem 0.6rem; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.75rem; }
-.lead { font-size: 1.15rem; }
-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85rem; word-break: break-all; }
+body { margin:0; font:18px/1.5 Georgia, "Iowan Old Style", serif; background:var(--bg); color:var(--ink); }
+a { color:var(--accent); }
+.skip { position:absolute; left:-999px; }
+.skip:focus { left:8px; top:8px; background:var(--card); padding:8px; }
+.top, main { width:min(1080px, calc(100% - 32px)); margin:0 auto; }
+.top { display:flex; justify-content:space-between; align-items:center; padding:16px 0; }
+.mark { letter-spacing:.08em; text-transform:uppercase; font:600 13px/1 ui-sans-serif, system-ui, sans-serif; }
+.tools { display:flex; gap:12px; align-items:center; }
+button, .cta, select, input { font:16px/1.3 ui-sans-serif, system-ui, sans-serif; }
+button, .cta { background:var(--accent); color:#102018; border:0; border-radius:999px; padding:10px 16px; text-decoration:none; display:inline-block; }
+.kicker, .badge, .note { font:600 13px/1.4 ui-sans-serif, system-ui, sans-serif; color:var(--muted); }
+h1 { font-size:clamp(2rem, 5vw, 3.4rem); line-height:1.05; margin:8px 0; }
+.lead { font-size:1.2rem; max-width:42rem; }
+.layout { display:grid; grid-template-columns:1.1fr .9fr; gap:16px; }
+#diagram { width:100%; height:auto; background:var(--card); border:1px solid var(--line); border-radius:12px; }
+#detail, article, table { background:var(--card); border:1px solid var(--line); border-radius:12px; }
+#detail, article { padding:12px 14px; }
+.cards { display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; }
+table { width:100%; border-collapse:collapse; }
+th, td { text-align:left; padding:8px; border-bottom:1px solid var(--line); font:14px/1.4 ui-sans-serif, system-ui, sans-serif; }
+label { display:block; margin-top:10px; font:600 13px/1.3 ui-sans-serif, system-ui, sans-serif; }
+select, input { width:100%; padding:8px; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--ink); }
+a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
+.node { cursor:pointer; }
 @media (max-width: 800px) {
-  h1 { font-size: 1.7rem; }
-  main { padding: 1rem; }
-  .top { align-items: flex-start; }
+  .layout, .cards { grid-template-columns:1fr; }
+  .top { align-items:flex-start; gap:8px; }
 }
-@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
