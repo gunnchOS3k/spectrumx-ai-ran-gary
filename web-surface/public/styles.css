@@ -24,6 +24,36 @@ th, td { text-align:left; padding:8px; border-bottom:1px solid var(--line); font
 label { display:block; margin-top:10px; font:600 13px/1.3 ui-sans-serif, system-ui, sans-serif; }
 select, input { width:100%; padding:8px; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--ink); }
 a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
+.streamlit-frame-shell {
+  width: 100%;
+  min-height: 760px;
+  height: min(1100px, 85vh);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--card);
+}
+.streamlit-frame-shell iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 760px;
+  border: 0;
+}
+.secondary-cta {
+  display: inline-block;
+  margin-top: 8px;
+  font: 600 16px/1.3 ui-sans-serif, system-ui, sans-serif;
+}
+#streamlit-status { font: 600 15px/1.4 ui-sans-serif, system-ui, sans-serif; }
+@media (max-width: 720px) {
+  .streamlit-frame-shell,
+  .streamlit-frame-shell iframe {
+    min-height: 820px;
+    height: 82vh;
+    border-radius: 12px;
+  }
+}
 .node { cursor:pointer; }
 @media (max-width: 800px) {
   .layout, .cards { grid-template-columns:1fr; }

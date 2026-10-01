@@ -11,6 +11,14 @@ themeButton.addEventListener("click", () => {
 const saved = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
 applyTheme(saved);
 
+const streamlitFrame = document.getElementById("spectrumx-streamlit-app");
+const streamlitStatus = document.getElementById("streamlit-status");
+if (streamlitFrame && streamlitStatus) {
+  streamlitFrame.addEventListener("load", () => {
+    streamlitStatus.textContent = "The Streamlit frame loaded. If the app is waking from sleep, wait here or open the full Streamlit app.";
+  });
+}
+
 function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
 function cell(tag, text) {
   const el = document.createElement(tag);

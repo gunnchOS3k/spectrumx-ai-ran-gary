@@ -17,5 +17,9 @@
   "sourceUrl": "https://github.com/gunnchOS3k/spectrumx-ai-ran-gary",
   "returnUrlEnv": "GUNNCHOS_PORTAL_URL",
   "returnUrl": "https://gunnchos-site.gunnchos-finds.workers.dev",
-  "workerName": "gunnchos-spectrumx"
+  "workerName": "gunnchos-spectrumx",
+  "runtimeMode": "EXTERNAL_INTERACTIVE_APP",
+  "externalAppProvider": "Streamlit Community Cloud",
+  "externalAppUrl": "https://spectrumx-ai-ran-gary-kbgech9ddtwz7qjxzgxzve.streamlit.app/",
+  "embeddedAppUrl": "https://spectrumx-ai-ran-gary-kbgech9ddtwz7qjxzgxzve.streamlit.app/?embed=true"
 }

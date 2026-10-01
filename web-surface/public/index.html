@@ -21,9 +21,42 @@
     <h1>AI-RAN Gary</h1>
     <p class="lead">Research repository for an AI-native RAN controller and equitable spectrum allocation experiments.</p>
     
-    <p><a class="cta" id="primary-action" href="#explore">Explore evidence</a></p>
+    <p><a class="cta" id="primary-action" href="#explore">Launch live AI-RAN app</a></p>
     <section id="explore" aria-labelledby="explore-title">
-      <h2 id="explore-title">Explore evidence</h2>
+      <div class="section-heading">
+        <p class="kicker">Interactive research app</p>
+        <h2 id="explore-title">Explore AI-RAN Gary</h2>
+        <p>
+          Run the live Streamlit research interface directly here.
+          The application is hosted on Streamlit Community Cloud;
+          this Cloudflare Worker provides the gunnchOS presentation shell.
+        </p>
+        <p><strong>Runtime:</strong> Live external Streamlit application. The interactive research app is hosted by Streamlit Community Cloud and embedded in the gunnchOS Cloudflare surface. The Cloudflare Worker itself does not execute the Python research runtime.</p>
+        <p>Evidence class: LIVE_EXTERNAL_APP. This is a simulation and research interface, not a live RAN or carrier controller. No SpectrumX or carrier endorsement is claimed.</p>
+      </div>
+      <p id="streamlit-status" role="status">Loading the live Streamlit app…</p>
+      <div class="streamlit-frame-shell">
+        <iframe
+          id="spectrumx-streamlit-app"
+          title="SpectrumX AI-RAN Gary interactive Streamlit application"
+          src="https://spectrumx-ai-ran-gary-kbgech9ddtwz7qjxzgxzve.streamlit.app/?embed=true"
+          loading="eager"
+          allow="clipboard-read; clipboard-write; fullscreen"
+          referrerpolicy="strict-origin-when-cross-origin"
+        ></iframe>
+      </div>
+      <p class="external-app-actions">
+        <a
+          class="secondary-cta"
+          id="streamlit-full-app"
+          href="https://spectrumx-ai-ran-gary-kbgech9ddtwz7qjxzgxzve.streamlit.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >Open the full Streamlit app ↗</a>
+      </p>
+    </section>
+    <section id="research-evidence" aria-labelledby="research-evidence-title">
+      <h2 id="research-evidence-title">Research evidence</h2>
       <p id="diagram-note"></p>
       <div class="layout">
         <div>
@@ -49,7 +82,7 @@
     <section id="methods" aria-labelledby="methods-title">
       <h2 id="methods-title">Methods</h2>
       <p>Methods are the frozen protocol cited by results/experiments/rq2_cross_layer_continuity_summary.json. Policy means on this page are copied from that file for the train split and for three held-out policies. evidence_class is SYNTHETIC_SIM and latency_class is HOST_PROCESS_TIMING.</p>
-      <p>Native research runtimes stay on a local checkout. This page shows repository records only.</p>
+      <p>Native research runtimes stay on a local checkout. The interactive app above is hosted on Streamlit Community Cloud. The records in Research evidence are copied from this repository. The Cloudflare Worker does not execute the Python research runtime.</p>
     </section>
     <section id="artifacts" aria-labelledby="artifacts-title">
       <h2 id="artifacts-title">Artifacts</h2>
@@ -72,11 +105,11 @@
       <h2 id="why">Why does it exist?</h2>
       <p>It gives this repository a public web surface inside the gunnchOS ecosystem without pretending the original runtime runs on Cloudflare Workers.</p>
       <h2 id="today">What can I actually do with it today?</h2>
-      <p>Use the primary action to inspect repository records, then open the source for the local toolchain.</p>
+      <p>Launch the live AI-RAN app to use the Streamlit research interface, then inspect the repository records under Research evidence. The Cloudflare Worker does not execute the Python research runtime.</p>
       <h2 id="unfinished">What is not finished?</h2>
       <ul><li>Not a live RAN controller</li><li>No SpectrumX or carrier endorsement is claimed</li></ul>
       <p class="badge">STAGING_WORKER</p>
-      <p>Runtime mode on this page: PRECOMPUTED. No remote model call is made.</p>
+      <p>Runtime mode: EXTERNAL_INTERACTIVE_APP. Streamlit Community Cloud hosts the Python app. This Worker hosts the gunnchOS shell. No remote model call is made by the Worker.</p>
     </section>
   </main>
   <script src="/app.js"></script>
