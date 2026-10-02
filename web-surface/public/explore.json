@@ -1,0 +1,278 @@
+{
+  "schema": "gunnchos.surfacekit.v2",
+  "measured_topology": false,
+  "diagram_note": "Synthetic simulation policy comparison copied from results/experiments/rq2_cross_layer_continuity_summary.json. Train rows are the in-file train split. Three held-out policies are included beside them. This is not a measured radio deployment.",
+  "nodes": [
+    {
+      "id": "none",
+      "label": "no_adaptation"
+    },
+    {
+      "id": "twin",
+      "label": "twin_informed"
+    },
+    {
+      "id": "oracle",
+      "label": "oracle"
+    }
+  ],
+  "rows": [
+    {
+      "source": "results/experiments/rq2_cross_layer_continuity_summary.json",
+      "scenario_id": "no_adaptation",
+      "evidence_class": "SYNTHETIC_SIM",
+      "ethical_framing": "train split for policy no_adaptation. Latency class in the file is HOST_PROCESS_TIMING.",
+      "family": "train",
+      "utility_mean": 0.7959779300122474,
+      "utility_n": 5,
+      "predicted_latency_ms_mean": 86.39230864676851,
+      "latency_class": "HOST_PROCESS_TIMING",
+      "primary_metric": "service_continuity_utility"
+    },
+    {
+      "source": "results/experiments/rq2_cross_layer_continuity_summary.json",
+      "scenario_id": "static",
+      "evidence_class": "SYNTHETIC_SIM",
+      "ethical_framing": "train split for policy static. Latency class in the file is HOST_PROCESS_TIMING.",
+      "family": "train",
+      "utility_mean": 0.8142556255877984,
+      "utility_n": 5,
+      "predicted_latency_ms_mean": 82.40947163787855,
+      "latency_class": "HOST_PROCESS_TIMING",
+      "primary_metric": "service_continuity_utility"
+    },
+    {
+      "source": "results/experiments/rq2_cross_layer_continuity_summary.json",
+      "scenario_id": "local_only",
+      "evidence_class": "SYNTHETIC_SIM",
+      "ethical_framing": "train split for policy local_only. Latency class in the file is HOST_PROCESS_TIMING.",
+      "family": "train",
+      "utility_mean": 0.6753131015934178,
+      "utility_n": 5,
+      "predicted_latency_ms_mean": 148.40591390349206,
+      "latency_class": "HOST_PROCESS_TIMING",
+      "primary_metric": "service_continuity_utility"
+    },
+    {
+      "source": "results/experiments/rq2_cross_layer_continuity_summary.json",
+      "scenario_id": "cloud_only",
+      "evidence_class": "SYNTHETIC_SIM",
+      "ethical_framing": "train split for policy cloud_only. Latency class in the file is HOST_PROCESS_TIMING.",
+      "family": "train",
+      "utility_mean": 0.7711929245873146,
+      "utility_n": 5,
+      "predicted_latency_ms_mean": 98.04029832163485,
+      "latency_class": "HOST_PROCESS_TIMING",
+      "primary_metric": "service_continuity_utility"
+    },
+    {
+      "source": "results/experiments/rq2_cross_layer_continuity_summary.json",
+      "scenario_id": "edge_only",
+      "evidence_class": "SYNTHETIC_SIM",
+      "ethical_framing": "train split for policy edge_only. Latency class in the file is HOST_PROCESS_TIMING.",
+      "family": "train",
+      "utility_mean": 0.8139204163611048,
+      "utility_n": 5,
+      "predicted_latency_ms_mean": 81.62325264692065,
+      "latency_class": "HOST_PROCESS_TIMING",
+      "primary_metric": "service_continuity_utility"
+    },
+    {
+      "source": "results/experiments/rq2_cross_layer_continuity_summary.json",
+      "scenario_id": "rule_based",
+      "evidence_class": "SYNTHETIC_SIM",
+      "ethical_framing": "train split for policy rule_based. Latency class in the file is HOST_PROCESS_TIMING.",
+      "family": "train",
+      "utility_mean": 0.7940453446033819,
+      "utility_n": 5,
+      "predicted_latency_ms_mean": 80.87325170426662,
+      "latency_class": "HOST_PROCESS_TIMING",
+      "primary_metric": "service_continuity_utility"
+    },
+    {
+      "source": "results/experiments/rq2_cross_layer_continuity_summary.json",
+      "scenario_id": "optimization_based",
+      "evidence_class": "SYNTHETIC_SIM",
+      "ethical_framing": "train split for policy optimization_based. Latency class in the file is HOST_PROCESS_TIMING.",
+      "family": "train",
+      "utility_mean": 0.7959779308717723,
+      "utility_n": 5,
+      "predicted_latency_ms_mean": 86.39230823525581,
+      "latency_class": "HOST_PROCESS_TIMING",
+      "primary_metric": "service_continuity_utility"
+    },
+    {
+      "source": "results/experiments/rq2_cross_layer_continuity_summary.json",
+      "scenario_id": "twin_informed",
+      "evidence_class": "SYNTHETIC_SIM",
+      "ethical_framing": "train split for policy twin_informed. Latency class in the file is HOST_PROCESS_TIMING.",
+      "family": "train",
+      "utility_mean": 0.7843208201862789,
+      "utility_n": 5,
+      "predicted_latency_ms_mean": 81.95045455241663,
+      "latency_class": "HOST_PROCESS_TIMING",
+      "primary_metric": "service_continuity_utility"
+    },
+    {
+      "source": "results/experiments/rq2_cross_layer_continuity_summary.json",
+      "scenario_id": "information_equivalent",
+      "evidence_class": "SYNTHETIC_SIM",
+      "ethical_framing": "train split for policy information_equivalent. Latency class in the file is HOST_PROCESS_TIMING.",
+      "family": "train",
+      "utility_mean": 0.8179451588211719,
+      "utility_n": 5,
+      "predicted_latency_ms_mean": 75.12374664936392,
+      "latency_class": "HOST_PROCESS_TIMING",
+      "primary_metric": "service_continuity_utility"
+    },
+    {
+      "source": "results/experiments/rq2_cross_layer_continuity_summary.json",
+      "scenario_id": "oracle",
+      "evidence_class": "SYNTHETIC_SIM",
+      "ethical_framing": "train split for policy oracle. Latency class in the file is HOST_PROCESS_TIMING.",
+      "family": "train",
+      "utility_mean": 0.8180097535096582,
+      "utility_n": 5,
+      "predicted_latency_ms_mean": 78.6666747028971,
+      "latency_class": "HOST_PROCESS_TIMING",
+      "primary_metric": "service_continuity_utility"
+    },
+    {
+      "source": "results/experiments/rq2_cross_layer_continuity_summary.json",
+      "scenario_id": "fixed_target_fidelity",
+      "evidence_class": "SYNTHETIC_SIM",
+      "ethical_framing": "train split for policy fixed_target_fidelity. Latency class in the file is HOST_PROCESS_TIMING.",
+      "family": "train",
+      "utility_mean": 0.7959779300122474,
+      "utility_n": 5,
+      "predicted_latency_ms_mean": 86.39230864676851,
+      "latency_class": "HOST_PROCESS_TIMING",
+      "primary_metric": "service_continuity_utility"
+    },
+    {
+      "source": "results/experiments/rq2_cross_layer_continuity_summary.json",
+      "scenario_id": "adaptive_fidelity",
+      "evidence_class": "SYNTHETIC_SIM",
+      "ethical_framing": "train split for policy adaptive_fidelity. Latency class in the file is HOST_PROCESS_TIMING.",
+      "family": "train",
+      "utility_mean": 0.7424786289903722,
+      "utility_n": 5,
+      "predicted_latency_ms_mean": 80.47064829371463,
+      "latency_class": "HOST_PROCESS_TIMING",
+      "primary_metric": "service_continuity_utility"
+    },
+    {
+      "source": "results/experiments/rq2_cross_layer_continuity_summary.json",
+      "scenario_id": "checkpoint_disabled",
+      "evidence_class": "SYNTHETIC_SIM",
+      "ethical_framing": "train split for policy checkpoint_disabled. Latency class in the file is HOST_PROCESS_TIMING.",
+      "family": "train",
+      "utility_mean": 0.6818277426646083,
+      "utility_n": 5,
+      "predicted_latency_ms_mean": 82.27838918739857,
+      "latency_class": "HOST_PROCESS_TIMING",
+      "primary_metric": "service_continuity_utility"
+    },
+    {
+      "source": "results/experiments/rq2_cross_layer_continuity_summary.json",
+      "scenario_id": "adaptive_checkpoint",
+      "evidence_class": "SYNTHETIC_SIM",
+      "ethical_framing": "train split for policy adaptive_checkpoint. Latency class in the file is HOST_PROCESS_TIMING.",
+      "family": "train",
+      "utility_mean": 0.6230911879841348,
+      "utility_n": 5,
+      "predicted_latency_ms_mean": 77.82444627515099,
+      "latency_class": "HOST_PROCESS_TIMING",
+      "primary_metric": "service_continuity_utility"
+    },
+    {
+      "source": "results/experiments/rq2_cross_layer_continuity_summary.json",
+      "scenario_id": "no_adaptation",
+      "evidence_class": "SYNTHETIC_SIM",
+      "ethical_framing": "held_out split for policy no_adaptation. Latency class in the file is HOST_PROCESS_TIMING.",
+      "family": "held_out",
+      "utility_mean": 0.7965035927650915,
+      "utility_n": 5,
+      "predicted_latency_ms_mean": 86.3483390827324,
+      "latency_class": "HOST_PROCESS_TIMING",
+      "primary_metric": "service_continuity_utility"
+    },
+    {
+      "source": "results/experiments/rq2_cross_layer_continuity_summary.json",
+      "scenario_id": "twin_informed",
+      "evidence_class": "SYNTHETIC_SIM",
+      "ethical_framing": "held_out split for policy twin_informed. Latency class in the file is HOST_PROCESS_TIMING.",
+      "family": "held_out",
+      "utility_mean": 0.7839581531066788,
+      "utility_n": 5,
+      "predicted_latency_ms_mean": 81.9812572186828,
+      "latency_class": "HOST_PROCESS_TIMING",
+      "primary_metric": "service_continuity_utility"
+    },
+    {
+      "source": "results/experiments/rq2_cross_layer_continuity_summary.json",
+      "scenario_id": "oracle",
+      "evidence_class": "SYNTHETIC_SIM",
+      "ethical_framing": "held_out split for policy oracle. Latency class in the file is HOST_PROCESS_TIMING.",
+      "family": "held_out",
+      "utility_mean": 0.8185493456415026,
+      "utility_n": 5,
+      "predicted_latency_ms_mean": 78.56324412392095,
+      "latency_class": "HOST_PROCESS_TIMING",
+      "primary_metric": "service_continuity_utility"
+    }
+  ],
+  "sources": [
+    "results/experiments/rq2_cross_layer_continuity_summary.json"
+  ],
+  "sections": [
+    {
+      "id": "overview",
+      "title": "Overview",
+      "body": "# EDGE-RAN Gary: AI-Native Radio for Equitable 6G Access"
+    },
+    {
+      "id": "end-to-end-research-artifact",
+      "title": "End-to-End Research Artifact",
+      "body": "This repository contains our submission to the **SpectrumX Student Data & Algorithm Competition**. We treat the competition dataset as a mini-testbed and design an **AI-native RAN controller** that allocates radio resources under spectrum and energy constraints, with a focus on cities like **Gary, Indiana**. > **Portfolio guide:** [START_HERE](docs/START_HERE.md) \u00b7 [Plain English](docs/PLAIN_ENGLISH_EXPLANATION.md) \u00b7"
+    },
+    {
+      "id": "problem",
+      "title": "Problem",
+      "body": "### Competition Core (Phase 1) Given a 1-second IQ sample (complex-valued time series), determine whether the spectrum is **occupied** (signal present) or **unoccupied** (noise only). This is a binary classification problem with real-time inference requirements. ### Research Extension (Phase 2) How can we design AI-driven radio resource management that: - Respects spectral emission and coexistence constraints - Impro"
+    },
+    {
+      "id": "approach",
+      "title": "Approach",
+      "body": "### Phase 1: Competition Core - **Detection Pipeline**: Feature extraction \u2192 SSL/ML models \u2192 Calibration \u2192 Ensemble fusion - **Baseline Methods**: Energy detector, spectral flatness detector - **Advanced Models**: Self-supervised learning encoders, anomaly detection - **Evaluation**: Accuracy, precision, recall, F1, AUC-ROC, calibration metrics ### Phase 2: Research Extension - Build a lightweight **digital twin** of"
+    },
+    {
+      "id": "quickstart",
+      "title": "Quickstart",
+      "body": "### 1. Install Dependencies pip install -r requirements.txt ### 2. Generate Synthetic Twin Data # Generate synthetic IQ dataset (2000 samples) python -m edge_ran_gary.digital_twin.dataset_builder \\ --out data/synth_gary_twin \\ --n 2000 \\ --seed 123 \\ --config configs/digital_twin_gary.yaml This creates: - `data/synth_gary_twin/*.npy` - IQ data files - `data/synth_gary_twin/metadata.csv` - Labels and metadata ### 3. R"
+    },
+    {
+      "id": "repository-structure",
+      "title": "Repository structure",
+      "body": "- `src/edge_ran_gary/data_pipeline/` - `spectrumx_loader.py` \u2014 load and preprocess the competition dataset. - `deepmimo_scenarios.py` \u2014 helpers for DeepMIMO-style synthetic channels. - `src/edge_ran_gary/channels/` - `sionna_scenes.py` \u2014 Sionna-based channel and link setups. - `src/edge_ran_gary/models/` - `baselines.py` \u2014 classical heuristics and ML baselines. - `actor_critic.py` \u2014 RL / policy-gradient controller. -"
+    }
+  ],
+  "artifacts": [
+    "results/experiments/rq2_cross_layer_continuity_ablation.json",
+    "results/experiments/rq2_cross_layer_continuity_domain_shift.json",
+    "results/experiments/rq2_cross_layer_continuity_heldout.json",
+    "results/experiments/rq2_cross_layer_continuity_summary.json",
+    "results/experiments/rq2_cross_layer_continuity_train.json",
+    "results/experiments/rq2_fidelity_checkpoint_tiny.json",
+    "results/experiments/rq2_fidelity_recovery_sensitivity.json",
+    "results/experiments/rq2_information_equivalence_audit.json",
+    "paper/ARTIFACT_EVALUATION.md",
+    "paper/CITATION_AUDIT.md",
+    "paper/CLAIMS_TO_EVIDENCE.md",
+    "paper/CONFERENCE_READINESS_TODOS.md"
+  ],
+  "methods": "Methods are the frozen protocol cited by results/experiments/rq2_cross_layer_continuity_summary.json. Policy means on this page are copied from that file for the train split and for three held-out policies. evidence_class is SYNTHETIC_SIM and latency_class is HOST_PROCESS_TIMING.",
+  "cards": [],
+  "runtime_mode": "PRECOMPUTED",
+  "runtime_boot": false
+}

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>AI-RAN Gary · gunnchOS</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body data-surfacekit="v2" data-theme="dark">
+  <a class="skip" href="#content">Skip to content</a>
+  <header class="top">
+    <p class="mark">gunnchOS</p>
+    <nav class="tools" aria-label="Surface">
+      <button type="button" id="theme-toggle">Light theme</button>
+      <a id="portal-return" href="#return" aria-label="Return to gunnchOS">← gunnchOS</a>
+    </nav>
+  </header>
+  <main id="content">
+    <p class="kicker">7GC · STAGING_WORKER</p>
+    <h1>AI-RAN Gary</h1>
+    <p class="lead">Research repository for an AI-native RAN controller and equitable spectrum allocation experiments.</p>
+    
+    <p><a class="cta" id="primary-action" href="#explore">Launch live AI-RAN app</a></p>
+    <section id="explore" aria-labelledby="explore-title">
+      <div class="section-heading">
+        <p class="kicker">Interactive research app</p>
+        <h2 id="explore-title">Explore AI-RAN Gary</h2>
+        <p>
+          Run the live Streamlit research interface directly here.
+          The application is hosted on Streamlit Community Cloud;
+          this Cloudflare Worker provides the gunnchOS presentation shell.
+        </p>
+        <p><strong>Runtime:</strong> Live external Streamlit application. The interactive research app is hosted by Streamlit Community Cloud and embedded in the gunnchOS Cloudflare surface. The Cloudflare Worker itself does not execute the Python research runtime.</p>
+        <p>Evidence class: LIVE_EXTERNAL_APP. This is a simulation and research interface, not a live RAN or carrier controller. No SpectrumX or carrier endorsement is claimed.</p>
+      </div>
+      <p id="streamlit-status" role="status">Loading the live Streamlit app…</p>
+      <div class="streamlit-frame-shell">
+        <iframe
+          id="spectrumx-streamlit-app"
+          title="SpectrumX AI-RAN Gary interactive Streamlit application"
+          src="https://spectrumx-ai-ran-gary-kbgech9ddtwz7qjxzgxzve.streamlit.app/?embed=true"
+          loading="eager"
+          allow="clipboard-read; clipboard-write; fullscreen"
+          referrerpolicy="strict-origin-when-cross-origin"
+        ></iframe>
+      </div>
+      <p class="external-app-actions">
+        <a
+          class="secondary-cta"
+          id="streamlit-full-app"
+          href="https://spectrumx-ai-ran-gary-kbgech9ddtwz7qjxzgxzve.streamlit.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >Open the full Streamlit app ↗</a>
+      </p>
+    </section>
+    <section id="research-evidence" aria-labelledby="research-evidence-title">
+      <h2 id="research-evidence-title">Research evidence</h2>
+      <p id="diagram-note"></p>
+      <div class="layout">
+        <div>
+          <svg id="diagram" role="img" aria-labelledby="diagram-note" viewBox="0 0 640 160"></svg>
+          <label for="row-select">Repository record</label>
+          <select id="row-select"></select>
+          <label for="row-filter">Filter records</label>
+          <input id="row-filter" type="search" placeholder="Filter by text in the repository records">
+        </div>
+        <div id="detail" tabindex="0" aria-live="polite"></div>
+      </div>
+      <div id="directory"></div>
+      <table id="evidence">
+        <caption>Records copied from this repository</caption>
+        <thead><tr id="evidence-head"></tr></thead>
+        <tbody id="evidence-body"></tbody>
+      </table>
+    </section>
+    <section id="overview" aria-labelledby="overview-title">
+      <h2 id="overview-title">Overview</h2>
+      <div class="cards"><article><h3>Overview</h3><p># EDGE-RAN Gary: AI-Native Radio for Equitable 6G Access</p></article><article><h3>End-to-End Research Artifact</h3><p>This repository contains our submission to the **SpectrumX Student Data &amp; Algorithm Competition**. We treat the competition dataset as a mini-testbed and design an **AI-native RAN controller** that allocates radio resources under spectrum and energy constraints, with a focus on cities like **Gary, Indiana**. &gt; **Portfolio guide:** [START_HERE](docs/START_HERE.md) · [Plain English](docs/PLAIN_ENGLISH_EXPLANATION.md) ·</p></article><article><h3>Problem</h3><p>### Competition Core (Phase 1) Given a 1-second IQ sample (complex-valued time series), determine whether the spectrum is **occupied** (signal present) or **unoccupied** (noise only). This is a binary classification problem with real-time inference requirements. ### Research Extension (Phase 2) How can we design AI-driven radio resource management that: - Respects spectral emission and coexistence constraints - Impro</p></article></div>
+    </section>
+    <section id="methods" aria-labelledby="methods-title">
+      <h2 id="methods-title">Methods</h2>
+      <p>Methods are the frozen protocol cited by results/experiments/rq2_cross_layer_continuity_summary.json. Policy means on this page are copied from that file for the train split and for three held-out policies. evidence_class is SYNTHETIC_SIM and latency_class is HOST_PROCESS_TIMING.</p>
+      <p>Native research runtimes stay on a local checkout. The interactive app above is hosted on Streamlit Community Cloud. The records in Research evidence are copied from this repository. The Cloudflare Worker does not execute the Python research runtime.</p>
+    </section>
+    <section id="artifacts" aria-labelledby="artifacts-title">
+      <h2 id="artifacts-title">Artifacts</h2>
+      <ul><li><code>results/experiments/rq2_cross_layer_continuity_ablation.json</code></li><li><code>results/experiments/rq2_cross_layer_continuity_domain_shift.json</code></li><li><code>results/experiments/rq2_cross_layer_continuity_heldout.json</code></li><li><code>results/experiments/rq2_cross_layer_continuity_summary.json</code></li><li><code>results/experiments/rq2_cross_layer_continuity_train.json</code></li><li><code>results/experiments/rq2_fidelity_checkpoint_tiny.json</code></li><li><code>results/experiments/rq2_fidelity_recovery_sensitivity.json</code></li><li><code>results/experiments/rq2_information_equivalence_audit.json</code></li><li><code>paper/ARTIFACT_EVALUATION.md</code></li><li><code>paper/CITATION_AUDIT.md</code></li><li><code>paper/CLAIMS_TO_EVIDENCE.md</code></li><li><code>paper/CONFERENCE_READINESS_TODOS.md</code></li></ul>
+    </section>
+    <section id="source" aria-labelledby="source-title">
+      <h2 id="source-title">Source</h2>
+      <p><a href="https://github.com/gunnchOS3k/spectrumx-ai-ran-gary">Source repository</a></p>
+      <p>Pinned source <code>9591d6a135ccdb37dfd1ea489e6837ec3dde288d</code></p>
+    </section>
+    <section id="limits" aria-labelledby="limits-title">
+      <h2 id="limits-title">Limitations</h2>
+      <ul><li>Not a live RAN controller</li><li>No SpectrumX or carrier endorsement is claimed</li></ul>
+    </section>
+    <section id="about" aria-labelledby="about-title">
+      <h2 id="about-title">About / Build status / Evidence</h2>
+      <h2 id="what">What is this?</h2>
+      <p>Research repository for an AI-native RAN controller and equitable spectrum allocation experiments.</p>
+      <p>The research code is not executing here. This is a research surface.</p>
+      <h2 id="why">Why does it exist?</h2>
+      <p>It gives this repository a public web surface inside the gunnchOS ecosystem without pretending the original runtime runs on Cloudflare Workers.</p>
+      <h2 id="today">What can I actually do with it today?</h2>
+      <p>Launch the live AI-RAN app to use the Streamlit research interface, then inspect the repository records under Research evidence. The Cloudflare Worker does not execute the Python research runtime.</p>
+      <h2 id="unfinished">What is not finished?</h2>
+      <ul><li>Not a live RAN controller</li><li>No SpectrumX or carrier endorsement is claimed</li></ul>
+      <p class="badge">STAGING_WORKER</p>
+      <p>Runtime mode: EXTERNAL_INTERACTIVE_APP. Streamlit Community Cloud hosts the Python app. This Worker hosts the gunnchOS shell. No remote model call is made by the Worker.</p>
+    </section>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>
