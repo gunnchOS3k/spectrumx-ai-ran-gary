@@ -15,6 +15,15 @@ assert.match(html, /← gunnchOS/);
 assert.match(html, /STAGING_WORKER/);
 assert.match(html, /What is this\?/);
 assert.match(html, /What is not finished\?/);
+assert.match(html, /aria-label="Source and reproduce"/);
+for (const label of ["Demo / Explore", "Paper / Report", "Source code", "Reproduce", "Data / Results", "Cite", "Download research bundle"]) {
+  assert.equal(html.includes(label), true, label);
+}
+assert.match(html, /spectrumx-streamlit-app/);
+const manifest = JSON.parse(fs.readFileSync(path.join(root, "research-source-manifest.json"), "utf8"));
+assert.equal(manifest.evidenceClass, "LIVE_EXTERNAL_APP");
+assert.equal(manifest.sourceSha, "a62ce3e224c7247eb1cda2969464d599b1c0870d");
+assert.equal(manifest.measured_topology, undefined);
 assert.match(css, /@media \(max-width: 800px\)/);
 assert.match(css, /a:focus-visible/);
 for (const [blob, name] of [[html, "html"], [css, "css"], [js, "js"]]) {

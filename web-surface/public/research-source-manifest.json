@@ -1,0 +1,64 @@
+{
+  "title": "AI-RAN Gary",
+  "evidenceClass": "LIVE_EXTERNAL_APP",
+  "sourceRepo": "gunnchOS3k/spectrumx-ai-ran-gary",
+  "sourceSha": "a62ce3e224c7247eb1cda2969464d599b1c0870d",
+  "license": "MIT",
+  "citation": {
+    "cff": "https://github.com/gunnchOS3k/spectrumx-ai-ran-gary/blob/a62ce3e224c7247eb1cda2969464d599b1c0870d/CITATION.cff",
+    "bibtex": "@software{gunn_airan_gary,\n  title = {gunnchOS3k MLV 6G Research Artifact},\n  author = {Gunn, Jr., Edmund},\n  license = {MIT},\n  url = {https://github.com/gunnchOS3k/spectrumx-ai-ran-gary}\n}"
+  },
+  "papers": [
+    {
+      "label": "paper/",
+      "href": "https://github.com/gunnchOS3k/spectrumx-ai-ran-gary/tree/a62ce3e224c7247eb1cda2969464d599b1c0870d/paper"
+    }
+  ],
+  "reports": [
+    {
+      "label": "Final submitted report",
+      "href": "https://github.com/gunnchOS3k/spectrumx-ai-ran-gary/raw/a62ce3e224c7247eb1cda2969464d599b1c0870d/submissions/spxdac_final_report_submission_final_team%20gunnchOS3kMLV%20EDGE%20RAN%20Gary%20copy.pdf"
+    },
+    {
+      "label": "docs/competition_report.md",
+      "href": "https://github.com/gunnchOS3k/spectrumx-ai-ran-gary/blob/a62ce3e224c7247eb1cda2969464d599b1c0870d/docs/competition_report.md"
+    }
+  ],
+  "reproducibility": [
+    {
+      "label": "REPRODUCIBILITY.md",
+      "href": "https://github.com/gunnchOS3k/spectrumx-ai-ran-gary/blob/a62ce3e224c7247eb1cda2969464d599b1c0870d/REPRODUCIBILITY.md"
+    }
+  ],
+  "data": [
+    {
+      "label": "results/",
+      "href": "https://github.com/gunnchOS3k/spectrumx-ai-ran-gary/tree/a62ce3e224c7247eb1cda2969464d599b1c0870d/results"
+    }
+  ],
+  "configs": [
+    {
+      "label": "configs/",
+      "href": "https://github.com/gunnchOS3k/spectrumx-ai-ran-gary/tree/a62ce3e224c7247eb1cda2969464d599b1c0870d/configs"
+    },
+    {
+      "label": "notebooks/",
+      "href": "https://github.com/gunnchOS3k/spectrumx-ai-ran-gary/tree/a62ce3e224c7247eb1cda2969464d599b1c0870d/notebooks"
+    }
+  ],
+  "results": [
+    {
+      "label": "results/",
+      "href": "https://github.com/gunnchOS3k/spectrumx-ai-ran-gary/tree/a62ce3e224c7247eb1cda2969464d599b1c0870d/results"
+    }
+  ],
+  "figures": [],
+  "limitations": [
+    "The Cloudflare Worker embeds Streamlit Community Cloud and does not execute the Python research runtime.",
+    "Not a live RAN.",
+    "No SpectrumX or carrier endorsement is claimed.",
+    "Figure Mode was not confirmed on a second wake.",
+    "Repository experiment records use synthetic simulation evidence. Third-party competition data is linked from the repository rather than copied into this page."
+  ],
+  "downloadBundle": "https://github.com/gunnchOS3k/spectrumx-ai-ran-gary/archive/a62ce3e224c7247eb1cda2969464d599b1c0870d.zip"
+}
