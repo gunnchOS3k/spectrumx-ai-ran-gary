@@ -1,0 +1,46 @@
+{
+  "original": {
+    "source_sha": "86a5a6f3000fce7593ee1bdfe02bae6bc37d2498",
+    "fresh_heldout_nontiming_exact": true,
+    "seeds": [
+      100,
+      101,
+      102,
+      103,
+      104
+    ],
+    "paired_twin_vs_noadapt": {
+      "n": 5,
+      "mean": -0.013598630102797516,
+      "sd": 0.0009481532316649493,
+      "ci95": [
+        -0.014775917835336437,
+        -0.012421342370258595
+      ]
+    },
+    "source_snapshot_sha256": "5024125de239c5aacf2a93c0338cdec45a119d097c32dae7a9b70a490a44b89f",
+    "python": "3.12.14 (main, Aug 25 2026, 13:50:33) [Clang 22.1.3 ]"
+  },
+  "revised": {
+    "source_sha": "b44357f764d440f983132bd44a9c23c180591f70",
+    "fresh_heldout_nontiming_exact": true,
+    "seeds": [
+      100,
+      101,
+      102,
+      103,
+      104
+    ],
+    "paired_twin_vs_noadapt": {
+      "n": 5,
+      "mean": -0.012545439658412816,
+      "sd": 0.0018127422664933853,
+      "ci95": [
+        -0.014796256468739947,
+        -0.010294622848085685
+      ]
+    },
+    "source_snapshot_sha256": "896393229dc7244568dc7b5b39839b557ab0107c1a0474ed78a0161b086b550b",
+    "python": "3.12.14 (main, Aug 25 2026, 13:50:33) [Clang 22.1.3 ]"
+  }
+}

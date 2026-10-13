@@ -1,0 +1,23 @@
+{
+  "IEEEtran.bst": "314f0ece704568faf827011bac498650691b2b5ee06320720830e782416d5a5f",
+  "references.bib": "e007e16deef8594d9210b125cb218e82a5f5c17fd2d5a1bfac4d7caaca1deb51",
+  "manuscript.tex": "3484a6989cbc6c0764cb2b6b81332696a48a3c5849ae373c087a514470da05b6",
+  "IEEEtran.cls": "b0eb3567b81aec7fe98144a3ad283eeac2d31035bb19e0d9dcba7da190f18d9d",
+  "tables/ablations.tex": "0fb69de0d8e7cf957226425d3fd516bcaae8ae73bcbffa97460c98976cee1e2b",
+  "tables/domain_shift.tex": "3bd68943e4efbba937e58995b18e864af2f39e46b19d57d9efd1f00cbb230f25",
+  "tables/heldout.tex": "4cef0bb5a983c051b927bc6e7ca11cd9970cf2ab50d629b0404b85f5de04b552",
+  "tables/revised.tex": "b778dfa80a125bb02467ffec6ce8e59bb00e06823712ad06aa7b76a7e2038e2a",
+  "tables/paired.tex": "b3c881e0302050f09980968870a2543628756661c4979a388d8d3fa47af04ca7",
+  "template/official_instructions.pdf": "3ad40a6f9f6b8ac10baa9dcd3cda9d6e83dae8577d950c09fa73a5d97146ff43",
+  "template/official_sample.tex": "a1225c6ddb0c828596fad8285d4344a654e1597d62e757d0109b07e4f579e4fc",
+  "figures/heldout.png": "9bfafe45cedb13d62401b9098edb19f2eb6bf1df874d0415772dce8b409b952a",
+  "figures/domain_shift.png": "fb843d0038b7b29be8257bbe167ac8629221f6be3cfd054f8a0ef2c44f9be30f",
+  "figures/heldout.pdf": "65368c7dd4c0e6c3391bc19e6c35dbc9c99bca8bb6a5f4c82b007bb2ddaf377e",
+  "figures/domain_shift.pdf": "2f5198c5c75b236ca74a526dfdc8028d9b0beb1a55d5b34e21274067eccdd5d1",
+  "figures/switch_cost.pdf": "c06e3e5c4e9d24134eb67ec091c0d28e1f5a01c2610ffde3f554ac51327ff1e3",
+  "figures/switch_cost.png": "07ff03a555d43ab41fb7277a1e1197bf51123b6bae9cf509523d3ef7d8243bb7",
+  "figures/cost_rescaling.pdf": "c833b46fc60cb2a884913e4b4c829cae29474ff9c26dce8ac4b57c3465e54e85",
+  "figures/cost_rescaling.png": "f52cc9e724cc7d2843d4c4a4a988f3fa3800d41567eea37a3a2811bb10890073",
+  "evidence/original/legacy_bibliography.bib": "834d6e8876f5d0775025d95c0b74d12710ddaebed88afd1b3f0e9be8706afda1",
+  "evidence/original/legacy_manuscript.tex": "24541938e0e79ffb153e85329c31ffd0d065c333806c349c1ebb5b0194c37f48"
+}
