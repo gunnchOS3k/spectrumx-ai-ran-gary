@@ -1,0 +1,253 @@
+% Owner-review draft. Not submitted or authorized for public release.
+% Original86a5a6f; revisedb44357f. Evidence never pooled.
+\documentclass[lettersize,journal]{IEEEtran}
+\usepackage{amsmath,amssymb,booktabs,array,graphicx,url}
+\usepackage[hidelinks]{hyperref}
+\newcommand{\ArtifactRoot}{}
+\newcommand{\pol}[1]{\texttt{#1}}
+\title{Switching Costs and Baseline Semantics in Digital-Twin-Informed Cross-Layer Service Orchestration}
+\author{Edmund~Gunn,~Jr.\thanks{Edmund Gunn, Jr. is with gunnchOS Research (e-mail: egunnjr@gunnchos.com; ORCID: 0009-0004-6546-2609). This is an author-review draft. Funding, additional authors, conflicts of interest, rights, and final contributions remain subject to owner confirmation.}}
+\markboth{Author-Review Draft, October 2026}{Gunn: Switching Costs and Baseline Semantics}
+\begin{document}
+\maketitle
+\begin{abstract}
+Digital-twin context can inform network selection and computation placement, but additional adaptation need not improve service utility. We reproduce and audit two preserved versions of a synthetic cross-layer orchestration study, separating policy behavior from assumptions embedded in its analytical metric. In the original held-out experiment, ten policies share five seeds, with 24 episodes of 16 slots per seed. The procedural twin policy underperforms the cloud fallback baseline by 0.01360 utility units; a post-hoc paired 95\% seed interval is $[-0.01478,-0.01242]$. Its gross continuity improves slightly, but additional network and placement switching reverses that benefit. A frozen linear selector exceeds the procedural policy by 0.03437 units, while its comparison with a greedy model evaluator is inconclusive. Source inspection finds an unavailable-action loophole in the static baseline, unequal consumed features and computational work, and interventions that change scoring inputs. A separately reproduced fidelity and checkpoint extension also retains unfavorable adaptive outcomes. These findings support a reproducible audit of this model, rather than general digital-twin superiority or measured radio performance, and define the controls required for a prospective fair comparison.
+\end{abstract}
+\begin{IEEEkeywords}
+Network and service management, digital twin, cross-layer orchestration, switching cost, simulation, reproducibility.
+\end{IEEEkeywords}
+
+\section{Introduction}
+\IEEEPARstart{S}{ervice} management across network paths and device, edge, and cloud computation requires more than choosing the configuration with the lowest instantaneous delay. Changes themselves can consume resources, interrupt work, or create unstable operation. A controller may improve an instantaneous quality measure while reducing the value accumulated over a sequence of decisions. The IMT-2030 framework motivates resilient future communication systems~\cite{itur2023framework}; it does not validate a controller or provide physical measurements for this study.
+
+Mobile edge computing research already treats communication and computation as coupled decisions~\cite{mao2017survey}. Digital-twin-assisted offloading further uses virtual representations to estimate state, support decisions, or train policies~\cite{sun2020latency,dai2021stochastic,doduy2022offloading}. These precedents establish a substantive novelty boundary: using network context to select an edge server is established work. A twin label does not identify an algorithmic contribution, establish equal baseline information, or demonstrate an improvement in deployed service.
+
+This paper examines a narrower question: \emph{what conclusions survive reproduction and source-level audit of a preserved, twin-informed synthetic orchestration experiment when switching costs and baseline semantics are made explicit?} The implementation combines network selection, placement, spectrum shares, and a power proxy. It originally hypothesized that a procedural twin policy would improve continuity over a baseline named \pol{no\_adaptation}. Reproduction with the required optimizer preserves the contrary result. Correcting that claim is part of the scientific result.
+
+First, we provide exact numerical reproduction of comparable non-timing outputs from two source revisions and retain separate protocols, seed lists, and generators. Second, we quantify the original negative comparison with seed-paired uncertainty and decompose gross continuity and switching penalties without retuning. Third, source inspection identifies where baseline labels, information equivalence, and ablation terminology exceed enforcement. Finally, the reproduced extension supplies a separate unfavorable fidelity/checkpoint result and a prospective design for resolving fairness questions.
+
+The contribution is an implementation-specific methodological case study. It is not a new globally optimal controller, a learned network digital twin, or an assessment of every twin architecture. All orchestration evidence is synthetic. There is no calibrated RF channel, packet transmission, measured handover interruption, carrier experiment, or physical edge-device energy measurement. Competition and companion radio projects are context, not quantitative evidence for these results.
+
+\section{Related Work and Novelty Boundary}
+Mao \emph{et al.} survey joint radio and computation management~\cite{mao2017survey}. Their energy-harvesting offloading study includes dynamic energy state and task execution cost~\cite{mao2016dynamic}. Our model instead uses an independently drawn energy-budget covariate and an uncalibrated formula labeled in joules. It does not evolve a battery or constrain depletion. The literature motivates the problem, without validating our proxy.
+
+Sun \emph{et al.} study digital-twin edge offloading with service migration costs~\cite{sun2020latency}. Jointly considering twin context and transition costs is therefore not new. Dai \emph{et al.} combine stochastic offloading, Lyapunov reformulation, and actor-critic learning~\cite{dai2021stochastic}. Do-Duy \emph{et al.} optimize edge selection and offloading under latency and resource constraints~\cite{doduy2022offloading}. Our frozen linear and procedural rules neither implement nor compare against reproduced versions of these methods. No performance claim against them follows from our tables.
+
+Hui \emph{et al.} consider digital-twin-enabled collaboration for composite vehicular services~\cite{hui2025collaboration}. Their service mechanisms are richer than our categorical continuity flag. A 2026 preprint by Almohammedi \emph{et al.} studies fidelity-aware arbitration between competing Open RAN applications~\cite{almohammedi2026fidelity}. It monitors prediction discrepancy and uses fallback. This is a close conceptual competitor for trustworthy twin-assisted control. Its twin fidelity means predictive agreement; our extension uses \emph{service fidelity} as a synthetic utility multiplier. These are distinct quantities. The source is cited as a preprint; acceptance is not assumed.
+
+Our distinction is the reproducible audit of a specific archived comparison: a preserved negative hypothesis, paired inference, switching decomposition, and a diagnosis of accessible features versus consumed features and computational work. We do not claim the first twin orchestrator, switching-aware offloading model, or robust fallback mechanism. The study is not a field-valid benchmark. A publication decision should assess the usefulness of this bounded methodological contribution.
+
+\section{System and Analytical Model}
+\subsection{State, Actions, and Synthetic Twin Context}
+At slot $t$, state $s_t$ contains base latency $\ell_t$, loss percentage $q_t$, spectrum budget $B$, energy covariate $e_t$, user count $N_t$, priorities, outage, available networks, node capacities, mobility, blockage, and continuity class. An action is
+\begin{equation}a_t=(\boldsymbol{x}_t,\boldsymbol{p}_t,n_t,v_t),\end{equation}
+where $x_{ti}$ is a user's spectrum share, $p_{ti}$ a dimensionless power setting, $n_t$ a network category, and $v_t$ placement. Networks include terrestrial, local-edge Wi-Fi, degraded-local, and NTN fallback; placement is cloud, edge, or local. These names select coefficients rather than implement transport protocols or hardware.
+
+The synthetic twin is structured context plus an analytical predictor. There is no observation stream synchronized to a physical twin, model fitting, calibration error process, or deployed feedback. Mobility and blockage are recorded covariates. The original procedural policy does not directly use them and the score is independent of them. Radio context describes an intended abstraction, not measured radio awareness.
+
+Define aggregate utilization
+\begin{equation}u_t=\operatorname{clip}_{[0,1.5]}\left(\frac{\sum_i x_{ti}}{B}\right).\end{equation}
+Network multipliers $\alpha_n$ are 1.0, 1.1, 1.6, 2.2, 1.4, and 10.0 for terrestrial, local-edge Wi-Fi, degraded-local, NTN fallback, device-to-device, and offline continuation. Placement multipliers $\beta_v$ are 1.15, 1.0, and 1.25 for cloud, edge, and local. The original generator uses the first four networks. Its score is
+\begin{align}
+\widehat L_t&=\ell_t\alpha_{n_t}\beta_{v_t}(1+0.4u_t),\label{eq:latency}\\
+\widehat q_t&=\min\{100,q_t\alpha_{n_t}(1+0.2u_t)\},\\
+r_t&=\operatorname{clip}_{[0,1]}(1-\widehat q_t/100),\\
+g_t&=\operatorname{clip}_{[0,1]}\!\left[r_t\left(1-\frac{\min\{\widehat L_t,500\}}{500}\right)\right].\label{eq:gross}
+\end{align}
+The gross continuity $g_t$ uses a configured 500~ms normalization, not an application-validated deadline. Increasing utilization increases modeled latency, with no throughput or task-completion benefit from additional shares. This limits the meaning of spectrum optimization.
+
+\subsection{Switching, Energy, and Fairness}
+The transition charge is
+\begin{equation}c_t=0.05\mathbb{1}[n_t\ne n_{t-1}]+0.03\mathbb{1}[v_t\ne v_{t-1}],\label{eq:cost}\end{equation}
+with $c_1=0$. Net utility is $U_t=\max\{-1,g_t-c_t\}$. Charges are dimensionless deductions, not measured transition durations or energy. Episode utility is the mean of $T=16$ slots, whereas reported charge $C$ is the episode sum. Thus $C/T$ is comparable with average utility.
+
+The energy proxy is
+\begin{equation}\widehat E_t=(0.2e_t+15u_t+0.05\widehat L_t)(0.6+0.4\bar p_t),\label{eq:energy}\end{equation}
+where $\bar p_t=N_t^{-1}\sum_i p_{ti}$. Output keys label it joules, but no device model or calibration supports that unit. The covariate $e_t$ is not a battery balance and (\ref{eq:energy}) does not enforce an energy constraint. Jain's expression $J_t=(\sum_i x_{ti})^2/(N_t\sum_i x_{ti}^2)$ describes share equality, not observed service fairness. Continuity depends on the sum of shares; distribution changes can affect $J_t$ without affecting continuity. These metrics do not supply independent physical validations.
+
+\subsection{Feasibility Boundary}
+Several policies enumerate available categories and positive-capacity placements, but scoring does not reject unavailable networks or over-capacity placement. Capacity mostly acts as a selection flag rather than a workload-dependent server limit. A static action can survive a later outage and still receive a finite score based on its category multiplier. Reported utility evaluates declared actions under the formula, not necessarily feasible service. This defect remains in the historical reproduction.
+
+\section{Implemented Controllers and Audit}
+\subsection{Procedural Policy and Share Optimization}
+The procedural twin policy selects available local-edge Wi-Fi during outage, then degraded-local or NTN fallback. Outside outage it selects Wi-Fi when base latency exceeds 40~ms; otherwise it prefers terrestrial. Placement becomes edge for strict continuity or latency above 40~ms with positive edge capacity; otherwise low energy favors local, and remaining cases use cloud. Previous action is passed but ignored during selection, so the rule does not optimize a multi-slot switching objective.
+
+SciPy SLSQP computes shares from
+\begin{equation}
+\begin{split}
+\min_{\boldsymbol{x}}\quad&-\sum_{i=1}^{N_t}\log(1+x_i)+0.01\sum_i x_i,\\
+\text{subject to}\quad&0.1\le x_i\le B,\quad\sum_i x_i\le B.
+\end{split}\label{eq:slsqp}
+\end{equation}
+Uniform initialization receives seeded noise of standard deviation $10^{-6}$. For generated $N_t\in\{4,\ldots,8\}$ and $B=20$, the symmetric objective favors equal shares and uses the budget. Missing SciPy or unsuccessful optimization invokes uniform shares. Our reproduction uses the optimizer, preserving the intended path. This is a share subproblem; it does not jointly optimize network and placement against $U_t$.
+
+\subsection{Linear Selector and Greedy Model Evaluator}
+The stored \pol{information\_equivalent} policy scores available network and positive-capacity placement combinations using
+\begin{align}
+S_t(n,v)={}&-0.004\ell_t\alpha_n\beta_v-0.02q_t\\
+&-0.35\mathbb{1}[\text{outage},n=\text{terrestrial}]\nonumber\\
+&-0.002(50-e_t)\mathbb{1}[e_t<50,v=\text{cloud}]\nonumber\\
+&+0.25\mathbb{1}[\text{strict},v=\text{edge}]\nonumber\\
+&+0.15\mathbb{1}[\ell_t>40,v=\text{edge}].\nonumber
+\end{align}
+It chooses the largest score, resolves ties by iteration order, and uses uniform shares and unit power. Loss contributes a constant across candidates, so it does not change the selected action. Switching cost is absent from selection. We preserve all weights without further tuning.
+
+The stored \pol{oracle} evaluates $U_t$ over current available networks and positive-capacity placements with uniform shares and unit power. It considers the previous action greedily. It does not search continuous allocations or plan an episode. Another policy can outperform it over an episode through a different transition path. We call it the \emph{greedy model evaluator}, not an upper bound. An interval spanning zero against it is inconclusive; it is not proof of equivalence or optimality.
+
+\subsection{Actual Baseline Semantics}
+Table~\ref{tab:semantics} translates stored labels into behavior. Cloud fallback \pol{no\_adaptation} changes network when terrestrial is unavailable, contradicting the protocol's ``never switches'' description. \pol{static} freezes the entire first-slot action, including its shares; later user-count changes also prevent reading it as a fresh per-user allocation. Original JSON labels are preserved for provenance.
+\begin{table*}[t]
+\caption{Original policy semantics. All are analytical simulations.}\label{tab:semantics}
+\centering\small
+\begin{tabular}{p{.21\textwidth}p{.71\textwidth}}
+\toprule Artifact label & Enforced behavior and consequence \\
+\midrule
+\pol{no\_adaptation} & Cloud; terrestrial when available, then first available network; uniform shares. Fallback can switch. \\
+\pol{static} & First-slot rule-based action frozen. Later unavailable networks remain scored; no feasible-service guarantee. \\
+\pol{local\_only}, \pol{cloud\_only} & Fixed placement with category preference fallback; no task or battery dynamics. \\
+\pol{edge\_only} & Edge placement; Wi-Fi/degraded-local preference; priority shares. Share fairness is not service fairness. \\
+\pol{rule\_based} & Outage-aware network; edge above 60~ms with positive capacity; priority shares. \\
+\pol{optimization\_based} & SLSQP shares; preferred available terrestrial/Wi-Fi/NTN network; cloud placement. \\
+\pol{twin\_informed} & Threshold network/placement; SLSQP shares; low-energy power reduction; previous action ignored. \\
+\pol{information\_equivalent} & Frozen linear scores; uniform shares; no guarantee of equal consumed features or computation. \\
+\pol{oracle} & Greedy current-slot metric search with uniform shares; no global bound or future access. \\
+\bottomrule\end{tabular}
+\end{table*}
+
+\subsection{Information and Computational Fairness}
+The original non-static policies receive the full \pol{Slot}. Equal accessible objects do not imply equal used features. The procedural rule reads edge capacity and class; the linear selector builds a broader vector, including loss as a constant term. The original comparison has no runtime mask. The revised code restricts fields through \pol{PolicyObservation} and separates \pol{PolicyActionSpace}. Procedural declarations include latency, outage, energy, edge capacity, and strictness; linear declarations include latency, loss, outage, energy, and strictness. Edge capacity remains accessible through action-space feasibility. This protects declared access but does not establish identical observation use.
+
+Neither version equalizes computation or optimization opportunities. Procedural and optimization policies invoke SLSQP, the linear rule enumerates discrete actions, and the greedy evaluator scores candidates. Common charges are applied after selection, but most policies do not optimize them. Recorded host execution time is platform-sensitive and excludes sensing, communication, and actuation. No real-time RAN or speed-superiority claim is made.
+
+% Remaining complete evaluation and discussion follow.
+\section{Experimental Design and Reproduction}
+\subsection{Preserved Versions and Actual Sample Size}
+The original source is \nolinkurl{86a5a6f3000fce7593ee1bdfe02bae6bc37d2498}; its protocol predecessor is \nolinkurl{72044d4008dc7624b1246b880387a693c37150e7}. The revised extension is \nolinkurl{b44357f764d440f983132bd44a9c23c180591f70}. The protocol declares a frozen date of August 18, 2026. The predecessor establishes local ordering before the result-bearing revision. This is a repository freeze, not external preregistration. Paired calculations and charge rescaling here are retrospective additions.
+
+Both versions use train seeds 0--4 and held-out seeds 100--104, 24 episodes per seed, and 16 slots per episode. Each family contains 120 episodes and 1920 slots but only five seed-level replicate values. Paper II has \emph{five seeds}, irrespective of four-seed or 30-seed studies in other materials; incompatible studies are not pooled. Held-out and train families use the same distribution. Their difference is pseudo-random draws, not a new population or a learned policy's generalization.
+
+\begin{table}[t]
+\caption{Original synthetic priors. Uniform draws are independent across slots except transition scoring.}\label{tab:families}
+\centering\footnotesize
+\begin{tabular}{lrrrr}
+\toprule Family & $\ell$ (ms) & $q$ (\%) & $p_{\rm out}$ & $e$ \\
+\midrule
+Train/held-out & 20--80 & 0.1--4 & 0.12 & 60--140 \\
+High blockage & 40--140 & 3--18 & 0.20 & 60--140 \\
+Energy constrained & 20--80 & 0.1--4 & 0.12 & 12--40 \\
+Outage heavy & 30--120 & 1--10 & 0.55 & 50--120 \\
+\bottomrule\end{tabular}
+\end{table}
+
+Table~\ref{tab:families} gives major draws. Blockage ranges are 0--0.3 normally, 0.45--0.95 for high blockage, and 0.1--0.6 for outage heavy. Edge-capacity ranges are 0.4--1.0 normally, 0.2--0.8 for high blockage, and 0.3--0.9 for outage heavy. Terrestrial is removed during outage and Wi-Fi when edge capacity is at most 0.25. User counts are discrete uniform 4--8, priorities 1--3, and strict class probability 0.25. Cloud/local capacities are 1.0/0.6. High blockage changes several priors jointly, rather than isolating blockage causally.
+
+The revised generator also draws task progress and recovery budget and may append offline continuation. Added draws change subsequent samples even for matching seed integers. Its target-fidelity score increases latency by 5\%. Cross-version differences cannot isolate one feature's effect; each version is reproduced separately.
+
+\subsection{Statistical Unit and Verification}
+Utility is averaged over slots, episodes, then seeds. For paired policies $A,B$, let $d_s=\bar U_{A,s}-\bar U_{B,s}$. We compute
+\begin{equation}
+\bar d\ \pm\ t_{0.975,4}\frac{s_d}{\sqrt5},\qquad
+s_d^2=\frac{1}{4}\sum_{s=1}^5(d_s-\bar d)^2.\label{eq:ci}
+\end{equation}
+Pairing is valid because policies in a version/family share pre-generated episodes. Five seed means, rather than 1920 slot comparisons, determine inferential sample size. Normality and representativeness cannot be assessed well at $n=5$. Intervals describe uncertainty conditional on configured priors; they do not describe physical-network uncertainty. Exploratory comparisons and shifted families are not multiplicity-adjusted confirmatory claims. Archived pooled Cohen's $d$ is retained but not presented as paired effect; paired $d_z=\bar d/s_d$ is supplied separately.
+
+Original summaries use rounded $t=2.776$; new tables use SciPy's quantile, explaining small rounding differences in marginal intervals. Source reruns used Python 3.12.14, NumPy 2.3.5, and SciPy 1.18.1. Comparable non-timing JSON matches exactly in both versions. Five original and 31 revised tests pass. Host-process time is excluded from equality because scheduling and platform state are not deterministic outputs. Checksums, source snapshots, reproduction commands, and independent arithmetic are supplied. Reproduction was performed within this author-review workflow; no external laboratory validation is claimed.
+
+\section{Results}
+\subsection{The Original Held-Out Hypothesis Fails}
+Table~\ref{tab:heldout} and Fig.~\ref{fig:heldout} show the original result. Procedural twin utility is 0.79303, below cloud fallback's 0.80663. Their paired difference is $-0.01360$ with interval $[-0.01478,-0.01242]$. Every seed difference is negative. The original superiority direction fails in this synthetic comparison. It does not establish that twin information is harmful, because rule structure and optimization opportunities are uncontrolled.
+
+\begin{table*}[t]
+\caption{Original held-out results, five seeds. $\widehat L$ is analytical and $C$ is mean episode sum. See Table~\ref{tab:semantics} for label meanings.}\label{tab:heldout}
+\centering\small\input{\ArtifactRoot tables/heldout.tex}
+\end{table*}
+\begin{figure*}[t]
+\centering\includegraphics[width=.92\textwidth]{\ArtifactRoot figures/heldout.pdf}
+\caption{Original held-out utility with 95\% seed intervals and individual seed means. Static feasibility is not enforced, limiting its apparent advantage.}\label{fig:heldout}
+\end{figure*}
+
+The linear selector averages 0.82740. Its paired advantage is 0.02077 over cloud fallback and 0.03437 over the procedural rule; the latter interval is $[0.03326,0.03548]$. Greedy evaluator utility is 0.82710. Linear minus greedy has interval $[-0.00158,0.00219]$, supporting neither a detected difference nor practical equivalence. The slightly higher linear mean is consistent with a transition problem whose greedy reference is not globally optimal.
+
+Static and edge-only results require different interpretations. Static can use unavailable actions and supplies an optimistic reference under incomplete feasibility scoring. Edge-only is a categorical rule rather than physical low-latency deployment. Cloud fallback and optimization-based scores essentially coincide because share optimization does not improve the aggregate-share term. This reflects objective symmetry and scoring architecture, not proof that radio optimization is unnecessary.
+
+\subsection{Switching Reverses the Gross Benefit}
+Figure~\ref{fig:switch} decomposes net utility and average slot charge. Procedural gross continuity is approximately 0.82315 versus 0.81621 for cloud fallback. Episode charges are 0.48180 versus 0.15330, or 0.03011 versus 0.00958 per slot. A gross gain of about 0.00694 is outweighed by 0.02053 additional slot charge. Threshold-based network and placement decisions ignore the previous action during selection.
+
+\begin{figure*}[t]
+\centering\includegraphics[width=.94\textwidth]{\ArtifactRoot figures/switch_cost.pdf}
+\caption{Original switching decomposition. Left: mean slot cost added to net utility recovers gross continuity. Right: switches per episode. Charges are configured dimensionless penalties.}\label{fig:switch}
+\end{figure*}
+
+Zeroing scored switch penalties with unchanged rule and episodes improves utility by 0.03011, with paired interval $[0.02865,0.03158]$. It does not remove switching events or estimate physical cost. Recorded charges remain in JSON while subtraction is disabled; the intervention confirms an accounting effect.
+
+For fixed traces, rescale charges by $\lambda$:
+\begin{equation}\bar U_j(\lambda)=\bar G_j-\lambda\bar C_j/T.\label{eq:rescale}\end{equation}
+The clipping bound is inactive on these original traces over the plotted range. Equating procedural and cloud-fallback means gives $\lambda\approx0.33766$ (Fig.~\ref{fig:cost}). This is post-hoc algebra, not a preregistered sweep or a cost-aware controller at each setting. The crossing reduces configured penalties to about one third. Recomputed actions could give a different crossing; no adaptive robustness threshold is established.
+
+\begin{figure}[t]
+\centering\includegraphics[width=.98\columnwidth]{\ArtifactRoot figures/cost_rescaling.pdf}
+\caption{Retrospective cost rescaling on fixed original traces. Vertical mark: procedural/cloud-fallback mean crossing. No retuning or retraining.}\label{fig:cost}
+\end{figure}
+
+\subsection{Shifted Families Do Not Establish Uniform Superiority}
+High-blockage procedural utility is 0.61589 versus cloud fallback 0.59716; outage-heavy values are 0.70461 versus 0.67092. Thus unfavorable held-out performance does not imply unfavorable performance in every family. The linear selector is better in high blockage (0.63104), while their ordering reverses slightly in outage heavy (0.70186 versus 0.70461). These descriptive exploratory outcomes establish no uniform superiority (Fig.~\ref{fig:shift}).
+
+\begin{figure*}[t]
+\centering\includegraphics[width=.93\textwidth]{\ArtifactRoot figures/domain_shift.pdf}
+\caption{Original family comparisons with five-seed intervals. Multiple priors change together. Equal energy-constrained/cloud-fallback values reflect model insensitivity rather than demonstrated energy resilience.}\label{fig:shift}
+\end{figure*}
+
+Energy-constrained cloud fallback and linear utility retain their held-out values because energy does not directly enter continuity and does not change their actions here. Procedural utility drops to 0.79098 through its low-energy placement branch. This does not demonstrate energy-constrained service feasibility. A useful energy study requires battery state, task demand, power-duration accounting, and failure on exhausted budget.
+
+\subsection{Interventions Reveal Scoring Confounds}
+Table~\ref{tab:ablation} preserves all original interventions. \pol{no\_edge\_observations} sets latency and loss to zero in the state used for both control and scoring. Its 0.97971 score reflects a changed scored environment, not evidence that removing observations improves control. \pol{no\_energy\_constraint} sets the covariate to $10^9$, creating enormous energy proxies while leaving original held-out utility unchanged. No enforced battery constraint exists to remove.
+
+\begin{table*}[t]
+\caption{Original procedural interventions. Several change scoring inputs and are not isolated observation ablations.}\label{tab:ablation}
+\centering\small\input{\ArtifactRoot tables/ablations.tex}
+\end{table*}
+
+\pol{no\_twin\_context} zeros mobility/blockage and changes strictness; \pol{no\_continuity\_objective} changes class while keeping (\ref{eq:gross}). Their identical utility follows consumed branches, not removal of the mathematical objective. \pol{no\_local\_edge} changes availability/capacity. Only disabled subtraction answers a clean narrow accounting question. Observation ablations should preserve a truth state for scoring and provide separately masked controller views.
+
+\subsection{The Revised Extension Is Separate and Also Unfavorable}
+Table~\ref{tab:revised} reports the revised run. Target, degraded, and minimum-useful fidelity have continuity factors 1.0/0.85/0.65 and energy factors 1.15/1.0/0.75; fidelity changes cost 0.04. Target latency is multiplied by 1.05, minimum-useful latency by 0.9. Checkpoint/recovery charges are 0.03/0.06; checkpoints become stale at eight slots, with further synthetic failure and recovery effects. Availability and age evolve causally during episodes. Progress and recovery budgets remain draws.
+
+\begin{table}[t]
+\caption{Revised held-out results, five seeds. Do not pool with Table~\ref{tab:heldout}.}\label{tab:revised}
+\centering\scriptsize\input{\ArtifactRoot tables/revised.tex}
+\end{table}
+
+Adaptive fidelity averages 0.74197 versus fixed target 0.79650. Adaptive checkpoint averages 0.62374 versus checkpoint disabled 0.68232. Both are unfavorable adaptive outcomes. Base network/placement choices also differ, making these whole-policy comparisons rather than isolated feature effects. No application process checkpoints or resumes. Retrospective reproduction does not turn the extension into the original hypothesis or field evidence.
+
+\section{Discussion and Threats to Validity}
+\subsection{What the Negative Result Explains}
+Threshold adaptation can earn a small gross benefit while frequent transitions dominate utility. Fixed-trace decomposition, source inspection, and paired results support this specific failure mode. It is weaker than a general twin-control claim, but explains more than a lower mean. It motivates transition-aware decisions while leaving physical transition magnitude open.
+
+The model constrains the lesson: shares affect continuity only through their sum, energy is absent from primary scoring, mobility/blockage are unused, capacity is not a queue, and static actions may remain scored through outage. These are material scientific properties. Reproduction verifies fidelity to the program; it cannot verify realism the program lacks.
+
+\subsection{Internal, Construct, and External Validity}
+Code and protocol disagree on labels. Common objects in the original and restricted declarations in the extension provide different access evidence, neither proving equal computation or feature use. Some interventions alter truth. Five seed means limit precision and tail analysis. Narrow intervals quantify randomness conditional on priors, not uncertainty about real networks.
+
+Utility is a smooth reliability-delay product rather than completed-task fraction, application persistence, or a service-specific minimum-useful threshold. Share fairness, predicted delay, and continuity partly reuse analytical quantities, so multiple metrics do not give independent validation. Energy has unsupported physical units. Host timing is not air-interface or end-to-end latency. NTN is a multiplier without geometry, shared satellite capacity, or terminal measurements.
+
+The companion ReadyGary project uses synthetic 28~GHz inputs and host-process timing; those are not integrated evidence for the orchestration score. SpectrumX judged IQ evaluation remains separate and unmodified. Neither validates (\ref{eq:latency})--(\ref{eq:energy}). No university affiliation, supervision, or field campaign follows from a roadmap.
+
+\subsection{Prospective Fair Comparison and Physical Validation}
+A new study should freeze a new identifier before outcomes, preserving both archives. It should separate truth from observation, give comparable policies identical declared views, enforce feasible actions, and impose an explicit compute budget. Hysteresis or transition-aware discrete optimization should use the same available action set. A finite-horizon dynamic program could supply a true optimum for the small discrete model, remaining explicitly privileged.
+
+The protocol should distinguish ordinary seeds from shifted priors, select seed count through precision/power analysis, and specify one primary paired contrast and multiplicity treatment. Costs should be swept with actions recomputed. Causal energy and task state should be modeled, or claims restricted to score accounting. No new experiment is inserted into old results to repair a failed hypothesis.
+
+Physical validation requires measured latency/loss, unavailable-action behavior, migration interruption, target-device energy, task outcomes, and state-estimation error. These would calibrate and test the predictor. They are future studies, not completed evidence.
+
+\section{Conclusion}
+Exact reproduction retains unfavorable procedural-twin results and unfavorable adaptive results in a separate extension. Original switching charges outweigh a small gross-continuity advantage. A frozen linear rule does better, but unequal policy semantics, incomplete feasibility, and unequal computational work prevent attribution to twin information alone. The study provides a transparent audit and reproducibility package for this synthetic case, and a prospective path to a fairer, physically meaningful comparison.
+
+\section*{Data, Code, and Declarations}
+The review package contains protocols, exact revisions, archived/reproduced JSON, checksums, statistical and figure scripts, and a dictionary. Public archival release and licensing are pending owner rights review; no data DOI is claimed. Source resides in the author's \pol{spectrumx-ai-ran-gary} repository, while this package remains subject to release authorization. Additional authors, funding, conflicts, sponsorship, rights, and contributions require owner confirmation.
+
+\section*{Acknowledgment of AI Assistance}
+OpenAI Codex using GPT-6.1 Sol assisted substantially with drafting and revision of Sections I--VIII and declarations, source/protocol inspection, literature/metadata verification, reproduction orchestration, statistical/figure code, LaTeX preparation, and supporting review documents. Figures are scripted from synthetic results, not image-generation models. Earlier project use of AI tools, including any ChatGPT or Cursor use, requires owner confirmation in the final disclosure. The human author must review sources, computations, text, and declarations before submission. AI systems are not authors.
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+\end{document}
