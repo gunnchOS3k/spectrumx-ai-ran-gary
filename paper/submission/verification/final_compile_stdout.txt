@@ -1,0 +1,122 @@
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex)
+entering extended mode
+(./manuscript.tex
+LaTeX2e <2026-06-01>
+L3 programming layer <2026-08-10>
+(./IEEEtran.cls
+Document Class: IEEEtran 2015/08/26 V1.8b by Michael Shell
+-- See the "IEEEtran_HOWTO" manual for usage information.
+-- http://www.michaelshell.org/tex/ieeetran/
+(/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/psnfss/ot1ptm.fd)
+-- Using 8.5in x 11in (letter) paper.
+-- Using PDF output.
+-- This is a 10 point document.
+) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/base/fontenc.sty (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/psnfss/t1ptm.fd)) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/amsmath/amstext.sty (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/amsmath/amsgen.sty)) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/amsmath/amsbsy.sty) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/amsmath/amsopn.sty)) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/amsfonts/amssymb.sty (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/amsfonts/amsfonts.sty)) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/booktabs/booktabs.sty) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/tools/array.sty) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/graphics/graphicx.sty (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/graphics/keyval.sty) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/graphics/graphics.sty (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/graphics/trig.sty) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/graphics-cfg/graphics.cfg) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/graphics-def/pdftex.def))) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/url/url.sty) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/hyperref/hyperref.sty (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/generic/iftex/iftex.sty) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/kvsetkeys/kvsetkeys.sty) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/generic/kvdefinekeys/kvdefinekeys.sty) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/generic/pdfescape/pdfescape.sty (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/generic/ltxcmds/ltxcmds.sty) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/generic/pdftexcmds/pdftexcmds.sty (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/generic/infwarerr/infwarerr.sty))) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/hycolor/hycolor.sty) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/hyperref/nameref.sty (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/refcount/refcount.sty) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/generic/gettitlestring/gettitlestring.sty (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/kvoptions/kvoptions.sty))) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/etoolbox/etoolbox.sty) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/generic/stringenc/stringenc.sty) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/hyperref/pd1enc.def) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/generic/intcalc/intcalc.sty) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/hyperref/puenc.def) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/generic/bitset/bitset.sty (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/generic/bigintcalc/bigintcalc.sty))) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/hyperref/hpdftex.def (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/rerunfilecheck/rerunfilecheck.sty (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/generic/uniquecounter/uniquecounter.sty))) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/l3kernel/l3backend-pdftex.def) (./manuscript.aux)
+-- Lines per column: 58 (exact).
+(/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
+
+Package epstopdf Warning: Shell escape feature is not enabled.
+
+(/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg)) (./manuscript.out) (./manuscript.out)
+Underfull \hbox (badness 7944) in paragraph at lines 14--14
+[][][]\T1/ptm/m/n/8 Edmund Gunn, Jr. is with gun-n-chOS Re-search (e-mail: egun-
+(/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/amsfonts/umsa.fd) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/amsfonts/umsb.fd)
+Underfull \hbox (badness 1436) in paragraph at lines 17--19
+\T1/ptm/b/n/9 cross-layer or-ches-tra-tion, switch-ing cost, sim-u-la-tion, re-pro-
+(/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/psnfss/t1pcr.fd) [1{/Users/gunnchos/Library/TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/enc/dvips/base/8r.enc}] [2]
+Underfull \hbox (badness 10000) in paragraph at lines 108--108
+[]|\T1/pcr/m/n/9 local_only\T1/ptm/m/n/9 ,
+
+Overfull \hbox (10.4364pt too wide) in paragraph at lines 113--113
+[]|\T1/pcr/m/n/9 information_equivalent| 
+
+Underfull \hbox (badness 1655) in paragraph at lines 121--122
+[]\T1/ptm/m/n/10 Neither ver-sion equal-izes com-pu-ta-tion or op-ti-miza-tion
+[3] (./tables/heldout.tex)
+Underfull \hbox (badness 10000) in paragraph at lines 204--205
+[]\T1/ptm/m/n/10 Table []IV[] pre-serves all orig-i-nal in-ter-ven-tions.
+
+Underfull \hbox (badness 10000) in paragraph at lines 204--205
+\T1/pcr/m/n/10 no_edge_observations \T1/ptm/m/n/10 sets la-tency and loss to
+
+Underfull \hbox (badness 5189) in paragraph at lines 204--205
+\T1/ptm/m/n/10 ev-i-dence that re-mov-ing ob-ser-va-tions im-proves con-trol.
+
+Underfull \hbox (badness 4291) in paragraph at lines 204--205
+\T1/pcr/m/n/10 no_energy_constraint \T1/ptm/m/n/10 sets the co-vari-ate to $\OT1/cmr/m/n/10 10[]$\T1/ptm/m/n/10 ,
+[4] (./tables/ablations.tex)
+Underfull \hbox (badness 1824) in paragraph at lines 211--212
+\T1/ptm/m/n/10 strict-ness; \T1/pcr/m/n/10 no_continuity_objective \T1/ptm/m/n/10 changes class
+
+Underfull \hbox (badness 2837) in paragraph at lines 211--212
+\T1/ptm/m/n/10 while keep-ing ([]6[]). Their iden-ti-cal util-ity fol-lows con-
+(./tables/revised.tex) [5 <./figures/heldout.pdf>] [6 <./figures/switch_cost.pdf> <./figures/cost_rescaling.pdf>]
+Underfull \hbox (badness 10000) in paragraph at lines 241--242
+[]\T1/ptm/m/n/10 Physical val-i-da-tion re-quires mea-sured la-tency/loss,
+(./manuscript.bbl [7 <./figures/domain_shift.pdf>]) [8] (./manuscript.aux) )
+(see the transcript file for additional information)</Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmex8.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmex9.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmib10.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmmib7.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on manuscript.pdf (8 pages, 339459 bytes).
+Transcript written on manuscript.log.
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex)
+entering extended mode
+(./manuscript.tex
+LaTeX2e <2026-06-01>
+L3 programming layer <2026-08-10>
+(./IEEEtran.cls
+Document Class: IEEEtran 2015/08/26 V1.8b by Michael Shell
+-- See the "IEEEtran_HOWTO" manual for usage information.
+-- http://www.michaelshell.org/tex/ieeetran/
+(/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/psnfss/ot1ptm.fd)
+-- Using 8.5in x 11in (letter) paper.
+-- Using PDF output.
+-- This is a 10 point document.
+) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/base/fontenc.sty (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/psnfss/t1ptm.fd)) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/amsmath/amstext.sty (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/amsmath/amsgen.sty)) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/amsmath/amsbsy.sty) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/amsmath/amsopn.sty)) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/amsfonts/amssymb.sty (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/amsfonts/amsfonts.sty)) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/booktabs/booktabs.sty) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/tools/array.sty) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/graphics/graphicx.sty (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/graphics/keyval.sty) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/graphics/graphics.sty (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/graphics/trig.sty) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/graphics-cfg/graphics.cfg) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/graphics-def/pdftex.def))) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/url/url.sty) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/hyperref/hyperref.sty (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/generic/iftex/iftex.sty) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/kvsetkeys/kvsetkeys.sty) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/generic/kvdefinekeys/kvdefinekeys.sty) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/generic/pdfescape/pdfescape.sty (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/generic/ltxcmds/ltxcmds.sty) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/generic/pdftexcmds/pdftexcmds.sty (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/generic/infwarerr/infwarerr.sty))) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/hycolor/hycolor.sty) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/hyperref/nameref.sty (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/refcount/refcount.sty) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/generic/gettitlestring/gettitlestring.sty (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/kvoptions/kvoptions.sty))) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/etoolbox/etoolbox.sty) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/generic/stringenc/stringenc.sty) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/hyperref/pd1enc.def) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/generic/intcalc/intcalc.sty) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/hyperref/puenc.def) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/generic/bitset/bitset.sty (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/generic/bigintcalc/bigintcalc.sty))) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/hyperref/hpdftex.def (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/rerunfilecheck/rerunfilecheck.sty (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/generic/uniquecounter/uniquecounter.sty))) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/l3kernel/l3backend-pdftex.def) (./manuscript.aux)
+-- Lines per column: 58 (exact).
+(/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
+
+Package epstopdf Warning: Shell escape feature is not enabled.
+
+(/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg)) (./manuscript.out) (./manuscript.out)
+Underfull \hbox (badness 7944) in paragraph at lines 14--14
+[][][]\T1/ptm/m/n/8 Edmund Gunn, Jr. is with gun-n-chOS Re-search (e-mail: egun-
+(/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/amsfonts/umsa.fd) (/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/amsfonts/umsb.fd)
+Underfull \hbox (badness 1436) in paragraph at lines 17--19
+\T1/ptm/b/n/9 cross-layer or-ches-tra-tion, switch-ing cost, sim-u-la-tion, re-pro-
+(/Users/gunnchos/Library/TinyTeX/texmf-dist/tex/latex/psnfss/t1pcr.fd) [1{/Users/gunnchos/Library/TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/enc/dvips/base/8r.enc}] [2]
+Underfull \hbox (badness 10000) in paragraph at lines 108--108
+[]|\T1/pcr/m/n/9 local_only\T1/ptm/m/n/9 ,
+
+Overfull \hbox (10.4364pt too wide) in paragraph at lines 113--113
+[]|\T1/pcr/m/n/9 information_equivalent| 
+
+Underfull \hbox (badness 1655) in paragraph at lines 121--122
+[]\T1/ptm/m/n/10 Neither ver-sion equal-izes com-pu-ta-tion or op-ti-miza-tion
+[3] (./tables/heldout.tex)
+Underfull \hbox (badness 10000) in paragraph at lines 204--205
+[]\T1/ptm/m/n/10 Table []IV[] pre-serves all orig-i-nal in-ter-ven-tions.
+
+Underfull \hbox (badness 10000) in paragraph at lines 204--205
+\T1/pcr/m/n/10 no_edge_observations \T1/ptm/m/n/10 sets la-tency and loss to
+
+Underfull \hbox (badness 5189) in paragraph at lines 204--205
+\T1/ptm/m/n/10 ev-i-dence that re-mov-ing ob-ser-va-tions im-proves con-trol.
+
+Underfull \hbox (badness 4291) in paragraph at lines 204--205
+\T1/pcr/m/n/10 no_energy_constraint \T1/ptm/m/n/10 sets the co-vari-ate to $\OT1/cmr/m/n/10 10[]$\T1/ptm/m/n/10 ,
+[4] (./tables/ablations.tex)
+Underfull \hbox (badness 1824) in paragraph at lines 211--212
+\T1/ptm/m/n/10 strict-ness; \T1/pcr/m/n/10 no_continuity_objective \T1/ptm/m/n/10 changes class
+
+Underfull \hbox (badness 2837) in paragraph at lines 211--212
+\T1/ptm/m/n/10 while keep-ing ([]6[]). Their iden-ti-cal util-ity fol-lows con-
+(./tables/revised.tex) [5 <./figures/heldout.pdf>] [6 <./figures/switch_cost.pdf> <./figures/cost_rescaling.pdf>]
+Underfull \hbox (badness 10000) in paragraph at lines 241--242
+[]\T1/ptm/m/n/10 Physical val-i-da-tion re-quires mea-sured la-tency/loss,
+(./manuscript.bbl [7 <./figures/domain_shift.pdf>]) [8] (./manuscript.aux) )
+(see the transcript file for additional information)</Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmex8.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmex9.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmib10.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmmib7.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on manuscript.pdf (8 pages, 339459 bytes).
+Transcript written on manuscript.log.

@@ -1,0 +1,51 @@
+{
+  "schema": "gunnchos.publication.quality_gates.v1",
+  "date": "2026-10-13",
+  "scope": "Technical completion for owner scientific review; no publication endorsement",
+  "gates": {
+    "MANUSCRIPT_COMPILES": {
+      "status": true,
+      "basis": "Final 8-page PDF and pdfLaTeX/BibTeX log"
+    },
+    "CITATIONS_VERIFIED": {
+      "status": true,
+      "basis": "Eight verified source identities and narrowed contextual support; restricted full texts and inspection levels recorded honestly"
+    },
+    "EXPERIMENT_REPRODUCED": {
+      "status": true,
+      "basis": "Historical full non-timing parity; fresh original/revised held-out exact parity with required SLSQP"
+    },
+    "STATISTICS_VERIFIED": {
+      "status": true,
+      "basis": "Independent paired Student-t mean, SD, intervals at n=5; paired_statistics.json and independent_current_reproduction.json"
+    },
+    "CLAIMS_EVIDENCE_ALIGNED": {
+      "status": true,
+      "basis": "Original negative result and revised negative outcomes retained; baseline loophole, greedy oracle, unequal computation and truth-changing interventions disclosed"
+    },
+    "VENUE_FORMAT_VERIFIED": {
+      "status": true,
+      "basis": "Official IEEEtran TNSM template, 8 pages and all-page QA; final portal/rights review pending"
+    },
+    "AI_DISCLOSURE_PREPARED": {
+      "status": true,
+      "basis": "Manuscript substantive-use acknowledgment and AI_USE_DISCLOSURE.md"
+    },
+    "AUTHOR_METADATA_VERIFIED": {
+      "status": true,
+      "basis": "Confirmed author name/affiliation/email/ORCID; unknown declarations pending"
+    },
+    "OWNER_REVIEW_READY": {
+      "status": true,
+      "basis": "Complete editable owner-review package; journal originality and physical validity unresolved"
+    },
+    "OWNER_APPROVED": {
+      "status": false,
+      "basis": "Owner has not approved this manuscript revision"
+    },
+    "SUBMISSION_AUTHORIZED": {
+      "status": false,
+      "basis": "No journal submission authorized"
+    }
+  }
+}

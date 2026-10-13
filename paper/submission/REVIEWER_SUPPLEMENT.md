@@ -1,0 +1,3 @@
+# Optional reviewer orientation
+
+REPRODUCIBILITY.md specifies both exact source SHAs and dependency requirements, including required SciPy SLSQP. evidence/ retains source/protocol/output vintages separately. audit/ contains independent paired calculations and fresh held-out reproduction parity; timing is explicitly excluded. CLAIM_TO_EVIDENCE.md explains result interpretation. SUPPLEMENTAL_METHODS.md and DATA_DICTIONARY.md define utility, penalties and seed units. The principal original result is negative and every counterexample is preserved. Review policy semantics before comparing numerical means.

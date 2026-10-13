@@ -123,7 +123,7 @@ Neither version equalizes computation or optimization opportunities. Procedural 
 % Remaining complete evaluation and discussion follow.
 \section{Experimental Design and Reproduction}
 \subsection{Preserved Versions and Actual Sample Size}
-The original source is \nolinkurl{86a5a6f3000fce7593ee1bdfe02bae6bc37d2498}; its protocol predecessor is \nolinkurl{72044d4008dc7624b1246b880387a693c37150e7}. The revised extension is \nolinkurl{b44357f764d440f983132bd44a9c23c180591f70}. The protocol declares a frozen date of August 18, 2026. The predecessor establishes local ordering before the result-bearing revision. This is a repository freeze, not external preregistration. Paired calculations and charge rescaling here are retrospective additions.
+The original source is \texttt{86a5a6f}; its protocol predecessor is \texttt{72044d4}. The revised extension is \texttt{b44357f}. Full identifiers are in the reproduction supplement. The protocol declares a frozen date of August 18, 2026. The predecessor establishes local ordering before the result-bearing revision. This is a repository freeze, not external preregistration. Paired calculations and charge rescaling here are retrospective additions.
 
 Both versions use train seeds 0--4 and held-out seeds 100--104, 24 episodes per seed, and 16 slots per episode. Each family contains 120 episodes and 1920 slots but only five seed-level replicate values. Paper II has \emph{five seeds}, irrespective of four-seed or 30-seed studies in other materials; incompatible studies are not pooled. Held-out and train families use the same distribution. Their difference is pseudo-random draws, not a new population or a learned policy's generalization.
 
@@ -250,5 +250,5 @@ The review package contains protocols, exact revisions, archived/reproduced JSON
 OpenAI Codex assisted substantially with drafting and revision of Sections I--VIII and declarations, source/protocol inspection, literature/metadata verification, reproduction orchestration, statistical/figure code, LaTeX preparation, and supporting review documents. Figures are scripted from synthetic results, not image-generation models. Earlier project use of AI tools, including any ChatGPT or Cursor use, requires owner confirmation in the final disclosure. The human author must review sources, computations, text, and declarations before submission. AI systems are not authors.
 
 \bibliographystyle{IEEEtran}
-\bibliography{submission/references}
+\bibliography{references}
 \end{document}

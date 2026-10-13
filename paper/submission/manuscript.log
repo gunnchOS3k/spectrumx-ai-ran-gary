@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.9.1)  13 OCT 2026 12:27
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.9.1)  13 OCT 2026 17:39
 entering extended mode
  %&-line parsing enabled.
 **manuscript.tex
@@ -396,38 +396,28 @@ Underfull \hbox (badness 1655) in paragraph at lines 121--122
 []\T1/ptm/m/n/10 Neither ver-sion equal-izes com-pu-ta-tion or op-ti-miza-tion
  []
 
-
-Overfull \hbox (38.79802pt too wide) in paragraph at lines 126--127
-[]\T1/ptm/m/n/10 The orig-i-nal source is $86a5a6f3000fce7593ee1bdfe02bae6bc37d2498$;
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 126--127
-\T1/ptm/m/n/10 its pro-to-col pre-de-ces-sor is
- []
-
 [3] (./tables/heldout.tex)
-<figures/heldout.pdf, id=181, 513.11702pt x 231.26399pt>
+<figures/heldout.pdf, id=180, 513.11702pt x 231.26399pt>
 File: figures/heldout.pdf Graphic file (type pdf)
 <use figures/heldout.pdf>
 Package pdftex.def Info: figures/heldout.pdf  used on input line 166.
 (pdftex.def)             Requested size: 474.71906pt x 213.96523pt.
-<figures/switch_cost.pdf, id=183, 513.11702pt x 187.902pt>
+<figures/switch_cost.pdf, id=182, 513.11702pt x 187.902pt>
 File: figures/switch_cost.pdf Graphic file (type pdf)
 <use figures/switch_cost.pdf>
 Package pdftex.def Info: figures/switch_cost.pdf  used on input line 178.
 (pdftex.def)             Requested size: 485.04126pt x 177.62566pt.
-<figures/cost_rescaling.pdf, id=185, 252.945pt x 187.902pt>
+<figures/cost_rescaling.pdf, id=184, 252.945pt x 187.902pt>
 File: figures/cost_rescaling.pdf Graphic file (type pdf)
 <use figures/cost_rescaling.pdf>
 Package pdftex.def Info: figures/cost_rescaling.pdf  used on input line 189.
 (pdftex.def)             Requested size: 246.95892pt x 183.45744pt.
-<figures/domain_shift.pdf, id=187, 513.11702pt x 195.129pt>
+<figures/domain_shift.pdf, id=186, 513.11702pt x 195.129pt>
 File: figures/domain_shift.pdf Graphic file (type pdf)
 <use figures/domain_shift.pdf>
 Package pdftex.def Info: figures/domain_shift.pdf  used on input line 197.
 (pdftex.def)             Requested size: 479.87622pt x 182.49529pt.
- [4]
+
 Underfull \hbox (badness 10000) in paragraph at lines 204--205
 []\T1/ptm/m/n/10 Table []IV[] pre-serves all orig-i-nal in-ter-ven-tions.
  []
@@ -447,7 +437,7 @@ Underfull \hbox (badness 4291) in paragraph at lines 204--205
 \T1/pcr/m/n/10 no_energy_constraint \T1/ptm/m/n/10 sets the co-vari-ate to $\OT1/cmr/m/n/10 10[]$\T1/ptm/m/n/10 ,
  []
 
-(./tables/ablations.tex)
+[4] (./tables/ablations.tex)
 Underfull \hbox (badness 1824) in paragraph at lines 211--212
 \T1/ptm/m/n/10 strict-ness; \T1/pcr/m/n/10 no_continuity_objective \T1/ptm/m/n/10 changes class
  []
@@ -457,13 +447,7 @@ Underfull \hbox (badness 2837) in paragraph at lines 211--212
 \T1/ptm/m/n/10 while keep-ing ([]6[]). Their iden-ti-cal util-ity fol-lows con-
  []
 
-(./tables/revised.tex)
-Underfull \vbox (badness 1242) has occurred while \output is active []
-
- [5 <./figures/heldout.pdf>]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [6 <./figures/switch_cost.pdf> <./figures/cost_rescaling.pdf>]
+(./tables/revised.tex) [5 <./figures/heldout.pdf>] [6 <./figures/switch_cost.pdf> <./figures/cost_rescaling.pdf>]
 Underfull \hbox (badness 10000) in paragraph at lines 241--242
 []\T1/ptm/m/n/10 Physical val-i-da-tion re-quires mea-sured la-tency/loss,
  []
@@ -475,35 +459,22 @@ Underfull \hbox (badness 10000) in paragraph at lines 241--242
 LaTeX2e <2026-06-01>
 L3 programming layer <2026-08-10>
  ***********
-
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
 Package rerunfilecheck Info: File `manuscript.out' has not changed.
 (rerunfilecheck)             Checksum: 7F62843BFA4774F9F7BD028CBBBB8A38;5924.
  ) 
 Here is how much of TeX's memory you used:
- 10844 strings out of 469028
- 169896 string characters out of 5456322
- 601114 words of memory out of 5000000
- 39709 multiletter control sequences out of 15000+600000
+ 10835 strings out of 469028
+ 169779 string characters out of 5456322
+ 601940 words of memory out of 5000000
+ 39703 multiletter control sequences out of 15000+600000
  733508 words of font info for 159 fonts, out of 8000000 for 9000
  36 hyphenation exceptions out of 8191
- 74i,20n,79p,1393b,456s stack positions out of 10000i,1000n,20000p,200000b,200000s
-
-pdfTeX warning (dest): name{equation.3.3} has been referenced but does not exist, replaced by a fixed one
-
-
-pdfTeX warning (dest): name{equation.3.6} has been referenced but does not exist, replaced by a fixed one
-
-
-pdfTeX warning (dest): name{equation.3.8} has been referenced but does not exist, replaced by a fixed one
-
+ 74i,20n,79p,1393b,593s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmex8.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmex9.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmib10.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmmib7.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></Users/gunnchos/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on manuscript.pdf (8 pages, 337889 bytes).
+Output written on manuscript.pdf (8 pages, 339459 bytes).
 PDF statistics:
- 399 PDF objects out of 1000 (max. 8388607)
- 317 compressed objects within 4 object streams
- 69 named destinations out of 1000 (max. 500000)
+ 395 PDF objects out of 1000 (max. 8388607)
+ 313 compressed objects within 4 object streams
+ 66 named destinations out of 1000 (max. 500000)
  229 words of extra memory for PDF output out of 10000 (max. 10000000)
 

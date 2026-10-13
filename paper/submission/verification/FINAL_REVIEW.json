@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-13",
+  "pages_inspected": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "pdf_sha256": "850e4a690fdb53d02536b214ae2bf4e94383a25d6d577cd811ee7c57ac49d5ba",
+  "layout": "All pages inspected after bibliography path repair and shortening source SHAs; references resolved, figures/tables/equations legible; long policy label hbox warning reviewed with no overlap",
+  "source": "Canonical manuscript plus owner_review_results expanded by corrected package_submission.py",
+  "human_review": "pending"
+}
