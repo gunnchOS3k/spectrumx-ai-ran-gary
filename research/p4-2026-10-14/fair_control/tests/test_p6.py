@@ -213,3 +213,81 @@ class P6(unittest.TestCase):
     def test_configuration_primary_direction_alpha(self):
         c=self.config();c['analysis']['primary_contrast']='hysteresis_minus_MPC';self.assertRaises(ContractError,validate_candidate,c)
         c=self.config();c['analysis']['alpha']=.5;self.assertRaises(ContractError,validate_candidate,c)
+    def queue_records(self,n):
+        rows=[]
+        for i in range(n):
+            e={'task_id':f'task_{i:04d}','remaining_mcycles':1.,'remaining_mbit':0.,'memory_mb':1.,'deadline_s':100.,'minimum_quality':1.,'content_age_s':0.,'max_age_s':100.,'local_eligible':True,'network_required':False,'work_mcycles':1.,'input_mbit':0.,'placement':None,'network':None,'latency_paid_s':0.,'content_available':True,'supported':True}
+            rows.append({'estimate':e,'released_s':0.,'state':'READY'})
+        return rows
+    def test_arrival_63_64_65_no_loss(self):
+        from fair_control.p6_arrivals import ArrivalLedger
+        for n in [63,64,65]:
+            q=ArrivalLedger();q.register(self.queue_records(n));q.seal();v,a=q.view(self.view(),0)
+            self.assertEqual(len(v['task_queue']),min(n,64));self.assertEqual(a['overflow_count'],max(0,n-64));self.assertEqual(a['registered_eligible_denominator'],n);self.assertEqual(len(q.rows),n)
+    def test_heavy_burst_257_accounted(self):
+        from fair_control.p6_arrivals import ArrivalLedger
+        q=ArrivalLedger();q.register(self.queue_records(257));q.seal();v,a=q.view(self.view(),0);self.assertEqual(a['overflow_count'],193);self.assertEqual(a['registered_eligible_denominator'],257)
+    def test_arrival_order_independent_of_input_sequence(self):
+        from fair_control.p6_arrivals import ArrivalLedger
+        q=ArrivalLedger();r=self.queue_records(65);q.register(list(reversed(r)));q.seal();v,a=q.view(self.view(),0);self.assertEqual(v['task_queue'][0]['task_id'],'task_0000');self.assertEqual(a['overflow_ids'],['task_0064'])
+    def test_arrival_restart_replay_and_mutation(self):
+        from fair_control.p6_arrivals import ArrivalLedger
+        q=ArrivalLedger();q.register(self.queue_records(65));q.seal();s=json.loads(canonical(q.snapshot()));r=ArrivalLedger.restart(s);self.assertEqual(q.view(self.view(),0),r.view(self.view(),0));s['payload']['rows'].pop();self.assertRaises(ContractError,ArrivalLedger.restart,s)
+    def test_queue_completion_frees_window_without_dropping_population(self):
+        from fair_control.p6_arrivals import ArrivalLedger
+        q=ArrivalLedger();r=self.queue_records(65);q.register(r);q.seal();r[0]['state']='COMPLETED';q.update([r[0]]);v,a=q.view(self.view(),1);self.assertEqual(a['registered_eligible_denominator'],65);self.assertEqual(a['overflow_count'],0);self.assertIn('task_0064',[x['task_id'] for x in v['task_queue']]);r[0]['state']='READY';self.assertRaises(ContractError,q.update,[r[0]])
+    def test_window_capacity_exhaustion_keeps_all_denominator(self):
+        from fair_control.p6_arrivals import ArrivalLedger
+        from fair_control.p6_control import decide_primary
+        from fair_control.controllers import Policy,Hardware
+        from fair_control.core import TaskRequirement,TruthFrame,PathTruth,Resources
+        from fair_control.tasks import TaskSpec,sha
+        from fair_control.dynamics import Environment
+        q=ArrivalLedger();rows=self.queue_records(65);q.register(rows);q.seal();v,a=q.view(self.view(),0)
+        h=Hardware(cpu_mcycles_s=2,memory_mb=2,power_w=1,placement_cpu=(('local',2.),('edge',2.),('cloud',2.)))
+        d=decide_primary(Policy('hysteresis'),v,h)
+        env=Environment([TaskSpec(TaskRequirement(r['estimate']['task_id'],0,100,100,1),1,1,'abc',sha('abc')) for r in rows],10)
+        truth=TruthFrame('bounded',tuple(env.tasks),(PathTruth('TN',False,1),),(('local',2.),('edge',2.),('cloud',2.)),Resources(10,2,2,1,10),1)
+        row=env.step(truth,d.action,{'TN':0});self.assertTrue(row['accepted']);self.assertEqual(len(env.observed),2);self.assertAlmostEqual(env.evaluator.fraction(env.attempts),2/65);self.assertEqual(a['registered_eligible_denominator'],65)
+    def test_fixed_fidelity_primary_both_controllers(self):
+        from fair_control.p6_control import decide_primary,primary_catalog
+        from fair_control.controllers import Policy,Hardware
+        from fair_control.dynamics import Model
+        v=self.view();v['task_queue']=[self.queue_records(1)[0]['estimate']]
+        for p in [Policy('mpc'),Policy('hysteresis')]:self.assertEqual(decide_primary(p,v).action.fidelity,'target')
+        self.assertTrue(all(a.fidelity=='target' for a in primary_catalog(v,Hardware(),Model())))
+    def test_unsupported_fidelity_efficiency_claim_rejected(self):
+        from fair_control.p6_control import validate_fidelity
+        self.assertRaises(ContractError,validate_fidelity,'FIXED_TARGET',True);self.assertRaises(ContractError,validate_fidelity,'PROSPECTIVE_FIDELITY_RESOURCE_TRADEOFF',False)
+        c=self.config();c['fidelity']['efficiency_claim']=True;self.assertRaises(ContractError,validate_candidate,c)
+    def test_compute_modes_explicit_and_time_coupling_disabled(self):
+        from fair_control.p6_accounting import convention,require_operational
+        for m in ['SYNTHETIC_COMPUTE_BUDGET','HOST_TIMING_DIAGNOSTIC']:
+            x=require_operational(m);self.assertTrue(x['model_calls_and_wall_budget_enforced']);self.assertEqual(x['virtual_service_debit_s'],0)
+        self.assertFalse(convention('PROPOSED_TIME_COUPLED_MODEL')['operational']);self.assertRaises(ContractError,require_operational,'PROPOSED_TIME_COUPLED_MODEL')
+    def test_configuration_cannot_enable_proposed_time_coupling(self):
+        c=self.config();c['compute']['accounting_mode']='PROPOSED_TIME_COUPLED_MODEL';self.assertRaises(ContractError,validate_candidate,c)
+    def test_authorization_expected_source_independent_of_exported_dict(self):
+        from fair_control import p6_configuration as pc
+        original=copy.deepcopy(pc.AUTH)
+        try:
+            pc.AUTH['pilot_execution_authorized']=True;c=self.config();self.assertRaises(ContractError,validate_candidate,c)
+        finally:pc.AUTH.clear();pc.AUTH.update(original)
+
+    def test_full_burst_batched_transactionally_no_discard(self):
+        from fair_control.p6_arrivals import ArrivalLedger
+        q=ArrivalLedger();q.register_burst(self.queue_records(257));q.seal();self.assertEqual(q.view(self.view(),0)[1]['registered_eligible_denominator'],257)
+        q=ArrivalLedger();r=self.queue_records(65);r[-1]=r[0];self.assertRaises(ContractError,q.register_burst,r);self.assertEqual(len(q.rows),0)
+    def test_fidelity_current_model_changes_quality_not_resource_saving(self):
+        from fair_control.core import TaskRequirement,TruthFrame,PathTruth,Resources,Allocation
+        from fair_control.tasks import TaskSpec,sha
+        from fair_control.dynamics import Environment
+        results=[]
+        for fidelity in ['target','degraded']:
+            e=Environment([TaskSpec(TaskRequirement('a',0,10,100,.5),4,1,'abc',sha('abc'))],10)
+            action=Action(None,'local',(Allocation('a',0,4,1,1),),fidelity)
+            t=TruthFrame('current',('a',),(PathTruth('TN',False,1),),(('local',4.),),Resources(1,4,1,1,10),1)
+            row=e.step(t,action,{'TN':0});results.append((row,e.observed[0]))
+        a,b=results
+        for k in ['cpu_mcycles','delivered_mbit','energy_j']:self.assertEqual(a[0][k],b[0][k])
+        self.assertEqual(a[1].finished_s,b[1].finished_s);self.assertEqual(a[1].output,b[1].output);self.assertEqual([a[1].quality,b[1].quality],[1.,.5])

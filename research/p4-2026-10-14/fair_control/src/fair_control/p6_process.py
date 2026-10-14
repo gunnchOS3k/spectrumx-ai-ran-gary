@@ -15,7 +15,9 @@ def _line(proc,limit_s):
     ready,_,_=select.select([proc.stdout],[],[],limit_s)
     return proc.stdout.readline() if ready else None
 
-def controlled_decision(policy,estimates,hardware=Hardware(),model=Model(),startup_allowance_s=1.,worker=None):
+def controlled_decision(policy,estimates,hardware=Hardware(),model=Model(),startup_allowance_s=1.,worker=None,accounting_mode='SYNTHETIC_COMPUTE_BUDGET'):
+    from .p6_accounting import require_operational
+    accounting=require_operational(accounting_mode)
     number(startup_allowance_s,'startup cap',positive=True)
     start=time.perf_counter();parent_cpu_start=time.process_time();usage_start=resource.getrusage(resource.RUSAGE_CHILDREN);validate_estimates(estimates)
     payload=canonical({'policy':asdict(policy),'estimates':estimates,'hardware':asdict(hardware),'model':asdict(model)})
@@ -51,5 +53,5 @@ def controlled_decision(policy,estimates,hardware=Hardware(),model=Model(),start
     if d is None:d=Decision(Action.defer(),status,0,(),decision_wall,digest(estimates),digest([]),None,error)
     usage_end=resource.getrusage(resource.RUSAGE_CHILDREN)
     child_cpu=(usage_end.ru_utime+usage_end.ru_stime)-(usage_start.ru_utime+usage_start.ru_stime)
-    report={'parent_cpu_s':time.process_time()-parent_cpu_start,'child_cpu_s':child_cpu,'cpu_accounting_scope':'Sequential Unix RUSAGE_CHILDREN delta; overlapping unrelated children invalidate attribution','process_status':status,'request_preparation_s':preparation,'startup_s':startup,'worker_decision_s':child_time,'decision_window_s':decision_wall,'outer_elapsed_s':outer,'startup_allowance_s':startup_allowance_s,'decision_allowance_s':policy.deadline_s,'simulated_compute_delay_debited':False,'physical_calibration':False,'direct_child_reaped':True,'actual_model_evaluations':d.model_evaluations if status=='RETURNED' else None,'evaluation_count_status':'RETURNED_LEDGER' if status=='RETURNED' else 'UNAVAILABLE_ON_KILLED_OR_FAILED_CHILD;zero_in_defer_is_placeholder' }
+    report={'accounting_convention':accounting,'parent_cpu_s':time.process_time()-parent_cpu_start,'child_cpu_s':child_cpu,'cpu_accounting_scope':'Sequential Unix RUSAGE_CHILDREN delta; overlapping unrelated children invalidate attribution','process_status':status,'request_preparation_s':preparation,'startup_s':startup,'worker_decision_s':child_time,'decision_window_s':decision_wall,'outer_elapsed_s':outer,'startup_allowance_s':startup_allowance_s,'decision_allowance_s':policy.deadline_s,'simulated_compute_delay_debited':False,'physical_calibration':False,'direct_child_reaped':True,'actual_model_evaluations':d.model_evaluations if status=='RETURNED' else None,'evaluation_count_status':'RETURNED_LEDGER' if status=='RETURNED' else 'UNAVAILABLE_ON_KILLED_OR_FAILED_CHILD;zero_in_defer_is_placeholder' }
     return d,report

@@ -3,7 +3,8 @@ from pathlib import Path
 import sys,json,time
 ROOT=Path(__file__).resolve().parent;sys.path.insert(0,str(ROOT/'src'))
 from dataclasses import asdict
-from fair_control.controllers import Policy,Hardware,decide
+from fair_control.controllers import Policy,Hardware
+from fair_control.p6_control import decide_primary as decide
 from fair_control.dynamics import Model
 print('READY',flush=True)
 line=sys.stdin.readline();start=time.perf_counter();x=json.loads(line)
