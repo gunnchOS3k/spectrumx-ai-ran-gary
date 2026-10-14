@@ -1,0 +1,40 @@
+{
+  "original_sha": "86a5a6f3000fce7593ee1bdfe02bae6bc37d2498",
+  "revised_sha": "b44357f764d440f983132bd44a9c23c180591f70",
+  "freeze_sha": "72044d4008dc7624b1246b880387a693c37150e7",
+  "tests": {
+    "original": {
+      "passed": 5
+    },
+    "revised": {
+      "passed": 31
+    }
+  },
+  "reproduction": {
+    "original": {
+      "different_numeric_fields": 0,
+      "max_abs_difference": 0,
+      "max_relative_difference": 0,
+      "timing_excluded": true,
+      "differences": []
+    },
+    "revised": {
+      "different_numeric_fields": 0,
+      "max_abs_difference": 0,
+      "max_relative_difference": 0,
+      "timing_excluded": true,
+      "differences": []
+    }
+  },
+  "analysis_label": "post-hoc paired analysis; fixed-trace cost rescaling; no retuned policy",
+  "fixed_trace_twin_noadapt_break_even_multiplier": 0.3376618519185418,
+  "environment": {
+    "platform": "macOS-27.0.1-arm64-arm-64bit",
+    "python": "3.12.14 (main, Aug 25 2026, 13:50:33) [Clang 22.1.3 ]",
+    "numpy": "2.3.5",
+    "scipy": "1.18.1",
+    "matplotlib": "3.11.2",
+    "pyyaml": "6.0.3",
+    "pytest": "9.1.1"
+  }
+}

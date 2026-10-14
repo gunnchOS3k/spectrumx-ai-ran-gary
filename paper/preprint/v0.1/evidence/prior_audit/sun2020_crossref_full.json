@@ -1,0 +1,425 @@
+{
+  "indexed": {
+    "date-parts": [
+      [
+        2026,
+        9,
+        24
+      ]
+    ],
+    "date-time": "2026-09-24T02:28:09Z",
+    "timestamp": 1790216889260,
+    "version": "4.1.0"
+  },
+  "reference-count": 30,
+  "publisher": "Institute of Electrical and Electronics Engineers (IEEE)",
+  "issue": "10",
+  "license": [
+    {
+      "start": {
+        "date-parts": [
+          [
+            2020,
+            10,
+            1
+          ]
+        ],
+        "date-time": "2020-10-01T00:00:00Z",
+        "timestamp": 1601510400000
+      },
+      "content-version": "vor",
+      "delay-in-days": 0,
+      "URL": "https://ieeexplore.ieee.org/Xplorehelp/downloads/license-information/IEEE.html"
+    },
+    {
+      "start": {
+        "date-parts": [
+          [
+            2020,
+            10,
+            1
+          ]
+        ],
+        "date-time": "2020-10-01T00:00:00Z",
+        "timestamp": 1601510400000
+      },
+      "content-version": "stm-asf",
+      "delay-in-days": 0,
+      "URL": "https://doi.org/10.15223/policy-029"
+    },
+    {
+      "start": {
+        "date-parts": [
+          [
+            2020,
+            10,
+            1
+          ]
+        ],
+        "date-time": "2020-10-01T00:00:00Z",
+        "timestamp": 1601510400000
+      },
+      "content-version": "stm-asf",
+      "delay-in-days": 0,
+      "URL": "https://doi.org/10.15223/policy-037"
+    }
+  ],
+  "funder": [
+    {
+      "DOI": "10.13039/501100001809",
+      "name": "National Natural Science Foundation of China",
+      "doi-asserted-by": "publisher",
+      "award": [
+        "61771373"
+      ],
+      "award-info": [
+        {
+          "award-number": [
+            "61771373"
+          ]
+        }
+      ],
+      "id": [
+        {
+          "id": "10.13039/501100001809",
+          "id-type": "DOI",
+          "asserted-by": "publisher"
+        }
+      ]
+    },
+    {
+      "name": "Special Funds for Central Universities Construction of World-Class Universities"
+    },
+    {
+      "name": "China 111 Project",
+      "award": [
+        "B16037"
+      ],
+      "award-info": [
+        {
+          "award-number": [
+            "B16037"
+          ]
+        }
+      ]
+    }
+  ],
+  "content-domain": {
+    "domain": [],
+    "crossmark-restriction": false
+  },
+  "short-container-title": [
+    "IEEE Trans. Veh. Technol."
+  ],
+  "published-print": {
+    "date-parts": [
+      [
+        2020,
+        10
+      ]
+    ]
+  },
+  "DOI": "10.1109/tvt.2020.3018817",
+  "type": "journal-article",
+  "created": {
+    "date-parts": [
+      [
+        2020,
+        8,
+        24
+      ]
+    ],
+    "date-time": "2020-08-24T20:56:02Z",
+    "timestamp": 1598302562000
+  },
+  "page": "12240-12251",
+  "source": "Crossref",
+  "is-referenced-by-count": 375,
+  "title": [
+    "Reducing Offloading Latency for Digital Twin Edge Networks in 6G"
+  ],
+  "prefix": "10.1109",
+  "volume": "69",
+  "author": [
+    {
+      "ORCID": "https://orcid.org/0000-0001-7086-4910",
+      "authenticated-orcid": false,
+      "given": "Wen",
+      "family": "Sun",
+      "sequence": "first",
+      "affiliation": [],
+      "role": [
+        {
+          "vocabulary": "crossref",
+          "role": "author"
+        }
+      ]
+    },
+    {
+      "ORCID": "https://orcid.org/0000-0002-0080-6341",
+      "authenticated-orcid": false,
+      "given": "Haibin",
+      "family": "Zhang",
+      "sequence": "additional",
+      "affiliation": [],
+      "role": [
+        {
+          "vocabulary": "crossref",
+          "role": "author"
+        }
+      ]
+    },
+    {
+      "given": "Rong",
+      "family": "Wang",
+      "sequence": "additional",
+      "affiliation": [],
+      "role": [
+        {
+          "vocabulary": "crossref",
+          "role": "author"
+        }
+      ]
+    },
+    {
+      "ORCID": "https://orcid.org/0000-0002-8561-5092",
+      "authenticated-orcid": false,
+      "given": "Yan",
+      "family": "Zhang",
+      "sequence": "additional",
+      "affiliation": [],
+      "role": [
+        {
+          "vocabulary": "crossref",
+          "role": "author"
+        }
+      ]
+    }
+  ],
+  "member": "263",
+  "reference": [
+    {
+      "key": "ref30",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1145/1869790.1869807"
+    },
+    {
+      "key": "ref10",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1109/COMST.2018.2794881"
+    },
+    {
+      "key": "ref11",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1109/LCOMM.2019.2956514"
+    },
+    {
+      "key": "ref12",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1109/TNET.2019.2916577"
+    },
+    {
+      "key": "ref13",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1109/ICCT.2017.8359782"
+    },
+    {
+      "key": "ref14",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1109/COMST.2017.2682318"
+    },
+    {
+      "key": "ref15",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1109/MNET.001.1800510"
+    },
+    {
+      "key": "ref16",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1109/APNOMS.2017.8094149"
+    },
+    {
+      "key": "ref17",
+      "article-title": "Edge cloud server deployment with transmission power control through machine learning for 6G internet of things",
+      "author": "rodrigues",
+      "year": "0",
+      "journal-title": "IEEE Trans Emerging Topics Comput"
+    },
+    {
+      "key": "ref18",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1109/JSAC.2016.2611964"
+    },
+    {
+      "key": "ref19",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1109/TCOMM.2017.2699660"
+    },
+    {
+      "key": "ref28",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1109/TII.2019.2938885"
+    },
+    {
+      "key": "ref4",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1109/JIOT.2017.2750180"
+    },
+    {
+      "key": "ref27",
+      "first-page": "277",
+      "article-title": "Implementation of an IoT- and clould-based digital twin for real-time decision support in port operation",
+      "author": "hofmann",
+      "year": "0",
+      "journal-title": "12th Int Conf Comput Sci Edu"
+    },
+    {
+      "key": "ref3",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1109/MCOM.2019.1900271"
+    },
+    {
+      "key": "ref6",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1109/MNET.001.1800526"
+    },
+    {
+      "key": "ref29",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1109/TSMCC.2012.2218595"
+    },
+    {
+      "key": "ref5",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1109/TII.2019.2951009"
+    },
+    {
+      "key": "ref8",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1109/TCSS.2020.2970305"
+    },
+    {
+      "key": "ref7",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1109/COMST.2019.2943405"
+    },
+    {
+      "key": "ref2",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1109/JIOT.2018.2872013"
+    },
+    {
+      "key": "ref9",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1109/TII.2019.2938885"
+    },
+    {
+      "key": "ref1",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1109/MITP.2019.2963491"
+    },
+    {
+      "key": "ref20",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1109/JIOT.2019.2903191"
+    },
+    {
+      "key": "ref22",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1109/TC.2018.2818144"
+    },
+    {
+      "key": "ref21",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1145/3326540"
+    },
+    {
+      "key": "ref24",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1145/3301418.3313939"
+    },
+    {
+      "key": "ref23",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1109/ICCE-ASIA.2018.8552103"
+    },
+    {
+      "key": "ref26",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1109/ACCESS.2020.2981745"
+    },
+    {
+      "key": "ref25",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1016/j.procir.2016.11.152"
+    }
+  ],
+  "container-title": [
+    "IEEE Transactions on Vehicular Technology"
+  ],
+  "original-title": [],
+  "link": [
+    {
+      "URL": "http://xplorestaging.ieee.org/ielx7/25/9238536/09174795.pdf?arnumber=9174795",
+      "content-type": "unspecified",
+      "content-version": "vor",
+      "intended-application": "similarity-checking"
+    }
+  ],
+  "deposited": {
+    "date-parts": [
+      [
+        2022,
+        4,
+        27
+      ]
+    ],
+    "date-time": "2022-04-27T13:44:01Z",
+    "timestamp": 1651067041000
+  },
+  "score": 1,
+  "resource": {
+    "primary": {
+      "URL": "https://ieeexplore.ieee.org/document/9174795/"
+    }
+  },
+  "subtitle": [],
+  "short-title": [],
+  "issued": {
+    "date-parts": [
+      [
+        2020,
+        10
+      ]
+    ]
+  },
+  "references-count": 30,
+  "journal-issue": {
+    "issue": "10"
+  },
+  "URL": "https://doi.org/10.1109/tvt.2020.3018817",
+  "relation": {},
+  "ISSN": [
+    "0018-9545",
+    "1939-9359"
+  ],
+  "issn-type": [
+    {
+      "value": "0018-9545",
+      "type": "print"
+    },
+    {
+      "value": "1939-9359",
+      "type": "electronic"
+    }
+  ],
+  "subject": [],
+  "published": {
+    "date-parts": [
+      [
+        2020,
+        10
+      ]
+    ]
+  }
+}

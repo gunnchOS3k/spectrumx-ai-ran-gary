@@ -1,0 +1,119 @@
+# Paper II digital experiment protocol (FROZEN before held-out generation)
+# Subject: Radio-Aware Digital-Twin-Informed Cross-Layer Orchestration for Service Continuity
+# Evidence class: SYNTHETIC_SIM. Not measured RF. Not SpectrumX judged IQ.
+# 28 GHz (ReadyGary sibling) is FR2 mmWave (3GPP TS 38.101-2), never Sub-6.
+# Timing labels: HOST_PROCESS_TIMING ≠ gNB slot time, ONNX/TensorRT, or OTA.
+
+paper: II
+experiment_id: rq2_cross_layer_continuity
+title: Radio-Aware Digital-Twin-Informed Cross-Layer Orchestration for Service Continuity
+evidence_class: SYNTHETIC_SIM
+latency_class: HOST_PROCESS_TIMING
+frozen: true
+frozen_date: "2026-08-18"
+do_not_touch:
+  - submissions/*/main.py
+  - edge_ran_gary/submission_adapter
+  - SpectrumX judged competition evaluate(filename) IQ core
+
+carrier_note: >
+  This repo's orchestration episodes are unitless synthetic radio/outage/compute
+  draws. ReadyGary sibling TDL draws use carrier_freq_hz=28000000000 (FR2 mmWave).
+
+hypotheses:
+  H1: >
+    On held-out in-distribution synthetic episodes, twin_informed mean
+    service_continuity_utility exceeds no_adaptation.
+  H2: >
+    twin_informed and information_equivalent receive the same slot feature
+    vector; a difference in held-out continuity (if present) is a policy-structure
+    effect, not an information-access effect.
+  H3: >
+    Accounting for switching cost reduces net utility versus the same policy
+    with switch penalties zeroed (ablation no_switch_cost).
+  H0_to_reject: Twin fields are irrelevant once a static first-slot rule exists.
+
+split:
+  train_family: in_distribution
+  held_out_family: held_out
+  domain_shift_families:
+    - high_blockage
+    - energy_constrained
+    - outage_heavy
+  train_seeds: [0, 1, 2, 3, 4]
+  held_out_seeds: [100, 101, 102, 103, 104]
+  n_episodes_per_seed: 24
+  n_slots_per_episode: 16
+
+policies:
+  - no_adaptation
+  - static
+  - local_only
+  - cloud_only
+  - edge_only
+  - rule_based
+  - optimization_based
+  - twin_informed
+  - information_equivalent
+  - oracle
+
+policy_definitions:
+  no_adaptation: Always cloud + terrestrial (or first listed network); equal shares; never switches.
+  static: rule_based on slot 0, then freeze action for the episode.
+  local_only: Always local placement; degraded_local or first non-terrestrial network.
+  cloud_only: Always cloud placement; terrestrial if available else ntn_fallback.
+  edge_only: Always edge placement; local_edge_wifi if available else degraded_local.
+  rule_based: Deterministic service-priority shares + outage-aware network pick (existing Gate 2 service_priority logic, synthetic context).
+  optimization_based: SLSQP on sum(log(1+share)) under spectrum budget if scipy is present; else static_uniform fallback recorded as such.
+  twin_informed: Joint use of outage, energy, continuity class, latency, and compute nodes plus constrained shares.
+  information_equivalent: Same feature vector as twin_informed; different policy (frozen linear action scores, uniform shares).
+  oracle: Model-oracle over discrete placement x network on the current slot under the same analytical metric including switch penalties. Not a future-peek. Not measured RF.
+
+ablations:
+  - full
+  - no_edge_observations
+  - no_twin_context
+  - no_continuity_objective
+  - no_energy_constraint
+  - no_local_edge
+  - no_switch_cost
+
+metrics:
+  primary: service_continuity_utility
+  secondary:
+    - predicted_latency_ms
+    - energy_use_j
+    - fairness
+    - n_network_switches
+    - n_placement_switches
+    - switch_cost
+    - compute_time_ms
+
+costs:
+  network_switch_penalty: 0.05
+  placement_switch_penalty: 0.03
+  compute_time_is: HOST_PROCESS_TIMING
+
+information_equivalent_weights:
+  latency: 0.004
+  loss: 0.02
+  outage_mismatch: 0.35
+  energy: 0.002
+  continuity_match: 0.25
+  edge_bonus_if_high_latency: 0.15
+
+statistics:
+  ci_level: 0.95
+  ci_method: student_t_over_seed_means
+  effect_size: cohens_d_vs_no_adaptation
+  aggregation: mean_over_slots_then_episodes_then_seeds
+
+metric_model: >
+  Analytical configured model from Gate 2 twin_policies._predict_metrics:
+  predicted_latency = measured_latency * network_penalty * placement_penalty * (1 + 0.4*util).
+  Not a field-validated predictor. Not competition IQ.
+
+held_out_rule: >
+  Held-out JSON must not be generated until this protocol file exists in the
+  working tree (and should be committed first). Train-family sweeps may run
+  after protocol exists; held-out seeds 100-104 are the confirmatory split.

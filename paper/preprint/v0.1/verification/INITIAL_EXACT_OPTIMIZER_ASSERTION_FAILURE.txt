@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/Users/gunnchos/Downloads/gunnchos-7gc-research-product-spine/repos/_publication_worktrees/spectrumx-ai-ran-gary/paper/preprint/v0.1/evidence/scripts/audit_science.py", line 90, in <module>
+    x,note=m._optimize_shares(target,100);assert note=='slsqp';assert abs(sum(x)-20)<1e-7
+                                                                      ^^^^^^^^^^^^^^^^^^^
+AssertionError

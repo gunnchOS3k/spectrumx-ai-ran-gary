@@ -1,0 +1,25 @@
+numpy
+pandas
+scipy
+matplotlib
+seaborn
+torch
+torchvision
+tqdm
+pyyaml
+# Wireless / channel modeling
+sionna          # NVIDIA differentiable wireless library
+DeepMIMO        # DeepMIMO dataset generator, if environment supports it
+# Jupyter / dev
+jupyter
+notebook
+ipykernel
+# Optional: RL / experiment management
+gymnasium
+tensorboard
+# Streamlit dashboard (pin for Cloud: avoid protobuf 6 + old streamlit crash)
+streamlit>=1.40.0,<1.45.0
+protobuf>=5.28.0,<6
+plotly
+scikit-learn>=1.3.0
+jsonschema>=4.20
