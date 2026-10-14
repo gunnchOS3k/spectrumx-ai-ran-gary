@@ -20,10 +20,15 @@ def stats(xs):
 def signature(d):
     x=asdict(d);x.pop('elapsed_s');return digest(x)
 
+def cpu_label():
+    if sys.platform!='darwin':return {'value':platform.processor(),'status':'platform_metadata'}
+    r=subprocess.run(['sysctl','-n','machdep.cpu.brand_string'],capture_output=True,text=True,timeout=2)
+    return {'value':r.stdout.strip() if r.returncode==0 else None,'status':'AVAILABLE' if r.returncode==0 else 'UNAVAILABLE_SANDBOX_RESTRICTION','exit_code':r.returncode,'diagnostic':r.stderr.strip()}
+
 def run(output):
     output.mkdir(parents=True,exist_ok=False)
     fixed=fixtures();save(output/'FIXED_ENGINEERING_INPUTS.json',fixed)
-    env={'python':platform.python_version(),'platform':platform.platform(),'machine':platform.machine(),'logical_cpus':os.cpu_count(),'dependencies':{n:importlib.metadata.version(n) for n in ['numpy','scipy','jsonschema']},'cpu_name':subprocess.check_output(['sysctl','-n','machdep.cpu.brand_string'],text=True).strip() if sys.platform=='darwin' else platform.processor(),'load_before':list(os.getloadavg()),'exclusive_host':False,'fresh_dependency_install':False,'measurement_scope':'Sequential local fixed engineering requests; no environment step/task-completion outcome,seed or future workload','rss_method':'Darwin proc_pidinfo PROC_PIDTASKINFO.pti_resident_size bytes; raw ru_maxrss retained separately with no conversion','clock':vars(time.get_clock_info('perf_counter'))}
+    env={'python':platform.python_version(),'platform':platform.platform(),'machine':platform.machine(),'logical_cpus':os.cpu_count(),'dependencies':{n:importlib.metadata.version(n) for n in ['numpy','scipy','jsonschema']},'cpu_name':cpu_label(),'load_before':list(os.getloadavg()),'exclusive_host':False,'fresh_dependency_install':False,'measurement_scope':'Sequential local fixed engineering requests; no environment step/task-completion outcome,seed or future workload','rss_method':'Darwin proc_pidinfo PROC_PIDTASKINFO.pti_resident_size bytes; raw ru_maxrss retained separately with no conversion','clock':vars(time.get_clock_info('perf_counter'))}
     results=[];sessions=[];global_start=time.perf_counter();global_cpu=time.process_time();global_child=child_cpu()
     # Exactly 6 inputs x 3 repetitions x 2 families x 2 execution mechanisms.
     # Fixed fixture order rotates by repetition; family order reversed in odd reps
