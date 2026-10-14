@@ -291,3 +291,9 @@ class P6(unittest.TestCase):
         a,b=results
         for k in ['cpu_mcycles','delivered_mbit','energy_j']:self.assertEqual(a[0][k],b[0][k])
         self.assertEqual(a[1].finished_s,b[1].finished_s);self.assertEqual(a[1].output,b[1].output);self.assertEqual([a[1].quality,b[1].quality],[1.,.5])
+
+    def test_child_failure_is_not_mislabeled_timeout(self):
+        from fair_control.p6_process import controlled_decision
+        from fair_control.controllers import Policy
+        with tempfile.TemporaryDirectory() as p:
+            f=Path(p)/'fail.py';f.write_text("import sys\nprint('READY',flush=True)\nsys.stdin.readline()\nraise RuntimeError('constructed failure')\n");d,r=controlled_decision(Policy('hysteresis'),self.view(),worker=f);self.assertEqual(r['process_status'],'PROCESS_ERROR');self.assertEqual(d.action,Action.defer());self.assertIsNone(r['actual_model_evaluations'])

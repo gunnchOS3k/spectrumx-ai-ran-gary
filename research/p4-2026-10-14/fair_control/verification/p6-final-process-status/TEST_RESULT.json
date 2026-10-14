@@ -1,0 +1,10 @@
+{
+  "evidence_class": "CONSTRUCTED_ENGINEERING_VALIDATION",
+  "collected": 201,
+  "tests_run": 201,
+  "failures": 0,
+  "errors": 0,
+  "source_tree_sha256": "5df4b9a3a56b8a8057b1a8be6e57859e04ef9b22ee5176ec64f320ed2a2a6adc",
+  "campaign_executed": false,
+  "publication_authorized": false
+}

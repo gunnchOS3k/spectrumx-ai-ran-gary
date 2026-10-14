@@ -70,7 +70,8 @@
         "source_sha",
         "source_sha_role",
         "modules",
-        "task_catalog_sha256"
+        "task_catalog_sha256",
+        "scripts"
       ],
       "additionalProperties": false,
       "properties": {
@@ -173,6 +174,34 @@
         "task_catalog_sha256": {
           "type": "string",
           "minLength": 1
+        },
+        "scripts": {
+          "type": "object",
+          "required": [
+            "p6_check.py",
+            "p6_worker.py",
+            "p6_draft.py",
+            "p6_run.py"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "p6_check.py": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "p6_worker.py": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "p6_draft.py": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "p6_run.py": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
         }
       }
     },

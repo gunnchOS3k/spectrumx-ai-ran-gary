@@ -28,15 +28,16 @@ def controlled_decision(policy,estimates,hardware=Hardware(),model=Model(),start
         ready=_line(proc,startup_allowance_s-(time.perf_counter()-spawn_start));startup=time.perf_counter()-spawn_start
         if ready!='READY\n' or startup>startup_allowance_s:status='STARTUP_TIMEOUT_OR_ERROR';error='Missing/late READY handshake'
         else:
-            dispatched=time.perf_counter()
+            dispatched=time.perf_counter();failed_exit=False
             try:
                 remaining=policy.deadline_s-preparation
                 if remaining<=0:raise subprocess.TimeoutExpired(proc.args,remaining)
                 out,err=proc.communicate(input=payload.decode()+'\n',timeout=remaining)
-                line=out if proc.returncode==0 else None
+                failed_exit=proc.returncode!=0;line=out if not failed_exit else None
             except subprocess.TimeoutExpired:line=None
             decision_wall=preparation+time.perf_counter()-dispatched
-            if line is None or decision_wall>policy.deadline_s:status='DECISION_TIMEOUT';error='End-to-end decision budget exceeded'
+            if failed_exit:status='PROCESS_ERROR';error=err[:2000]
+            elif line is None or decision_wall>policy.deadline_s:status='DECISION_TIMEOUT';error='End-to-end decision budget exceeded'
             else:
                 result=json.loads(line);child_time=number(result['worker_decision_s'],'worker time');x=result['decision']
                 x['action']=action_from_dict(x['action']);x['consumed_fields']=tuple(x['consumed_fields']);d=Decision(**x)

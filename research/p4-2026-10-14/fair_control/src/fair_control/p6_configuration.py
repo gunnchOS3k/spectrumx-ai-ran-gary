@@ -21,7 +21,7 @@ def parameter(value,units,meaning, *,status='PROPOSED_SCIENTIFIC_PARAMETER',sour
 
 def source_identities(source_sha):
     names=['core.py','tasks.py','dynamics.py','controllers.py','fairness.py','p6_application.py','p6_scenarios.py','p6_process.py','p6_calibration.py','p6_statistics.py','p6_configuration.py','p6_bridge.py','p6_provenance.py','p6_control.py','p6_accounting.py','p6_arrivals.py']
-    return {'source_sha':source_sha,'source_sha_role':'Implementation-content anchor; configuration bytes are separately hashed','modules':{n:hashlib.sha256((ROOT/'src/fair_control'/n).read_bytes()).hexdigest() for n in names},'task_catalog_sha256':digest(catalog())}
+    return {'source_sha':source_sha,'source_sha_role':'Implementation-content anchor; configuration bytes are separately hashed','scripts':{n:hashlib.sha256((ROOT/n).read_bytes()).hexdigest() for n in ['p6_check.py','p6_worker.py','p6_draft.py','p6_run.py']},'modules':{n:hashlib.sha256((ROOT/'src/fair_control'/n).read_bytes()).hexdigest() for n in names},'task_catalog_sha256':digest(catalog())}
 
 def candidate(source_sha,protocol_sha256):
     p={}

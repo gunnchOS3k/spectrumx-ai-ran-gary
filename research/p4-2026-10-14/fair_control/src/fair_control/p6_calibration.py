@@ -3,7 +3,7 @@ from dataclasses import dataclass,asdict
 import hashlib,statistics,math
 from .core import ContractError,number,digest
 UNITS={'duration':'s','memory':'MB','work':'Mcycles','arrival_rate':'tasks/s','capacity':'Mbps','latency':'s','switch':'s','checkpoint':'s','recovery':'s','power':'W','energy':'J','deadline':'s'}
-STATUSES={'MEASURED','LITERATURE_DERIVED','STANDARDS_BASED_REQUIREMENT','SYNTHETIC_ASSUMPTION','UNCALIBRATED'}
+STATUSES={'MEASURED','LITERATURE_DERIVED','STANDARDS_BASED_REQUIREMENT','STANDARDS_REQUIREMENT','SYNTHETIC_ASSUMPTION','UNCALIBRATED'}
 CONVERSIONS={'ms':('s',.001),'s':('s',1.),'bytes':('MB',1e-6),'MiB':('MB',1.048576),'MB':('MB',1.),'bit/s':('Mbps',1e-6),'Mbps':('Mbps',1.),'cycles':('Mcycles',1e-6),'Mcycles':('Mcycles',1.),'W':('W',1.),'J':('J',1.),'tasks/s':('tasks/s',1.)}
 @dataclass(frozen=True)
 class CalibrationRecord:
