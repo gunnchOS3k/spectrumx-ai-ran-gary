@@ -1,0 +1,25 @@
+{
+  "implementation_content_sha": "329508cf34f18c992c4eb34cd94027b6f6c22d90",
+  "source_file_sha256": {
+    "PILOT_TASK_CATALOG.json": "051378187737f0a26a22cbf48a37ef4cd8a3e7ee763b74897baf3ac6cb28d66b",
+    "README.md": "d6785ec2fd54e3984659b628b24a39f0b105adf9f51daa0c847e3b56bab32024",
+    "p7a_benchmark.py": "cd1dd0b4707a7d2b4881415a495e6b4161140408219cb96ab95715e5fbe1d700",
+    "p7a_check.py": "43fbbde0ea8d57c423bb623ecade57db31dc92acf8e37b057a32036440fc0498",
+    "p7a_design.py": "4bb59008294b9cf6ab9760f34bc9d39272d21111628c6af0ce8ad4ee5f9bac01",
+    "p7a_run.py": "39c4450afaaca7f0040c5ef4f6938715b69cec48cba44683fb7f9fd0e171ceb3",
+    "p7a_worker.py": "b6026e556157f98fedd74203913e4071a7ec41b324bdfab5d4392758e51e0c22",
+    "src/p7a/__init__.py": "33e3627308187ec283c287309ab7f4ed9bc97659b112b694c7f3488a11c30a88",
+    "src/p7a/design.py": "005f59b57b5f80689afa75f9a03d0688668cb5f775519584ff839ff455f67c1b",
+    "src/p7a/fixtures.py": "af7c5d834ad0a170ba9d542febeb890446ca3b7e4ac7d26c499104e445093bce",
+    "src/p7a/memory.py": "bdb3c784dc3ab4325a76cdbd0fc07f31f03188606528c1aca672f31e53e26132",
+    "src/p7a/session.py": "9ba5ee1da3e1733f6d7d70e8cae1e4997603ed28a0eed43facd4e0c8a1b7efd6",
+    "tests/test_runtime.py": "f7dc14a77a1905a4f5e12cd279da6ecc11283d50b100fe1372b2a0157af7a471"
+  },
+  "source_tree_sha256": "f382e17c8a2e3ca4fc6d57b944155937076e6b9bcafb19b0192a4ccd56d30e73",
+  "branch": "research/p7a-runtime-feasibility-2026-10-14",
+  "p6_checkpoint": "05994e819cacd4acff7d633f2b9d9d75d60bbcd7",
+  "runtime_measurement_source_sha": "c407487af962a6b8fd1c9852d6627a635a547ca1",
+  "role": "Committed P7-A implementation before candidate metadata; not scientific approval",
+  "scientific_protocol_approved": false,
+  "pilot_execution_authorized": false
+}
