@@ -15,7 +15,7 @@ class P6(unittest.TestCase):
     def reference(self,id,**kw):
         with tempfile.TemporaryDirectory() as p:
             task=self.task(id);r=run_reference(task,Path(p),**kw);return r,evaluate(task,r)
-    def config(self):return candidate('aa0f1d28a94a0e9058bf4f5b85ca99d592c00561','0'*64)
+    def config(self):return candidate('aa0f1d28a94a0e9058bf4f5b85ca99d592c00561',hashlib.sha256((ROOT.parent/'PROSPECTIVE_PROTOCOL.md').read_bytes()).hexdigest())
     def network(self):
         return NetworkProcess([Gate('power',1,1),Gate('TN',1,1),Gate('NTN',1,1)],[Link('TN',10,.02,('power','TN')),Link('NTN',3,.2,('power','NTN'))])
     def test_known_program_exact_output(self):
@@ -136,7 +136,7 @@ class P6(unittest.TestCase):
     def test_process_accounting_and_reap(self):
         from fair_control.p6_process import controlled_decision
         from fair_control.controllers import Policy
-        d,x=controlled_decision(Policy('hysteresis'),self.view());self.assertEqual(x['process_status'],'RETURNED');self.assertGreaterEqual(x['startup_s'],0);self.assertGreaterEqual(x['worker_decision_s'],0);self.assertGreaterEqual(x['decision_window_s'],x['worker_decision_s']);self.assertTrue(x['direct_child_reaped'])
+        d,x=controlled_decision(Policy('hysteresis'),self.view());self.assertEqual(x['process_status'],'RETURNED');self.assertGreaterEqual(x['startup_s'],0);self.assertGreaterEqual(x['worker_decision_s'],0);self.assertGreaterEqual(x['decision_window_s'],x['worker_decision_s']);self.assertTrue(x['direct_child_reaped']);self.assertGreaterEqual(x['child_cpu_s'],0);self.assertGreaterEqual(x['parent_cpu_s'],0)
     def test_child_decision_timeout(self):
         from fair_control.p6_process import controlled_decision
         from fair_control.controllers import Policy
@@ -147,3 +147,55 @@ class P6(unittest.TestCase):
         from fair_control.controllers import Policy
         with tempfile.TemporaryDirectory() as p:
             f=Path(p)/'hang.py';f.write_text('import time\ntime.sleep(5)\n');d,x=controlled_decision(Policy('greedy'),self.view(),startup_allowance_s=.05,worker=f);self.assertEqual(d.action,Action.defer());self.assertEqual(x['process_status'],'STARTUP_TIMEOUT_OR_ERROR')
+
+    def test_duration_aggregate_adapter_correct_math(self):
+        from fair_control.p6_calibration import azure_duration_adapter
+        x=azure_duration_adapter([{'Average':100,'Count':2},{'Average':400,'Count':1}]);self.assertAlmostEqual(x['weighted_mean_duration_s'],.2);self.assertFalse(x['cold_start_included']);self.assertFalse(x['raw_invocation_variance_available'])
+    def test_duration_aggregate_not_percentile_or_counts(self):
+        from fair_control.p6_calibration import azure_duration_adapter
+        self.assertRaises(ContractError,azure_duration_adapter,[{'Average':100,'Count':0}]);self.assertRaises(ContractError,azure_duration_adapter,[{'percentile':100,'Count':1}])
+    def test_latency_semantics_not_rtt(self):
+        from fair_control.p6_calibration import one_way_latency_adapter
+        self.assertEqual(one_way_latency_adapter([{'value':20,'units':'ms','semantics':'ONE_WAY_END_TO_END'}]),[.02]);self.assertRaises(ContractError,one_way_latency_adapter,[{'value':20,'units':'ms','semantics':'RTT'}])
+    def test_approval_mutation_does_not_change_other_candidate(self):
+        c=self.config();c['authorization']['pilot_execution_authorized']=True;self.assertFalse(self.config()['authorization']['pilot_execution_authorized']);self.assertRaises(ContractError,validate_candidate,c)
+
+    def test_application_bridge_verifies_real_reference_bytes(self):
+        from fair_control.p6_bridge import verify_modeled_completion,application_fraction
+        from fair_control.core import TaskOutcome
+        t=self.task('known-program');o=TaskOutcome(t.task_id,1,0,1,True,True)
+        with tempfile.TemporaryDirectory() as p:j=verify_modeled_completion(t,o,Path(p),network_up=False)
+        self.assertTrue(j['success']);self.assertEqual(application_fraction([t],[j]),1)
+        with patch('fair_control.p6_application.PROGRAM','print(56)\n'):
+            with tempfile.TemporaryDirectory() as p:j=verify_modeled_completion(t,o,Path(p))
+        self.assertFalse(j['success']);self.assertEqual(application_fraction([t],[j]),0)
+    def test_bridge_keeps_missing_tasks_denominator(self):
+        from fair_control.p6_bridge import application_fraction
+        self.assertEqual(application_fraction(catalog_tasks(),[]),0)
+
+    def test_causal_outage_then_recovery_application_completion(self):
+        from fair_control.core import TruthFrame,PathTruth,Resources,Allocation,TaskRequirement
+        from fair_control.tasks import TaskSpec,sha
+        from fair_control.dynamics import Environment
+        p=self.network();env=Environment([TaskSpec(TaskRequirement('a',0,2,10,1),4,1,'abc',sha('abc'),local_eligible=False)],10)
+        action=Action('TN','edge',(Allocation('a',0,5,1,1),))
+        for uniforms in [{'power':0,'TN':.99,'NTN':.99},{'power':0,'TN':.99,'NTN':.99}]:
+            row=p.advance(uniforms);frame=TruthFrame('current',('a',),tuple(PathTruth(x['name'],x['up'],x['capacity_mbps']) for x in row['paths']),(('edge',10.),),Resources(10,10,100,2,10),1)
+            env.step(frame,action,{x['name']:x['latency_s'] for x in row['paths']})
+        self.assertFalse(env.trace[0]['accepted']);self.assertTrue(env.trace[1]['accepted']);self.assertEqual(env.evaluator.fraction(env.attempts),1)
+    def test_protocol_revision_mutation(self):
+        c=self.config();c['protocol_revision']['sha256']='0'*64;self.assertRaises(ContractError,validate_candidate,c)
+
+    def test_bridge_relative_deadline_for_later_arrival(self):
+        from fair_control.p6_bridge import verify_modeled_completion,application_fraction
+        from fair_control.core import TaskOutcome
+        t=self.task('known-program');o=TaskOutcome(t.task_id,11,1,1,True,True)
+        with tempfile.TemporaryDirectory() as p:j=verify_modeled_completion(t,o,Path(p),released_s=10)
+        self.assertTrue(j['success']);self.assertEqual(application_fraction([t],[j],{t.task_id:10}),1)
+
+    def test_large_request_stalled_child_does_not_block_writer(self):
+        from fair_control.p6_process import controlled_decision
+        from fair_control.controllers import Policy
+        x=self.view();x['task_queue']=[{'task_id':'x'*32000,'remaining_mcycles':1.,'remaining_mbit':0.,'memory_mb':1.,'deadline_s':5.,'minimum_quality':1.,'content_age_s':0.,'max_age_s':30.,'local_eligible':True,'network_required':False,'work_mcycles':1.,'input_mbit':0.,'placement':None,'network':None,'latency_paid_s':0.,'content_available':True,'supported':True}]
+        with tempfile.TemporaryDirectory() as p:
+            f=Path(p)/'hang.py';f.write_text("import time\nprint('READY',flush=True)\ntime.sleep(5)\n");d,r=controlled_decision(Policy('greedy'),x,worker=f);self.assertEqual(d.action,Action.defer());self.assertEqual(r['process_status'],'DECISION_TIMEOUT');self.assertLess(r['outer_elapsed_s'],2)

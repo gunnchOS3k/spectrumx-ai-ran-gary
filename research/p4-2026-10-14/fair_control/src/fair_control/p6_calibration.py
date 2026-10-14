@@ -44,3 +44,24 @@ def inspect_reference(record,samples,source_bytes):
         values.append(convert(x['value'],x['units'],record.units))
     if not values:raise ContractError('Empty samples')
     return {'status':record.status,'source_sha256':record.source_sha256,'record_sha256':digest(asdict(record)),'units':record.units,'n':len(values),'mean':statistics.fmean(values),'sample_sd':statistics.stdev(values) if len(values)>1 else None,'uncertainty_metadata':record.uncertainty,'physical_calibration_established':False,'evidence_class':'CALIBRATION_ADAPTER_CHECK_NOT_FIELD_VALIDATION'}
+
+def azure_duration_adapter(rows):
+    """Documented Average(ms)/Count aggregates, not per-invocation percentiles.
+
+Only constructed rows tested in P6; callers must independently settle source
+hash/rights using CalibrationRecord before importing real dataset bytes.
+"""
+    if not rows:raise ContractError('Empty Azure duration table')
+    numerator=0.;n=0
+    for r in rows:
+        if set(r)!= {'Average','Count'} or type(r['Count']) is not int or r['Count']<1:raise ContractError('Aggregate duration schema')
+        duration=convert(r['Average'],'ms','s');numerator+=duration*r['Count'];n+=r['Count']
+    return {'weighted_mean_duration_s':numerator/n,'reported_execution_count':n,'cold_start_included':False,'raw_invocation_variance_available':False,'restriction':'Aggregates cannot be treated as independent invocation observations or transferred to device Mcycles without calibration.'}
+
+def one_way_latency_adapter(rows):
+    vals=[]
+    for r in rows:
+        if set(r)!= {'value','units','semantics'} or r['semantics']!='ONE_WAY_END_TO_END':raise ContractError('RTT/propagation cannot silently become one-way end-to-end latency')
+        vals.append(convert(r['value'],r['units'],'s'))
+    if not vals:raise ContractError('Empty latency rows')
+    return vals

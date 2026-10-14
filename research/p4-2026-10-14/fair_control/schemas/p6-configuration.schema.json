@@ -94,7 +94,8 @@
             "p6_process.py",
             "p6_calibration.py",
             "p6_statistics.py",
-            "p6_configuration.py"
+            "p6_configuration.py",
+            "p6_bridge.py"
           ],
           "additionalProperties": false,
           "properties": {
@@ -139,6 +140,10 @@
               "pattern": "^[0-9a-f]{64}$"
             },
             "p6_configuration.py": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "p6_bridge.py": {
               "type": "string",
               "pattern": "^[0-9a-f]{64}$"
             }
@@ -2647,6 +2652,9 @@
         "burst_model",
         "initial_task",
         "background_load_fraction",
+        "task_demand_profiles",
+        "task_profile_weights",
+        "arrival_cap_semantics",
         "strata",
         "mixture_weights",
         "heldout_regime_values",
@@ -2743,6 +2751,47 @@
         "background_load_fraction": {
           "type": "number",
           "minimum": 0
+        },
+        "task_demand_profiles": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "work_multiplier",
+              "memory_multiplier"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "work_multiplier": {
+                "type": "number",
+                "minimum": 0
+              },
+              "memory_multiplier": {
+                "type": "number",
+                "minimum": 0
+              }
+            }
+          }
+        },
+        "task_profile_weights": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "items": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "arrival_cap_semantics": {
+          "type": "string",
+          "minLength": 1
         },
         "strata": {
           "type": "array",

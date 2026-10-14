@@ -5,7 +5,7 @@ No physical calibration. Same startup and decision budgets for eligible policies
 """
 from pathlib import Path
 from dataclasses import asdict
-import time,subprocess,sys,select,json
+import time,subprocess,sys,select,json,resource
 from .core import ContractError,number,Action,digest,canonical
 from .controllers import Policy,Hardware,Model,Decision,action_from_dict,validate_estimates
 
@@ -17,7 +17,7 @@ def _line(proc,limit_s):
 
 def controlled_decision(policy,estimates,hardware=Hardware(),model=Model(),startup_allowance_s=1.,worker=None):
     number(startup_allowance_s,'startup cap',positive=True)
-    start=time.perf_counter();validate_estimates(estimates)
+    start=time.perf_counter();parent_cpu_start=time.process_time();usage_start=resource.getrusage(resource.RUSAGE_CHILDREN);validate_estimates(estimates)
     payload=canonical({'policy':asdict(policy),'estimates':estimates,'hardware':asdict(hardware),'model':asdict(model)})
     if len(payload)>65536:raise ContractError('Bounded process request')
     preparation=time.perf_counter()-start;spawn_start=time.perf_counter();proc=None;d=None;error=None;status='PROCESS_ERROR';child_time=None;startup=None;decision_wall=preparation
@@ -26,8 +26,13 @@ def controlled_decision(policy,estimates,hardware=Hardware(),model=Model(),start
         ready=_line(proc,startup_allowance_s-(time.perf_counter()-spawn_start));startup=time.perf_counter()-spawn_start
         if ready!='READY\n' or startup>startup_allowance_s:status='STARTUP_TIMEOUT_OR_ERROR';error='Missing/late READY handshake'
         else:
-            dispatched=time.perf_counter();proc.stdin.write(payload.decode()+'\n');proc.stdin.flush()
-            line=_line(proc,policy.deadline_s-preparation)
+            dispatched=time.perf_counter()
+            try:
+                remaining=policy.deadline_s-preparation
+                if remaining<=0:raise subprocess.TimeoutExpired(proc.args,remaining)
+                out,err=proc.communicate(input=payload.decode()+'\n',timeout=remaining)
+                line=out if proc.returncode==0 else None
+            except subprocess.TimeoutExpired:line=None
             decision_wall=preparation+time.perf_counter()-dispatched
             if line is None or decision_wall>policy.deadline_s:status='DECISION_TIMEOUT';error='End-to-end decision budget exceeded'
             else:
@@ -44,5 +49,7 @@ def controlled_decision(policy,estimates,hardware=Hardware(),model=Model(),start
                 if f:f.close()
     outer=time.perf_counter()-start
     if d is None:d=Decision(Action.defer(),status,0,(),decision_wall,digest(estimates),digest([]),None,error)
-    report={'process_status':status,'request_preparation_s':preparation,'startup_s':startup,'worker_decision_s':child_time,'decision_window_s':decision_wall,'outer_elapsed_s':outer,'startup_allowance_s':startup_allowance_s,'decision_allowance_s':policy.deadline_s,'simulated_compute_delay_debited':False,'physical_calibration':False,'direct_child_reaped':True}
+    usage_end=resource.getrusage(resource.RUSAGE_CHILDREN)
+    child_cpu=(usage_end.ru_utime+usage_end.ru_stime)-(usage_start.ru_utime+usage_start.ru_stime)
+    report={'parent_cpu_s':time.process_time()-parent_cpu_start,'child_cpu_s':child_cpu,'cpu_accounting_scope':'Sequential Unix RUSAGE_CHILDREN delta; overlapping unrelated children invalidate attribution','process_status':status,'request_preparation_s':preparation,'startup_s':startup,'worker_decision_s':child_time,'decision_window_s':decision_wall,'outer_elapsed_s':outer,'startup_allowance_s':startup_allowance_s,'decision_allowance_s':policy.deadline_s,'simulated_compute_delay_debited':False,'physical_calibration':False,'direct_child_reaped':True,'actual_model_evaluations':d.model_evaluations if status=='RETURNED' else None,'evaluation_count_status':'RETURNED_LEDGER' if status=='RETURNED' else 'UNAVAILABLE_ON_KILLED_OR_FAILED_CHILD;zero_in_defer_is_placeholder' }
     return d,report

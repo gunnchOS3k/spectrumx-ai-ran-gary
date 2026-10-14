@@ -60,15 +60,17 @@ class ReferenceTask:
     def requirement(self):return TaskRequirement(self.task_id,0,self.deadline_s,self.freshness_limit_s,self.quality_minimum,self.requires_durable)
 
 
-def evaluate(task:ReferenceTask,result:ReferenceResult):
+def evaluate(task:ReferenceTask,result:ReferenceResult, *,released_s=0.):
     if result.task_id!=task.task_id or result.evidence_class!='CONSTRUCTED_REFERENCE_ADAPTER_CHECK':raise ContractError('Reference identity/class')
     number(result.virtual_finished_s,'virtual time');number(result.generated_s,'generated time')
     if result.generated_s>result.virtual_finished_s:raise ContractError('Future content')
     # Fixed expected result is external to the implementation and policy score.
     correct=result.failure is None and result.output_utf8==task.expected_output_utf8
     durable=result.persisted_utf8==result.output_utf8
+    number(released_s,'task release')
+    requirement=TaskRequirement(task.task_id,released_s,released_s+task.deadline_s,task.freshness_limit_s,task.quality_minimum,task.requires_durable)
     o=TaskOutcome(result.task_id,result.virtual_finished_s,result.virtual_finished_s-result.generated_s,result.quality,correct,durable)
-    return {'success':completion_fraction([task.requirement()],[o])==1.,'outcome':asdict(o),'observed_output_sha256':bytes_hash(result.output_utf8.encode()),'expected_output_sha256':bytes_hash(task.expected_output_utf8.encode()),'evidence_class':result.evidence_class}
+    return {'success':completion_fraction([requirement],[o])==1.,'outcome':asdict(o),'requirement':asdict(requirement),'observed_output_sha256':bytes_hash(result.output_utf8.encode()),'expected_output_sha256':bytes_hash(task.expected_output_utf8.encode()),'evidence_class':result.evidence_class}
 
 def run_reference(task:ReferenceTask,root:Path, *, content_utf8=TEXT,expected_content_sha256=None,virtual_now_s=1.,generated_s=0.,corrupt_checkpoint=False,network_up=False):
     """Fixed small adapters in a caller-owned empty temporary folder, never arbitrary programs."""
