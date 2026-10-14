@@ -1,0 +1,27 @@
+{
+  "local_draft": true,
+  "publication_authorized": false,
+  "version": "0.1",
+  "title": "Controller Semantics and Negative Results in a Synthetic Cross-Layer Orchestration Study",
+  "authors": [
+    {
+      "name": "Edmund Gunn, Jr.",
+      "affiliation": "gunnchOS Research",
+      "email": "egunnjr@gunnchos.com",
+      "orcid": "0009-0004-6546-2609"
+    }
+  ],
+  "abstract": "Digital-twin context can guide network and computation choices, but a controller label does not establish information equivalence, meaningful optimization, or improved service. This article audits two preserved synthetic cross-layer orchestration implementations and their negative results. In the original five-seed held-out study, the procedural twin policy underperforms cloud fallback by 0.01360 utility units, with a post hoc paired 95% interval [-0.01478,-0.01242]. A separately reproduced revision retains a negative difference of 0.01255 and unfavorable adaptive-fidelity and checkpoint outcomes. Source inequalities show that the full linear selector chooses edge placement on the available path with the smallest configured penalty; focused assertions confirm this behavior on 9,600 reconstructed input states in each version, separately. A zero-latency transformation instead creates score ties. The symmetric SLSQP share objective has a uniform mathematical optimum, but optimizes a different function from network/placement utility and returns small budget residuals. A bounded numerical analysis finds these residuals too small to reverse the retained negative comparisons. Switching accounting, incomplete action feasibility, unequal consumed information/computation, and truth-changing interventions limit causal interpretation. The contribution is a reproducible methodological characterization of this model, with no measured network, general adaptive superiority, or established novelty claim.",
+  "doi": null,
+  "publication_date": null,
+  "article_license": null,
+  "additional_authors": "pending owner review",
+  "funding": "pending owner review",
+  "conflicts": "pending owner review",
+  "rights_clearance": false,
+  "human_scientific_approval": false,
+  "originality_human_verified": false,
+  "platform": "techrxiv",
+  "proposed_category": "Communication, Networking and Broadcast Technologies",
+  "submissions_temporarily_closed_as_of": "2026-10-14"
+}

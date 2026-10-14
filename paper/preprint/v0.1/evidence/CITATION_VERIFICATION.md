@@ -1,0 +1,17 @@
+# Citation verification — ten cited works
+Identity verification and substantive inspection are different. The six IEEE journal article identities are preserved in prior_audit/crossref_metadata.json (publisher-deposited metadata including full authors/title/venue/year/DOI); CITED_IDENTITIES.json is a convenient extraction. Bibliography fields agree with those records. Selected-section reading is not a complete systematic review or independent peer review. Copyright full texts are not bundled.
+
+| BibTeX key | Identifier / primary source | Inspection depth and supported claim |
+|---|---|---|
+| mao2017survey |10.1109/COMST.2017.2745201; [author abstract](https://arxiv.org/abs/1701.01090)|Metadata + abstract; established joint radio/computation management context; not reproduced benchmark.|
+| mao2016dynamic |10.1109/JSAC.2016.2611964; [author full text](https://arxiv.org/html/1605.05488)|Selected system/energy-causality model and equations8–9 inspected; differs from our independent energy covariate.|
+| sun2020latency |10.1109/TVT.2020.3018817|Publisher metadata inspected; full text unavailable here. Only digital-twin edge-network latency/offloading scope used, not detailed algorithm or measured result.|
+| dai2021stochastic |10.1109/TII.2020.3016320; [author abstract](https://arxiv.org/abs/2011.08430)|Abstract + metadata; Lyapunov/actor-critic stochastic offloading; full-text retrieval unavailable.|
+| doduy2022offloading |10.1109/LWC.2022.3146207; [author manuscript](https://pureadmin.qub.ac.uk/ws/portalfiles/portal/281022821/Final_Manuscript.pdf)|Selected model/constraints/method inspected: edge selection, latency, CPU and power restrictions. No transfer of its performance numbers.|
+| hui2025collaboration |10.1109/TITS.2024.3522243; [author manuscript](https://guoqiangmao.com/ewExternalFiles/Hui25Service-Oriented.pdf)|Selected architecture/game formulation and comparisons; vehicular composite-service coalition/Stackelberg context, not our categorical utility.|
+| itur2023framework |[ITU-R M.2160-0,2023](https://www.itu.int/rec/R-REC-M.2160-0-202311-I/en)|Official framework identity/context; not empirical support for controller.|
+| almohammedi2026fidelity |10.48550/arXiv.2607.22857; [author full text](https://arxiv.org/html/2607.22857)|v1July24,2026; selected fidelity-monitor/fallback section inspected. Prediction discrepancy differs from our service-fidelity factor. Acceptance unverified.|
+| wang2016placement |10.48550/arXiv.1503.02735; [author manuscript](https://arxiv.org/html/1503.02735)|v2September16,2016; selected local/migration cost, look-ahead and prediction-error model inspected. Article cited as author preprint; no unverified journal issue added.|
+| jain1984fairness |[author technical-report page](https://www.cse.wustl.edu/~jain/papers/fairness.htm), DEC-TR-301,September1984; no DOI assigned|Author-page indexed identity/abstract inspected; direct full-text fetch unavailable. Indexed report heading uses singular System while author listing uses Systems. Bibliography follows author listing. Jain formula verified independently by algebra/source, not an asserted full-text read.|
+
+Metadata verification covers cited identities and bounded claims, not exhaustive originality certification. Sun/Dai/Jain full-text limitations remain visible. New primary full-text inspections of Do-Duy/Hui/Wang/Almohammedi occurred during this audit; retained historical Crossref records are not relabeled as freshly fetched. No new citation is evidence that the current controller improves deployed communication.

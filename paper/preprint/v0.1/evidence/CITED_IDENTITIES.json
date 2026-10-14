@@ -1,0 +1,837 @@
+[
+  {
+    "title": [
+      "A Survey on Mobile Edge Computing: The Communication Perspective"
+    ],
+    "authors": [
+      {
+        "given": "Yuyi",
+        "family": "Mao",
+        "sequence": "first",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0003-3245-9361",
+        "authenticated-orcid": false,
+        "given": "Changsheng",
+        "family": "You",
+        "sequence": "additional",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0002-5222-1898",
+        "authenticated-orcid": false,
+        "given": "Jun",
+        "family": "Zhang",
+        "sequence": "additional",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "given": "Kaibin",
+        "family": "Huang",
+        "sequence": "additional",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "given": "Khaled B.",
+        "family": "Letaief",
+        "sequence": "additional",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      }
+    ],
+    "venue": [
+      "IEEE Communications Surveys &amp; Tutorials"
+    ],
+    "year": {
+      "date-parts": [
+        [
+          2017
+        ]
+      ]
+    },
+    "DOI": "10.1109/COMST.2017.2745201",
+    "provenance": "retained publisher-deposited Crossref record; current abstract/selected full-text inspection described in CITATION_VERIFICATION.md"
+  },
+  {
+    "title": [
+      "Dynamic Computation Offloading for Mobile-Edge Computing With Energy Harvesting Devices"
+    ],
+    "authors": [
+      {
+        "ORCID": "https://orcid.org/0000-0002-5646-8679",
+        "authenticated-orcid": false,
+        "given": "Yuyi",
+        "family": "Mao",
+        "sequence": "first",
+        "affiliation": [
+          {
+            "name": "Department of Electronic and Computer Engineering, Hong Kong University of Science and Technology, Hong Kong"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "given": "Jun",
+        "family": "Zhang",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "name": "Department of Electronic and Computer Engineering, Hong Kong University of Science and Technology, Hong Kong"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "given": "Khaled B.",
+        "family": "Letaief",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "name": "Department of Electronic and Computer Engineering, Hong Kong University of Science and Technology, Hong Kong"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      }
+    ],
+    "venue": [
+      "IEEE Journal on Selected Areas in Communications"
+    ],
+    "year": {
+      "date-parts": [
+        [
+          2016,
+          12
+        ]
+      ]
+    },
+    "DOI": "10.1109/JSAC.2016.2611964",
+    "provenance": "retained publisher-deposited Crossref record; current abstract/selected full-text inspection described in CITATION_VERIFICATION.md"
+  },
+  {
+    "title": [
+      "Reducing Offloading Latency for Digital Twin Edge Networks in 6G"
+    ],
+    "authors": [
+      {
+        "ORCID": "https://orcid.org/0000-0001-7086-4910",
+        "authenticated-orcid": false,
+        "given": "Wen",
+        "family": "Sun",
+        "sequence": "first",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0002-0080-6341",
+        "authenticated-orcid": false,
+        "given": "Haibin",
+        "family": "Zhang",
+        "sequence": "additional",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "given": "Rong",
+        "family": "Wang",
+        "sequence": "additional",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0002-8561-5092",
+        "authenticated-orcid": false,
+        "given": "Yan",
+        "family": "Zhang",
+        "sequence": "additional",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      }
+    ],
+    "venue": [
+      "IEEE Transactions on Vehicular Technology"
+    ],
+    "year": {
+      "date-parts": [
+        [
+          2020,
+          10
+        ]
+      ]
+    },
+    "DOI": "10.1109/TVT.2020.3018817",
+    "provenance": "retained publisher-deposited Crossref record; current abstract/selected full-text inspection described in CITATION_VERIFICATION.md"
+  },
+  {
+    "title": [
+      "Deep Reinforcement Learning for Stochastic Computation Offloading in Digital Twin Networks"
+    ],
+    "authors": [
+      {
+        "given": "Yueyue",
+        "family": "Dai",
+        "sequence": "first",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "given": "Ke",
+        "family": "Zhang",
+        "sequence": "additional",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "given": "Sabita",
+        "family": "Maharjan",
+        "sequence": "additional",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "given": "Yan",
+        "family": "Zhang",
+        "sequence": "additional",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      }
+    ],
+    "venue": [
+      "IEEE Transactions on Industrial Informatics"
+    ],
+    "year": {
+      "date-parts": [
+        [
+          2021,
+          7
+        ]
+      ]
+    },
+    "DOI": "10.1109/TII.2020.3016320",
+    "provenance": "retained publisher-deposited Crossref record; current abstract/selected full-text inspection described in CITATION_VERIFICATION.md"
+  },
+  {
+    "title": [
+      "Digital Twin-Aided Intelligent Offloading With Edge Selection in Mobile Edge Computing"
+    ],
+    "authors": [
+      {
+        "ORCID": "https://orcid.org/0000-0002-0751-7163",
+        "authenticated-orcid": false,
+        "given": "Tan",
+        "family": "Do-Duy",
+        "sequence": "first",
+        "affiliation": [
+          {
+            "name": "Ho Chi Minh City University of Technology and Education, Ho Chi Minh City, Vietnam"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0002-2314-4934",
+        "authenticated-orcid": false,
+        "given": "Dang",
+        "family": "Van Huynh",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "name": "Queen&#x2019;s University Belfast, Belfast, U.K"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0001-8528-0512",
+        "authenticated-orcid": false,
+        "given": "Octavia A.",
+        "family": "Dobre",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "name": "Department of Electrical and Computer Engineering, Memorial University, St. John&#x2019;s, NL, Canada"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0001-6472-1737",
+        "authenticated-orcid": false,
+        "given": "Berk",
+        "family": "Canberk",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "name": "Department of Computer Engineering, Istanbul Technical University, Istanbul, Turkey"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0002-4703-4836",
+        "authenticated-orcid": false,
+        "given": "Trung Q.",
+        "family": "Duong",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "name": "Queen&#x2019;s University Belfast, Belfast, U.K"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      }
+    ],
+    "venue": [
+      "IEEE Wireless Communications Letters"
+    ],
+    "year": {
+      "date-parts": [
+        [
+          2022,
+          4
+        ]
+      ]
+    },
+    "DOI": "10.1109/LWC.2022.3146207",
+    "provenance": "retained publisher-deposited Crossref record; current abstract/selected full-text inspection described in CITATION_VERIFICATION.md"
+  },
+  {
+    "title": [
+      "Service-Oriented Edge Collaboration: Digital Twin Enabled Edge Collaboration for Composite Services in AVNs"
+    ],
+    "authors": [
+      {
+        "ORCID": "https://orcid.org/0000-0001-5543-2669",
+        "authenticated-orcid": false,
+        "given": "Yilong",
+        "family": "Hui",
+        "sequence": "first",
+        "affiliation": [
+          {
+            "name": "State Key Laboratory of Integrated Services Networks, Xidian University, Xi&#x2019;an, China"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "given": "Xiaoqing",
+        "family": "Ma",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "name": "State Key Laboratory of Integrated Services Networks, Xidian University, Xi&#x2019;an, China"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0003-2568-8908",
+        "authenticated-orcid": false,
+        "given": "Changle",
+        "family": "Li",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "name": "State Key Laboratory of Integrated Services Networks, Xidian University, Xi&#x2019;an, China"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0001-7907-2071",
+        "authenticated-orcid": false,
+        "given": "Nan",
+        "family": "Cheng",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "name": "State Key Laboratory of Integrated Services Networks, Xidian University, Xi&#x2019;an, China"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0002-3690-7902",
+        "authenticated-orcid": false,
+        "given": "Rui",
+        "family": "Chen",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "name": "State Key Laboratory of Integrated Services Networks, Xidian University, Xi&#x2019;an, China"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0002-3136-788X",
+        "authenticated-orcid": false,
+        "given": "Zhisheng",
+        "family": "Yin",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "name": "State Key Laboratory of Integrated Services Networks, Xidian University, Xi&#x2019;an, China"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0002-5215-7443",
+        "authenticated-orcid": false,
+        "given": "Tom H.",
+        "family": "Luan",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "name": "School of Cyber Science and Engineering, Xi&#x2019;an Jiaotong University, Xi&#x2019;an, China"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0002-3598-4949",
+        "authenticated-orcid": false,
+        "given": "Guoqiang",
+        "family": "Mao",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "name": "State Key Laboratory of Integrated Services Networks, Xidian University, Xi&#x2019;an, China"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      }
+    ],
+    "venue": [
+      "IEEE Transactions on Intelligent Transportation Systems"
+    ],
+    "year": {
+      "date-parts": [
+        [
+          2025,
+          3
+        ]
+      ]
+    },
+    "DOI": "10.1109/TITS.2024.3522243",
+    "provenance": "retained publisher-deposited Crossref record; current abstract/selected full-text inspection described in CITATION_VERIFICATION.md"
+  },
+  {
+    "title": [
+      "Generative AI Empowered Network Digital Twins: Architecture, Technologies, and Applications"
+    ],
+    "authors": [
+      {
+        "ORCID": "https://orcid.org/0000-0002-4343-703X",
+        "authenticated-orcid": false,
+        "given": "Tong",
+        "family": "Li",
+        "sequence": "first",
+        "affiliation": [
+          {
+            "name": "Department of Electronic Engineering, Tsinghua University, Beijing, China"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0009-0002-0179-0991",
+        "authenticated-orcid": false,
+        "given": "Qingyue",
+        "family": "Long",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "name": "Department of Electronic Engineering, Tsinghua University, Beijing, China"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0002-6215-6671",
+        "authenticated-orcid": false,
+        "given": "Haoye",
+        "family": "Chai",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "name": "Department of Electronic Engineering, Tsinghua University, Beijing, China"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0009-0000-3216-2256",
+        "authenticated-orcid": false,
+        "given": "Shiyuan",
+        "family": "Zhang",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "name": "Department of Electronic Engineering, Tsinghua University, Beijing, China"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0001-9912-9709",
+        "authenticated-orcid": false,
+        "given": "Fenyu",
+        "family": "Jiang",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "name": "Department of Electronic Engineering, Tsinghua University, Beijing, China"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0002-9725-4730",
+        "authenticated-orcid": false,
+        "given": "Haoqiang",
+        "family": "Liu",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "name": "Department of Electronic Engineering, Tsinghua University, Beijing China"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0003-0454-7516",
+        "authenticated-orcid": false,
+        "given": "Wenzhen",
+        "family": "Huang",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "name": "Department of Electronic Engineering, Tsinghua University, Beijing, China"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0003-0419-5514",
+        "authenticated-orcid": false,
+        "given": "Depeng",
+        "family": "Jin",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "name": "Department of Electronic Engineering, Tsinghua University, Beijing China"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0001-5617-1659",
+        "authenticated-orcid": false,
+        "given": "Yong",
+        "family": "Li",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "name": "Department of Electronic Engineering, Tsinghua University, Beijing China"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      }
+    ],
+    "venue": [
+      "ACM Computing Surveys"
+    ],
+    "year": {
+      "date-parts": [
+        [
+          2025,
+          2,
+          10
+        ]
+      ]
+    },
+    "DOI": "10.1145/3711682",
+    "provenance": "retained publisher-deposited Crossref record; current abstract/selected full-text inspection described in CITATION_VERIFICATION.md"
+  },
+  {
+    "title": [
+      "Age-of-Information and Energy Optimization in Digital Twin Edge Networks"
+    ],
+    "authors": [
+      {
+        "given": "Yongna",
+        "family": "Guo",
+        "sequence": "first",
+        "affiliation": [
+          {
+            "name": "KTH Royal Institute of Technology,School of Electrical Engineering and Computer Science,Stockholm,Sweden"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "given": "Yaru",
+        "family": "Fu",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "name": "Hong Kong Metropolitan University,School of Science and Technology,China"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "given": "Yan",
+        "family": "Zhang",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "name": "University of Oslo,Department of Informatics,Oslo,Norway"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "given": "Tony Q. S.",
+        "family": "Quek",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "name": "Singapore University of Technology and Design,Information Systems Technology and Design,Singapore"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      }
+    ],
+    "venue": [
+      "GLOBECOM 2024 - 2024 IEEE Global Communications Conference"
+    ],
+    "year": {
+      "date-parts": [
+        [
+          2024,
+          12,
+          8
+        ]
+      ]
+    },
+    "DOI": "10.1109/GLOBECOM52923.2024.10901362",
+    "provenance": "retained publisher-deposited Crossref record; current abstract/selected full-text inspection described in CITATION_VERIFICATION.md"
+  }
+]

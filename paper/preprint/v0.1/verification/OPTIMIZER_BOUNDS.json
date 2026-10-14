@@ -1,0 +1,1719 @@
+{
+  "inputs": "Existing seeds0..4 and100..104, n_users4..8,B20; all frozen optimizer input combinations, two sources separately. No new seed or policy outcome.",
+  "component_solves": 100,
+  "max_absolute_budget_residual": 3.1882259854398853e-06,
+  "strict_budget_overshoots": 26,
+  "max_share_error": 2.5556650316005403e-06,
+  "max_utilization_error": 1.5941129927199427e-07,
+  "fixed_action_primary_score_lipschitz_constant": 1.83,
+  "worst_absolute_slot_score_impact_bound": 2.917226776677495e-07,
+  "bound_conditions": "Fixed network/placement/fidelity/checkpoint decisions (shares do not select them), source priors and score; no physical interpretation. Does not remove discrete-policy or observation confounding.",
+  "paired_negative_margin_minimum": 0.010294622848085685,
+  "material_to_preserved_negative_direction": false,
+  "scipy_slsqp_local_signature": "(func, x0, args=(), jac=None, bounds=None, constraints=(), maxiter=100, ftol=1e-06, iprint=1, disp=False, eps=np.float64(1.4901161193847656e-08), callback=None, finite_diff_rel_step=None, workers=None, **unknown_options)",
+  "exact_mathematical_optimum_uniform": true,
+  "numerical_solutions_exactly_optimal_or_strictly_feasible": false,
+  "rows": [
+    {
+      "vintage": "original",
+      "seed": 0,
+      "n_users": 4,
+      "shares": [
+        5.000000125730221,
+        4.999999867895137,
+        5.00000064042265,
+        5.000000104900117
+      ],
+      "backend": "slsqp",
+      "budget_residual": -7.389481240238638e-07,
+      "max_share_error": 6.404226500222876e-07,
+      "strict_budget_feasible": false
+    },
+    {
+      "vintage": "original",
+      "seed": 0,
+      "n_users": 5,
+      "shares": [
+        4.000000125730221,
+        3.9999998678951365,
+        4.00000064042265,
+        4.000000104900117,
+        3.9999994643306267
+      ],
+      "backend": "slsqp",
+      "budget_residual": -2.0327875205339296e-07,
+      "max_share_error": 6.404226500222876e-07,
+      "strict_budget_feasible": false
+    },
+    {
+      "vintage": "original",
+      "seed": 0,
+      "n_users": 6,
+      "shares": [
+        3.3333334590635544,
+        3.33333320122847,
+        3.333333973755984,
+        3.3333334382334505,
+        3.33333279766396,
+        3.3333336949283883
+      ],
+      "backend": "slsqp",
+      "budget_residual": -5.648738081731608e-07,
+      "max_share_error": 6.404226504663768e-07,
+      "strict_budget_feasible": false
+    },
+    {
+      "vintage": "original",
+      "seed": 0,
+      "n_users": 7,
+      "shares": [
+        2.857142681831302,
+        2.8571425432055073,
+        2.8571431965237317,
+        2.857142780210488,
+        2.8571421396409975,
+        2.857142917696136,
+        2.857143740891837
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 8.837489797741682e-07,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 0,
+      "n_users": 8,
+      "shares": [
+        2.499999758834708,
+        2.499999620208913,
+        2.5000002735271374,
+        2.499999738004604,
+        2.499999216644403,
+        2.4999999946995417,
+        2.5000008178952426,
+        2.50000058018545
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 8.178952426440844e-07,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 1,
+      "n_users": 4,
+      "shares": [
+        5.000000345584192,
+        5.000000821618143,
+        5.000000330437076,
+        4.999998696842768
+      ],
+      "backend": "slsqp",
+      "budget_residual": -1.9448217969397774e-07,
+      "max_share_error": 1.3031572319022189e-06,
+      "strict_budget_feasible": false
+    },
+    {
+      "vintage": "original",
+      "seed": 1,
+      "n_users": 5,
+      "shares": [
+        4.000000149458441,
+        4.000000625492392,
+        4.000000134311325,
+        3.9999985007170173,
+        4.000000590020826
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.4992829826532272e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 1,
+      "n_users": 6,
+      "shares": [
+        3.3333334808200665,
+        3.3333338376447283,
+        3.3333333464636614,
+        3.333331832078643,
+        3.3333339213824518,
+        3.333333581610447
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.5012546903392376e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 1,
+      "n_users": 7,
+      "shares": [
+        2.85714302448734,
+        2.8571435005212913,
+        2.8571430093402244,
+        2.857141494955206,
+        2.8571435842590147,
+        2.8571431252777204,
+        2.8571422611592023
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.3621876511216158e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 1,
+      "n_users": 8,
+      "shares": [
+        2.500000131885845,
+        2.5000004887105067,
+        2.5000001167387293,
+        2.499998602353711,
+        2.5000006916575197,
+        2.5000002326762254,
+        2.4999993685577073,
+        2.5000003674197573
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.3976462889253582e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 2,
+      "n_users": 4,
+      "shares": [
+        5.000000189053382,
+        4.999999477251558,
+        4.999999586936457,
+        4.999997558532617
+      ],
+      "backend": "slsqp",
+      "budget_residual": 3.1882259854398853e-06,
+      "max_share_error": 2.4414673829298295e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 2,
+      "n_users": 5,
+      "shares": [
+        4.000000189053382,
+        3.9999994772515586,
+        3.9999995869364566,
+        3.9999975585326175,
+        4.000001799707383
+      ],
+      "backend": "slsqp",
+      "budget_residual": 1.3885186014306328e-06,
+      "max_share_error": 2.4414673824857402e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 2,
+      "n_users": 6,
+      "shares": [
+        3.3333335223867153,
+        3.333332810584892,
+        3.33333292026979,
+        3.333330891865951,
+        3.333335133040716,
+        3.3333344774992053
+      ],
+      "backend": "slsqp",
+      "budget_residual": 2.4435273004996816e-07,
+      "max_share_error": 2.4414673824857402e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 2,
+      "n_users": 7,
+      "shares": [
+        2.857143046196239,
+        2.857142334394416,
+        2.857142444079314,
+        2.8571404156754747,
+        2.85714465685024,
+        2.857144001308729,
+        2.8571425317200205
+      ],
+      "backend": "slsqp",
+      "budget_residual": 5.697755653955028e-07,
+      "max_share_error": 2.4414673824857402e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 2,
+      "n_users": 8,
+      "shares": [
+        2.500000189053382,
+        2.4999994772515586,
+        2.4999995869364566,
+        2.4999975585326175,
+        2.5000017997073827,
+        2.500001144165872,
+        2.4999996745771633,
+        2.500000773806587
+      ],
+      "backend": "slsqp",
+      "budget_residual": -2.040310178585969e-07,
+      "max_share_error": 2.4414673824857402e-06,
+      "strict_budget_feasible": false
+    },
+    {
+      "vintage": "original",
+      "seed": 3,
+      "n_users": 4,
+      "shares": [
+        5.000002040919122,
+        4.999997444334968,
+        5.000000418098847,
+        4.999999432230394
+      ],
+      "backend": "slsqp",
+      "budget_residual": 6.644166674618646e-07,
+      "max_share_error": 2.5556650316005403e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 3,
+      "n_users": 5,
+      "shares": [
+        4.000002040919122,
+        3.999997444334969,
+        4.000000418098847,
+        3.999999432230394,
+        3.9999995473507077
+      ],
+      "backend": "slsqp",
+      "budget_residual": 1.1170659597325994e-06,
+      "max_share_error": 2.555665031156451e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 3,
+      "n_users": 6,
+      "shares": [
+        3.3333353742524547,
+        3.3333307776683023,
+        3.33333375143218,
+        3.3333327655637275,
+        3.333332880684041,
+        3.3333331177361702
+      ],
+      "backend": "slsqp",
+      "budget_residual": 1.3326631247423393e-06,
+      "max_share_error": 2.555665031156451e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 3,
+      "n_users": 7,
+      "shares": [
+        2.8571451726530896,
+        2.857140933696806,
+        2.8571436690421046,
+        2.8571428023829415,
+        2.857142917503255,
+        2.8571431545553843,
+        2.8571413501664185
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 2.3155102324423638e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 3,
+      "n_users": 8,
+      "shares": [
+        2.5000022654744076,
+        2.499998026518124,
+        2.5000007618634226,
+        2.4999998952042595,
+        2.500000010324573,
+        2.5000002473767022,
+        2.499998562197026,
+        2.5000002310414877
+      ],
+      "backend": "slsqp",
+      "budget_residual": -3.552713678800501e-15,
+      "max_share_error": 2.2654744076255895e-06,
+      "strict_budget_feasible": false
+    },
+    {
+      "vintage": "original",
+      "seed": 4,
+      "n_users": 4,
+      "shares": [
+        4.9999989890191845,
+        4.999999466093045,
+        5.000001244929684,
+        5.000000299958087
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.244929683785756e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 4,
+      "n_users": 5,
+      "shares": [
+        3.9999993482088474,
+        3.999999825282708,
+        4.0000016637239915,
+        4.00000065914775,
+        3.9999983586027055
+      ],
+      "backend": "slsqp",
+      "budget_residual": 1.450339972564052e-07,
+      "max_share_error": 1.6637239914629731e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 4,
+      "n_users": 6,
+      "shares": [
+        3.333332681542181,
+        3.3333331586160413,
+        3.333334997057325,
+        3.333333992481083,
+        3.333331691936039,
+        3.3333333281300694
+      ],
+      "backend": "slsqp",
+      "budget_residual": 1.5023726263052595e-07,
+      "max_share_error": 1.6637239914629731e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 4,
+      "n_users": 7,
+      "shares": [
+        2.8571422053517046,
+        2.857142682425565,
+        2.8571445208668487,
+        2.857143516290607,
+        2.8571412157455627,
+        2.857142851939593,
+        2.857142233679116
+      ],
+      "backend": "slsqp",
+      "budget_residual": 7.737010037089931e-07,
+      "max_share_error": 1.6637239914629731e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 4,
+      "n_users": 8,
+      "shares": [
+        2.4999993482088474,
+        2.499999825282708,
+        2.5000016637239915,
+        2.5000006591477497,
+        2.4999983586027055,
+        2.499999994796736,
+        2.499999376536259,
+        2.500000148631523
+      ],
+      "backend": "slsqp",
+      "budget_residual": 6.25069478843443e-07,
+      "max_share_error": 1.6637239914629731e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 100,
+      "n_users": 4,
+      "shares": [
+        4.999998842450353,
+        5.0000002897558025,
+        5.000000780854069,
+        5.000000543973645
+      ],
+      "backend": "slsqp",
+      "budget_residual": -4.5703387030471276e-07,
+      "max_share_error": 1.1575496472460145e-06,
+      "strict_budget_feasible": false
+    },
+    {
+      "vintage": "original",
+      "seed": 100,
+      "n_users": 5,
+      "shares": [
+        3.9999988424503528,
+        4.0000002897558025,
+        4.000000780854069,
+        4.000000543973645,
+        3.999999038617359
+      ],
+      "backend": "slsqp",
+      "budget_residual": 5.043487725231444e-07,
+      "max_share_error": 1.1575496472460145e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 100,
+      "n_users": 6,
+      "shares": [
+        3.3333321757836862,
+        3.333333623089136,
+        3.333334114187403,
+        3.3333338773069783,
+        3.3333323719506924,
+        3.3333344043419992
+      ],
+      "backend": "slsqp",
+      "budget_residual": -5.666598958953273e-07,
+      "max_share_error": 1.1575496472460145e-06,
+      "strict_budget_feasible": false
+    },
+    {
+      "vintage": "original",
+      "seed": 100,
+      "n_users": 7,
+      "shares": [
+        2.8571416035833375,
+        2.8571429316794976,
+        2.8571434227777646,
+        2.85714318589734,
+        2.8571417997503437,
+        2.857143712932361,
+        2.8571433433793554
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.2535595197427085e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 100,
+      "n_users": 8,
+      "shares": [
+        2.499998789529322,
+        2.4999999984161927,
+        2.5000004895144596,
+        2.500000252634035,
+        2.4999988664870387,
+        2.500000779669056,
+        2.5000004101160505,
+        2.5000004136338454
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.210470677914799e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 101,
+      "n_users": 4,
+      "shares": [
+        4.9999992098475,
+        4.999997965374519,
+        5.000000603301747,
+        5.00000074429453
+      ],
+      "backend": "slsqp",
+      "budget_residual": 1.4771817049563651e-06,
+      "max_share_error": 2.0346254814285203e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 101,
+      "n_users": 5,
+      "shares": [
+        3.9999992098475,
+        3.999997965374518,
+        4.000000603301747,
+        4.00000074429453,
+        3.9999996903132002
+      ],
+      "backend": "slsqp",
+      "budget_residual": 1.7868685056043887e-06,
+      "max_share_error": 2.0346254818726095e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 101,
+      "n_users": 6,
+      "shares": [
+        3.3333325431808336,
+        3.3333312987078516,
+        3.3333339366350803,
+        3.3333340776278635,
+        3.3333330236465337,
+        3.3333337006547064
+      ],
+      "backend": "slsqp",
+      "budget_residual": 1.419547132286425e-06,
+      "max_share_error": 2.0346254818726095e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 101,
+      "n_users": 7,
+      "shares": [
+        2.8571420669903573,
+        2.8571408225173753,
+        2.857143460444604,
+        2.857143601437387,
+        2.8571425474560574,
+        2.85714322446423,
+        2.8571445675371487
+      ],
+      "backend": "slsqp",
+      "budget_residual": -2.908471614659902e-07,
+      "max_share_error": 2.0346254818726095e-06,
+      "strict_budget_feasible": false
+    },
+    {
+      "vintage": "original",
+      "seed": 101,
+      "n_users": 8,
+      "shares": [
+        2.4999990706941975,
+        2.4999980646397946,
+        2.500000464148444,
+        2.5000006051412274,
+        2.4999995511598976,
+        2.5000001089587807,
+        2.5000013328224098,
+        2.500000802435248
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.935360205429504e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 102,
+      "n_users": 4,
+      "shares": [
+        4.999999959388675,
+        5.000001438379991,
+        5.000000289199836,
+        4.999998313031499
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.6869685008913393e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 102,
+      "n_users": 5,
+      "shares": [
+        4.000000211391845,
+        4.000001630778517,
+        4.000000541203006,
+        3.999998505430024,
+        3.9999991111966096
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.6307785166702615e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 102,
+      "n_users": 6,
+      "shares": [
+        3.333333430508498,
+        3.3333349691044587,
+        3.3333337603196584,
+        3.3333318437559663,
+        3.333332330313262,
+        3.3333336659981554
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.6357711252190654e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 102,
+      "n_users": 7,
+      "shares": [
+        2.8571430190722173,
+        2.857144557668178,
+        2.857143348883378,
+        2.8571415515289753,
+        2.857141799667692,
+        2.857143254561875,
+        2.8571424686176856
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.7005253210022886e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 102,
+      "n_users": 8,
+      "shares": [
+        2.500000145349362,
+        2.5000014455267436,
+        2.5000004751605225,
+        2.4999985585968303,
+        2.4999989259448365,
+        2.5000003808390194,
+        2.4999994756855406,
+        2.500000592897145
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.4455267436375152e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 103,
+      "n_users": 4,
+      "shares": [
+        5.000001103348029,
+        4.999998720215876,
+        5.000000648152446,
+        4.999998800419557
+      ],
+      "backend": "slsqp",
+      "budget_residual": 7.27864090777075e-07,
+      "max_share_error": 1.2797841240086427e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 103,
+      "n_users": 5,
+      "shares": [
+        4.000001103348029,
+        3.999998720215876,
+        4.000000648152446,
+        3.9999988004195575,
+        4.000001071800698
+      ],
+      "backend": "slsqp",
+      "budget_residual": -3.439366054180937e-07,
+      "max_share_error": 1.2797841240086427e-06,
+      "strict_budget_feasible": false
+    },
+    {
+      "vintage": "original",
+      "seed": 103,
+      "n_users": 6,
+      "shares": [
+        3.333334436681363,
+        3.3333320535492095,
+        3.3333339814857794,
+        3.333332133752891,
+        3.3333344051340315,
+        3.3333317772617987
+      ],
+      "backend": "slsqp",
+      "budget_residual": 1.2121349257654401e-06,
+      "max_share_error": 1.5560715347362475e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 103,
+      "n_users": 7,
+      "shares": [
+        2.8571439604908866,
+        2.857141577358733,
+        2.857143505295303,
+        2.8571416575624147,
+        2.857143928943555,
+        2.8571413010713225,
+        2.8571421466118943
+      ],
+      "backend": "slsqp",
+      "budget_residual": 1.9226658913851224e-06,
+      "max_share_error": 1.5560715347362475e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 103,
+      "n_users": 8,
+      "shares": [
+        2.50000137481039,
+        2.499999110887526,
+        2.5000009196148065,
+        2.4999991910912076,
+        2.500001224053769,
+        2.4999988346001154,
+        2.499999680140687,
+        2.4999996648014973
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.374810389975778e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 104,
+      "n_users": 4,
+      "shares": [
+        5.000000562116655,
+        5.00000056020052,
+        4.999999377543275,
+        4.999999990184955
+      ],
+      "backend": "slsqp",
+      "budget_residual": -4.900454051437464e-07,
+      "max_share_error": 6.224567252743896e-07,
+      "strict_budget_feasible": false
+    },
+    {
+      "vintage": "original",
+      "seed": 104,
+      "n_users": 5,
+      "shares": [
+        4.000000562116655,
+        4.00000056020052,
+        3.9999993775432747,
+        3.9999999901849557,
+        4.0000000005379315
+      ],
+      "backend": "slsqp",
+      "budget_residual": -4.905833357327083e-07,
+      "max_share_error": 6.224567252743896e-07,
+      "strict_budget_feasible": false
+    },
+    {
+      "vintage": "original",
+      "seed": 104,
+      "n_users": 6,
+      "shares": [
+        3.333333895449988,
+        3.333333893533853,
+        3.333332710876608,
+        3.333333323518289,
+        3.3333333338712654,
+        3.3333333907607687
+      ],
+      "backend": "slsqp",
+      "budget_residual": -5.480107709843196e-07,
+      "max_share_error": 6.224567252743896e-07,
+      "strict_budget_feasible": false
+    },
+    {
+      "vintage": "original",
+      "seed": 104,
+      "n_users": 7,
+      "shares": [
+        2.857142995093131,
+        2.857142993176996,
+        2.8571420489383303,
+        2.857142423161432,
+        2.8571424335144084,
+        2.8571426096132013,
+        2.8571444965025017
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.6393596444785885e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "original",
+      "seed": 104,
+      "n_users": 8,
+      "shares": [
+        2.5000002413530558,
+        2.5000002394369205,
+        2.4999991759889655,
+        2.499999669421357,
+        2.499999679774333,
+        2.4999997366638365,
+        2.5000017427624264,
+        2.499999514599106
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.7427624263710584e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 0,
+      "n_users": 4,
+      "shares": [
+        5.000000125730221,
+        4.999999867895137,
+        5.00000064042265,
+        5.000000104900117
+      ],
+      "backend": "slsqp",
+      "budget_residual": -7.389481240238638e-07,
+      "max_share_error": 6.404226500222876e-07,
+      "strict_budget_feasible": false
+    },
+    {
+      "vintage": "revised",
+      "seed": 0,
+      "n_users": 5,
+      "shares": [
+        4.000000125730221,
+        3.9999998678951365,
+        4.00000064042265,
+        4.000000104900117,
+        3.9999994643306267
+      ],
+      "backend": "slsqp",
+      "budget_residual": -2.0327875205339296e-07,
+      "max_share_error": 6.404226500222876e-07,
+      "strict_budget_feasible": false
+    },
+    {
+      "vintage": "revised",
+      "seed": 0,
+      "n_users": 6,
+      "shares": [
+        3.3333334590635544,
+        3.33333320122847,
+        3.333333973755984,
+        3.3333334382334505,
+        3.33333279766396,
+        3.3333336949283883
+      ],
+      "backend": "slsqp",
+      "budget_residual": -5.648738081731608e-07,
+      "max_share_error": 6.404226504663768e-07,
+      "strict_budget_feasible": false
+    },
+    {
+      "vintage": "revised",
+      "seed": 0,
+      "n_users": 7,
+      "shares": [
+        2.857142681831302,
+        2.8571425432055073,
+        2.8571431965237317,
+        2.857142780210488,
+        2.8571421396409975,
+        2.857142917696136,
+        2.857143740891837
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 8.837489797741682e-07,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 0,
+      "n_users": 8,
+      "shares": [
+        2.499999758834708,
+        2.499999620208913,
+        2.5000002735271374,
+        2.499999738004604,
+        2.499999216644403,
+        2.4999999946995417,
+        2.5000008178952426,
+        2.50000058018545
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 8.178952426440844e-07,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 1,
+      "n_users": 4,
+      "shares": [
+        5.000000345584192,
+        5.000000821618143,
+        5.000000330437076,
+        4.999998696842768
+      ],
+      "backend": "slsqp",
+      "budget_residual": -1.9448217969397774e-07,
+      "max_share_error": 1.3031572319022189e-06,
+      "strict_budget_feasible": false
+    },
+    {
+      "vintage": "revised",
+      "seed": 1,
+      "n_users": 5,
+      "shares": [
+        4.000000149458441,
+        4.000000625492392,
+        4.000000134311325,
+        3.9999985007170173,
+        4.000000590020826
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.4992829826532272e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 1,
+      "n_users": 6,
+      "shares": [
+        3.3333334808200665,
+        3.3333338376447283,
+        3.3333333464636614,
+        3.333331832078643,
+        3.3333339213824518,
+        3.333333581610447
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.5012546903392376e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 1,
+      "n_users": 7,
+      "shares": [
+        2.85714302448734,
+        2.8571435005212913,
+        2.8571430093402244,
+        2.857141494955206,
+        2.8571435842590147,
+        2.8571431252777204,
+        2.8571422611592023
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.3621876511216158e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 1,
+      "n_users": 8,
+      "shares": [
+        2.500000131885845,
+        2.5000004887105067,
+        2.5000001167387293,
+        2.499998602353711,
+        2.5000006916575197,
+        2.5000002326762254,
+        2.4999993685577073,
+        2.5000003674197573
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.3976462889253582e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 2,
+      "n_users": 4,
+      "shares": [
+        5.000000189053382,
+        4.999999477251558,
+        4.999999586936457,
+        4.999997558532617
+      ],
+      "backend": "slsqp",
+      "budget_residual": 3.1882259854398853e-06,
+      "max_share_error": 2.4414673829298295e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 2,
+      "n_users": 5,
+      "shares": [
+        4.000000189053382,
+        3.9999994772515586,
+        3.9999995869364566,
+        3.9999975585326175,
+        4.000001799707383
+      ],
+      "backend": "slsqp",
+      "budget_residual": 1.3885186014306328e-06,
+      "max_share_error": 2.4414673824857402e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 2,
+      "n_users": 6,
+      "shares": [
+        3.3333335223867153,
+        3.333332810584892,
+        3.33333292026979,
+        3.333330891865951,
+        3.333335133040716,
+        3.3333344774992053
+      ],
+      "backend": "slsqp",
+      "budget_residual": 2.4435273004996816e-07,
+      "max_share_error": 2.4414673824857402e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 2,
+      "n_users": 7,
+      "shares": [
+        2.857143046196239,
+        2.857142334394416,
+        2.857142444079314,
+        2.8571404156754747,
+        2.85714465685024,
+        2.857144001308729,
+        2.8571425317200205
+      ],
+      "backend": "slsqp",
+      "budget_residual": 5.697755653955028e-07,
+      "max_share_error": 2.4414673824857402e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 2,
+      "n_users": 8,
+      "shares": [
+        2.500000189053382,
+        2.4999994772515586,
+        2.4999995869364566,
+        2.4999975585326175,
+        2.5000017997073827,
+        2.500001144165872,
+        2.4999996745771633,
+        2.500000773806587
+      ],
+      "backend": "slsqp",
+      "budget_residual": -2.040310178585969e-07,
+      "max_share_error": 2.4414673824857402e-06,
+      "strict_budget_feasible": false
+    },
+    {
+      "vintage": "revised",
+      "seed": 3,
+      "n_users": 4,
+      "shares": [
+        5.000002040919122,
+        4.999997444334968,
+        5.000000418098847,
+        4.999999432230394
+      ],
+      "backend": "slsqp",
+      "budget_residual": 6.644166674618646e-07,
+      "max_share_error": 2.5556650316005403e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 3,
+      "n_users": 5,
+      "shares": [
+        4.000002040919122,
+        3.999997444334969,
+        4.000000418098847,
+        3.999999432230394,
+        3.9999995473507077
+      ],
+      "backend": "slsqp",
+      "budget_residual": 1.1170659597325994e-06,
+      "max_share_error": 2.555665031156451e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 3,
+      "n_users": 6,
+      "shares": [
+        3.3333353742524547,
+        3.3333307776683023,
+        3.33333375143218,
+        3.3333327655637275,
+        3.333332880684041,
+        3.3333331177361702
+      ],
+      "backend": "slsqp",
+      "budget_residual": 1.3326631247423393e-06,
+      "max_share_error": 2.555665031156451e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 3,
+      "n_users": 7,
+      "shares": [
+        2.8571451726530896,
+        2.857140933696806,
+        2.8571436690421046,
+        2.8571428023829415,
+        2.857142917503255,
+        2.8571431545553843,
+        2.8571413501664185
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 2.3155102324423638e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 3,
+      "n_users": 8,
+      "shares": [
+        2.5000022654744076,
+        2.499998026518124,
+        2.5000007618634226,
+        2.4999998952042595,
+        2.500000010324573,
+        2.5000002473767022,
+        2.499998562197026,
+        2.5000002310414877
+      ],
+      "backend": "slsqp",
+      "budget_residual": -3.552713678800501e-15,
+      "max_share_error": 2.2654744076255895e-06,
+      "strict_budget_feasible": false
+    },
+    {
+      "vintage": "revised",
+      "seed": 4,
+      "n_users": 4,
+      "shares": [
+        4.9999989890191845,
+        4.999999466093045,
+        5.000001244929684,
+        5.000000299958087
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.244929683785756e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 4,
+      "n_users": 5,
+      "shares": [
+        3.9999993482088474,
+        3.999999825282708,
+        4.0000016637239915,
+        4.00000065914775,
+        3.9999983586027055
+      ],
+      "backend": "slsqp",
+      "budget_residual": 1.450339972564052e-07,
+      "max_share_error": 1.6637239914629731e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 4,
+      "n_users": 6,
+      "shares": [
+        3.333332681542181,
+        3.3333331586160413,
+        3.333334997057325,
+        3.333333992481083,
+        3.333331691936039,
+        3.3333333281300694
+      ],
+      "backend": "slsqp",
+      "budget_residual": 1.5023726263052595e-07,
+      "max_share_error": 1.6637239914629731e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 4,
+      "n_users": 7,
+      "shares": [
+        2.8571422053517046,
+        2.857142682425565,
+        2.8571445208668487,
+        2.857143516290607,
+        2.8571412157455627,
+        2.857142851939593,
+        2.857142233679116
+      ],
+      "backend": "slsqp",
+      "budget_residual": 7.737010037089931e-07,
+      "max_share_error": 1.6637239914629731e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 4,
+      "n_users": 8,
+      "shares": [
+        2.4999993482088474,
+        2.499999825282708,
+        2.5000016637239915,
+        2.5000006591477497,
+        2.4999983586027055,
+        2.499999994796736,
+        2.499999376536259,
+        2.500000148631523
+      ],
+      "backend": "slsqp",
+      "budget_residual": 6.25069478843443e-07,
+      "max_share_error": 1.6637239914629731e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 100,
+      "n_users": 4,
+      "shares": [
+        4.999998842450353,
+        5.0000002897558025,
+        5.000000780854069,
+        5.000000543973645
+      ],
+      "backend": "slsqp",
+      "budget_residual": -4.5703387030471276e-07,
+      "max_share_error": 1.1575496472460145e-06,
+      "strict_budget_feasible": false
+    },
+    {
+      "vintage": "revised",
+      "seed": 100,
+      "n_users": 5,
+      "shares": [
+        3.9999988424503528,
+        4.0000002897558025,
+        4.000000780854069,
+        4.000000543973645,
+        3.999999038617359
+      ],
+      "backend": "slsqp",
+      "budget_residual": 5.043487725231444e-07,
+      "max_share_error": 1.1575496472460145e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 100,
+      "n_users": 6,
+      "shares": [
+        3.3333321757836862,
+        3.333333623089136,
+        3.333334114187403,
+        3.3333338773069783,
+        3.3333323719506924,
+        3.3333344043419992
+      ],
+      "backend": "slsqp",
+      "budget_residual": -5.666598958953273e-07,
+      "max_share_error": 1.1575496472460145e-06,
+      "strict_budget_feasible": false
+    },
+    {
+      "vintage": "revised",
+      "seed": 100,
+      "n_users": 7,
+      "shares": [
+        2.8571416035833375,
+        2.8571429316794976,
+        2.8571434227777646,
+        2.85714318589734,
+        2.8571417997503437,
+        2.857143712932361,
+        2.8571433433793554
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.2535595197427085e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 100,
+      "n_users": 8,
+      "shares": [
+        2.499998789529322,
+        2.4999999984161927,
+        2.5000004895144596,
+        2.500000252634035,
+        2.4999988664870387,
+        2.500000779669056,
+        2.5000004101160505,
+        2.5000004136338454
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.210470677914799e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 101,
+      "n_users": 4,
+      "shares": [
+        4.9999992098475,
+        4.999997965374519,
+        5.000000603301747,
+        5.00000074429453
+      ],
+      "backend": "slsqp",
+      "budget_residual": 1.4771817049563651e-06,
+      "max_share_error": 2.0346254814285203e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 101,
+      "n_users": 5,
+      "shares": [
+        3.9999992098475,
+        3.999997965374518,
+        4.000000603301747,
+        4.00000074429453,
+        3.9999996903132002
+      ],
+      "backend": "slsqp",
+      "budget_residual": 1.7868685056043887e-06,
+      "max_share_error": 2.0346254818726095e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 101,
+      "n_users": 6,
+      "shares": [
+        3.3333325431808336,
+        3.3333312987078516,
+        3.3333339366350803,
+        3.3333340776278635,
+        3.3333330236465337,
+        3.3333337006547064
+      ],
+      "backend": "slsqp",
+      "budget_residual": 1.419547132286425e-06,
+      "max_share_error": 2.0346254818726095e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 101,
+      "n_users": 7,
+      "shares": [
+        2.8571420669903573,
+        2.8571408225173753,
+        2.857143460444604,
+        2.857143601437387,
+        2.8571425474560574,
+        2.85714322446423,
+        2.8571445675371487
+      ],
+      "backend": "slsqp",
+      "budget_residual": -2.908471614659902e-07,
+      "max_share_error": 2.0346254818726095e-06,
+      "strict_budget_feasible": false
+    },
+    {
+      "vintage": "revised",
+      "seed": 101,
+      "n_users": 8,
+      "shares": [
+        2.4999990706941975,
+        2.4999980646397946,
+        2.500000464148444,
+        2.5000006051412274,
+        2.4999995511598976,
+        2.5000001089587807,
+        2.5000013328224098,
+        2.500000802435248
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.935360205429504e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 102,
+      "n_users": 4,
+      "shares": [
+        4.999999959388675,
+        5.000001438379991,
+        5.000000289199836,
+        4.999998313031499
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.6869685008913393e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 102,
+      "n_users": 5,
+      "shares": [
+        4.000000211391845,
+        4.000001630778517,
+        4.000000541203006,
+        3.999998505430024,
+        3.9999991111966096
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.6307785166702615e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 102,
+      "n_users": 6,
+      "shares": [
+        3.333333430508498,
+        3.3333349691044587,
+        3.3333337603196584,
+        3.3333318437559663,
+        3.333332330313262,
+        3.3333336659981554
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.6357711252190654e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 102,
+      "n_users": 7,
+      "shares": [
+        2.8571430190722173,
+        2.857144557668178,
+        2.857143348883378,
+        2.8571415515289753,
+        2.857141799667692,
+        2.857143254561875,
+        2.8571424686176856
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.7005253210022886e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 102,
+      "n_users": 8,
+      "shares": [
+        2.500000145349362,
+        2.5000014455267436,
+        2.5000004751605225,
+        2.4999985585968303,
+        2.4999989259448365,
+        2.5000003808390194,
+        2.4999994756855406,
+        2.500000592897145
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.4455267436375152e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 103,
+      "n_users": 4,
+      "shares": [
+        5.000001103348029,
+        4.999998720215876,
+        5.000000648152446,
+        4.999998800419557
+      ],
+      "backend": "slsqp",
+      "budget_residual": 7.27864090777075e-07,
+      "max_share_error": 1.2797841240086427e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 103,
+      "n_users": 5,
+      "shares": [
+        4.000001103348029,
+        3.999998720215876,
+        4.000000648152446,
+        3.9999988004195575,
+        4.000001071800698
+      ],
+      "backend": "slsqp",
+      "budget_residual": -3.439366054180937e-07,
+      "max_share_error": 1.2797841240086427e-06,
+      "strict_budget_feasible": false
+    },
+    {
+      "vintage": "revised",
+      "seed": 103,
+      "n_users": 6,
+      "shares": [
+        3.333334436681363,
+        3.3333320535492095,
+        3.3333339814857794,
+        3.333332133752891,
+        3.3333344051340315,
+        3.3333317772617987
+      ],
+      "backend": "slsqp",
+      "budget_residual": 1.2121349257654401e-06,
+      "max_share_error": 1.5560715347362475e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 103,
+      "n_users": 7,
+      "shares": [
+        2.8571439604908866,
+        2.857141577358733,
+        2.857143505295303,
+        2.8571416575624147,
+        2.857143928943555,
+        2.8571413010713225,
+        2.8571421466118943
+      ],
+      "backend": "slsqp",
+      "budget_residual": 1.9226658913851224e-06,
+      "max_share_error": 1.5560715347362475e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 103,
+      "n_users": 8,
+      "shares": [
+        2.50000137481039,
+        2.499999110887526,
+        2.5000009196148065,
+        2.4999991910912076,
+        2.500001224053769,
+        2.4999988346001154,
+        2.499999680140687,
+        2.4999996648014973
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.374810389975778e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 104,
+      "n_users": 4,
+      "shares": [
+        5.000000562116655,
+        5.00000056020052,
+        4.999999377543275,
+        4.999999990184955
+      ],
+      "backend": "slsqp",
+      "budget_residual": -4.900454051437464e-07,
+      "max_share_error": 6.224567252743896e-07,
+      "strict_budget_feasible": false
+    },
+    {
+      "vintage": "revised",
+      "seed": 104,
+      "n_users": 5,
+      "shares": [
+        4.000000562116655,
+        4.00000056020052,
+        3.9999993775432747,
+        3.9999999901849557,
+        4.0000000005379315
+      ],
+      "backend": "slsqp",
+      "budget_residual": -4.905833357327083e-07,
+      "max_share_error": 6.224567252743896e-07,
+      "strict_budget_feasible": false
+    },
+    {
+      "vintage": "revised",
+      "seed": 104,
+      "n_users": 6,
+      "shares": [
+        3.333333895449988,
+        3.333333893533853,
+        3.333332710876608,
+        3.333333323518289,
+        3.3333333338712654,
+        3.3333333907607687
+      ],
+      "backend": "slsqp",
+      "budget_residual": -5.480107709843196e-07,
+      "max_share_error": 6.224567252743896e-07,
+      "strict_budget_feasible": false
+    },
+    {
+      "vintage": "revised",
+      "seed": 104,
+      "n_users": 7,
+      "shares": [
+        2.857142995093131,
+        2.857142993176996,
+        2.8571420489383303,
+        2.857142423161432,
+        2.8571424335144084,
+        2.8571426096132013,
+        2.8571444965025017
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.6393596444785885e-06,
+      "strict_budget_feasible": true
+    },
+    {
+      "vintage": "revised",
+      "seed": 104,
+      "n_users": 8,
+      "shares": [
+        2.5000002413530558,
+        2.5000002394369205,
+        2.4999991759889655,
+        2.499999669421357,
+        2.499999679774333,
+        2.4999997366638365,
+        2.5000017427624264,
+        2.499999514599106
+      ],
+      "backend": "slsqp",
+      "budget_residual": 0.0,
+      "max_share_error": 1.7427624263710584e-06,
+      "strict_budget_feasible": true
+    }
+  ],
+  "human_approval": false
+}
