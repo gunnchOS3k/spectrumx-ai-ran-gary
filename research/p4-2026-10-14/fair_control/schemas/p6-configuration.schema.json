@@ -1,0 +1,3302 @@
+{
+  "type": "object",
+  "required": [
+    "schema_version",
+    "experiment_id",
+    "execution_mode",
+    "review_state",
+    "protocol_revision",
+    "source",
+    "authorization",
+    "configuration_status",
+    "parameters",
+    "calibration",
+    "task_catalog",
+    "scenario",
+    "observations",
+    "hardware",
+    "model",
+    "policies",
+    "compute",
+    "outcomes",
+    "analysis",
+    "randomization",
+    "holdout_access",
+    "stop_conditions",
+    "pilot_bounds",
+    "rights",
+    "owner_decisions"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "p6-freeze-candidate-0.1"
+    },
+    "experiment_id": {
+      "const": "paper-ii-prospective-task-control-p6-draft"
+    },
+    "execution_mode": {
+      "const": "PILOT_EXPERIMENT"
+    },
+    "review_state": {
+      "const": "DRAFT_OWNER_APPROVAL_REQUIRED"
+    },
+    "protocol_revision": {
+      "type": "object",
+      "required": [
+        "path",
+        "sha256",
+        "independently_registered"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "independently_registered": {
+          "type": "boolean"
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "source_sha",
+        "source_sha_role",
+        "modules",
+        "task_catalog_sha256"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "source_sha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "source_sha_role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "modules": {
+          "type": "object",
+          "required": [
+            "core.py",
+            "tasks.py",
+            "dynamics.py",
+            "controllers.py",
+            "fairness.py",
+            "p6_application.py",
+            "p6_scenarios.py",
+            "p6_process.py",
+            "p6_calibration.py",
+            "p6_statistics.py",
+            "p6_configuration.py"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "core.py": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "tasks.py": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "dynamics.py": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "controllers.py": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "fairness.py": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "p6_application.py": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "p6_scenarios.py": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "p6_process.py": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "p6_calibration.py": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "p6_statistics.py": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "p6_configuration.py": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        "task_catalog_sha256": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "authorization": {
+      "type": "object",
+      "required": [
+        "scientific_protocol_approved",
+        "pilot_execution_authorized",
+        "heldout_execution_authorized",
+        "human_scientific_approval",
+        "publication_authorized"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "scientific_protocol_approved": {
+          "type": "boolean"
+        },
+        "pilot_execution_authorized": {
+          "type": "boolean"
+        },
+        "heldout_execution_authorized": {
+          "type": "boolean"
+        },
+        "human_scientific_approval": {
+          "type": "boolean"
+        },
+        "publication_authorized": {
+          "type": "boolean"
+        }
+      }
+    },
+    "configuration_status": {
+      "type": "object",
+      "required": [
+        "configuration_complete",
+        "configuration_technically_validated",
+        "scientific_design_approved",
+        "protocol_frozen_for_pilot",
+        "pilot_execution_authorized"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "configuration_complete": {
+          "type": "boolean"
+        },
+        "configuration_technically_validated": {
+          "type": "boolean"
+        },
+        "scientific_design_approved": {
+          "type": "boolean"
+        },
+        "protocol_frozen_for_pilot": {
+          "type": "boolean"
+        },
+        "pilot_execution_authorized": {
+          "type": "boolean"
+        }
+      }
+    },
+    "parameters": {
+      "type": "object",
+      "required": [
+        "control_interval",
+        "cpu_capacity",
+        "local_cpu",
+        "memory",
+        "bandwidth",
+        "power",
+        "initial_energy",
+        "network_switch",
+        "network_switch_energy",
+        "placement_switch",
+        "placement_switch_energy",
+        "hysteresis",
+        "max_model_calls",
+        "decision_deadline",
+        "startup_cap",
+        "margin",
+        "alternative",
+        "hypothetical_sd",
+        "half_width",
+        "target_power",
+        "pilot_pairs",
+        "heldout_min",
+        "heldout_cap",
+        "episodes_per_unit",
+        "steps_per_episode",
+        "max_tasks_episode",
+        "cpu_hours_cap",
+        "observation_delay",
+        "capacity_relative_error",
+        "latency_bias",
+        "poisson_rate",
+        "background_load",
+        "compute_service_treatment"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "control_interval": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "cpu_capacity": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "local_cpu": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "memory": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "bandwidth": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "power": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "initial_energy": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "network_switch": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "network_switch_energy": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "placement_switch": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "placement_switch_energy": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "hysteresis": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "max_model_calls": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "decision_deadline": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "startup_cap": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "margin": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "alternative": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "hypothetical_sd": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "half_width": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "target_power": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "pilot_pairs": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "heldout_min": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "heldout_cap": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "episodes_per_unit": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "steps_per_episode": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "max_tasks_episode": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "cpu_hours_cap": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "observation_delay": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "capacity_relative_error": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "latency_bias": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "poisson_rate": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "background_load": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        },
+        "compute_service_treatment": {
+          "type": "object",
+          "required": [
+            "value",
+            "units",
+            "meaning",
+            "classification",
+            "source",
+            "scientific_justification",
+            "uncertainty",
+            "dependencies",
+            "validation_required",
+            "owner_approved"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "string",
+              "minLength": 1
+            },
+            "units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "classification": {
+              "enum": [
+                "IMPLEMENTED_AND_VERIFIED",
+                "PROVISIONAL_ENGINEERING_DEFAULT",
+                "PROPOSED_SCIENTIFIC_PARAMETER",
+                "CALIBRATION_REQUIRED",
+                "OWNER_DECISION_REQUIRED",
+                "SCIENTIFICALLY_UNSUPPORTED"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scientific_justification": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dependencies": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "validation_required": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_approved": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "calibration": {
+      "type": "object",
+      "required": [
+        "model_mode",
+        "physical_calibration_available",
+        "measurement_records",
+        "standards_are_measurements"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "model_mode": {
+          "type": "string",
+          "minLength": 1
+        },
+        "physical_calibration_available": {
+          "type": "boolean"
+        },
+        "measurement_records": {
+          "type": "array",
+          "maxItems": 0
+        },
+        "standards_are_measurements": {
+          "type": "boolean"
+        }
+      }
+    },
+    "task_catalog": {
+      "type": "object",
+      "required": [
+        "catalog_version",
+        "evidence_class",
+        "owner_scientific_approval",
+        "tasks"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "catalog_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_class": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner_scientific_approval": {
+          "type": "boolean"
+        },
+        "tasks": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "required": [
+              "task_id",
+              "adapter",
+              "eligibility",
+              "required_input",
+              "expected_output_utf8",
+              "deadline_s",
+              "quality_minimum",
+              "freshness_limit_s",
+              "requires_durable",
+              "compute_mcycles_assumption",
+              "memory_mb_assumption",
+              "network_required",
+              "restore_semantics",
+              "failure_conditions",
+              "rights_status",
+              "owner_scientific_approval"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "task_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "adapter": {
+                "type": "string",
+                "minLength": 1
+              },
+              "eligibility": {
+                "type": "string",
+                "minLength": 1
+              },
+              "required_input": {
+                "type": "string",
+                "minLength": 1
+              },
+              "expected_output_utf8": {
+                "type": "string",
+                "minLength": 1
+              },
+              "deadline_s": {
+                "type": "number",
+                "minimum": 0
+              },
+              "quality_minimum": {
+                "type": "number",
+                "minimum": 0
+              },
+              "freshness_limit_s": {
+                "type": "number",
+                "minimum": 0
+              },
+              "requires_durable": {
+                "type": "boolean"
+              },
+              "compute_mcycles_assumption": {
+                "type": "number",
+                "minimum": 0
+              },
+              "memory_mb_assumption": {
+                "type": "number",
+                "minimum": 0
+              },
+              "network_required": {
+                "type": "boolean"
+              },
+              "restore_semantics": {
+                "type": "string",
+                "minLength": 1
+              },
+              "failure_conditions": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 6,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "rights_status": {
+                "type": "string",
+                "minLength": 1
+              },
+              "owner_scientific_approval": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "required": [
+        "version",
+        "parameter_status",
+        "gates",
+        "links",
+        "arrival",
+        "burst_model",
+        "initial_task",
+        "background_load_fraction",
+        "strata",
+        "mixture_weights",
+        "heldout_regime_values",
+        "units"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parameter_status": {
+          "type": "string",
+          "minLength": 1
+        },
+        "gates": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "fail_rate_s",
+              "restore_rate_s"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "fail_rate_s": {
+                "type": "number",
+                "minimum": 0
+              },
+              "restore_rate_s": {
+                "type": "number",
+                "minimum": 0
+              }
+            }
+          }
+        },
+        "links": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "capacity_mbps",
+              "latency_s",
+              "dependencies"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "capacity_mbps": {
+                "type": "number",
+                "minimum": 0
+              },
+              "latency_s": {
+                "type": "number",
+                "minimum": 0
+              },
+              "dependencies": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 4,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        },
+        "arrival": {
+          "type": "string",
+          "minLength": 1
+        },
+        "burst_model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "initial_task": {
+          "type": "string",
+          "minLength": 1
+        },
+        "background_load_fraction": {
+          "type": "number",
+          "minimum": 0
+        },
+        "strata": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "mixture_weights": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "items": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "heldout_regime_values": {
+          "type": "null"
+        },
+        "units": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "observations": {
+      "type": "object",
+      "required": [
+        "fields",
+        "estimator",
+        "delay_s",
+        "capacity_relative_error",
+        "latency_bias_s",
+        "availability_flip",
+        "forecast_horizon",
+        "future_truth_access"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "fields": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "estimator": {
+          "type": "string",
+          "minLength": 1
+        },
+        "delay_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "capacity_relative_error": {
+          "type": "number",
+          "minimum": -1,
+          "maximum": 1
+        },
+        "latency_bias_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "availability_flip": {
+          "type": "boolean"
+        },
+        "forecast_horizon": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "future_truth_access": {
+          "type": "boolean"
+        }
+      }
+    },
+    "hardware": {
+      "type": "object",
+      "required": [
+        "cpu_mcycles_s",
+        "memory_mb",
+        "bandwidth_mbps",
+        "power_w",
+        "placement_cpu"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "cpu_mcycles_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "memory_mb": {
+          "type": "number",
+          "minimum": 0
+        },
+        "bandwidth_mbps": {
+          "type": "number",
+          "minimum": 0
+        },
+        "power_w": {
+          "type": "number",
+          "minimum": 0
+        },
+        "placement_cpu": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "items": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "prefixItems": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "number",
+                "minimum": 0
+              }
+            ]
+          }
+        }
+      }
+    },
+    "model": {
+      "type": "object",
+      "required": [
+        "network_stall_s",
+        "network_energy_j",
+        "placement_stall_s",
+        "placement_energy_j",
+        "degraded_quality"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "network_stall_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "network_energy_j": {
+          "type": "number",
+          "minimum": 0
+        },
+        "placement_stall_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "placement_energy_j": {
+          "type": "number",
+          "minimum": 0
+        },
+        "degraded_quality": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "policies": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "family",
+          "horizon",
+          "beam_width",
+          "hysteresis",
+          "max_evaluations",
+          "deadline_s",
+          "observations"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "family": {
+            "type": "string",
+            "minLength": 1
+          },
+          "horizon": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "beam_width": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "hysteresis": {
+            "type": "number",
+            "minimum": 0
+          },
+          "max_evaluations": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "deadline_s": {
+            "type": "number",
+            "minimum": 0
+          },
+          "observations": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 6,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "compute": {
+      "type": "object",
+      "required": [
+        "wrapper",
+        "startup_allowance_s",
+        "decision_allowance_s",
+        "actual_calls_and_all_time_components_reported",
+        "service_delay_treatment",
+        "real_time_certified"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "wrapper": {
+          "type": "string",
+          "minLength": 1
+        },
+        "startup_allowance_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "decision_allowance_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "actual_calls_and_all_time_components_reported": {
+          "type": "boolean"
+        },
+        "service_delay_treatment": {
+          "type": "string",
+          "minLength": 1
+        },
+        "real_time_certified": {
+          "type": "boolean"
+        }
+      }
+    },
+    "outcomes": {
+      "type": "object",
+      "required": [
+        "primary",
+        "weighting",
+        "secondary",
+        "empty_unit",
+        "controller_failure",
+        "task_failure",
+        "harness_failure"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "primary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "weighting": {
+          "type": "string",
+          "minLength": 1
+        },
+        "secondary": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "empty_unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "controller_failure": {
+          "type": "string",
+          "minLength": 1
+        },
+        "task_failure": {
+          "type": "string",
+          "minLength": 1
+        },
+        "harness_failure": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "analysis": {
+      "type": "object",
+      "required": [
+        "primary_contrast",
+        "null",
+        "practical_margin",
+        "planning_alternative",
+        "confidence_interval",
+        "alpha",
+        "power_target",
+        "half_width_target",
+        "pilot_pairs_proposal",
+        "hypothetical_sd",
+        "sample_cap",
+        "secondary_confirmatory",
+        "pilot_reused_confirmatory",
+        "optional_stopping",
+        "tuning_split_separate",
+        "heldout_validation_separate"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "primary_contrast": {
+          "type": "string",
+          "minLength": 1
+        },
+        "null": {
+          "type": "string",
+          "minLength": 1
+        },
+        "practical_margin": {
+          "type": "number",
+          "minimum": 0
+        },
+        "planning_alternative": {
+          "type": "number",
+          "minimum": 0
+        },
+        "confidence_interval": {
+          "type": "string",
+          "minLength": 1
+        },
+        "alpha": {
+          "type": "number",
+          "minimum": 0
+        },
+        "power_target": {
+          "type": "number",
+          "minimum": 0
+        },
+        "half_width_target": {
+          "type": "number",
+          "minimum": 0
+        },
+        "pilot_pairs_proposal": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "hypothetical_sd": {
+          "type": "number",
+          "minimum": 0
+        },
+        "sample_cap": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "secondary_confirmatory": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pilot_reused_confirmatory": {
+          "type": "boolean"
+        },
+        "optional_stopping": {
+          "type": "boolean"
+        },
+        "tuning_split_separate": {
+          "type": "boolean"
+        },
+        "heldout_validation_separate": {
+          "type": "boolean"
+        }
+      }
+    },
+    "randomization": {
+      "type": "object",
+      "required": [
+        "method",
+        "seed_manifest",
+        "pilot_seed_ids",
+        "tuning_seed_ids",
+        "confirmatory_seed_ids",
+        "heldout_seed_ids"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "method": {
+          "type": "string",
+          "minLength": 1
+        },
+        "seed_manifest": {
+          "type": "null"
+        },
+        "pilot_seed_ids": {
+          "type": "null"
+        },
+        "tuning_seed_ids": {
+          "type": "null"
+        },
+        "confirmatory_seed_ids": {
+          "type": "null"
+        },
+        "heldout_seed_ids": {
+          "type": "null"
+        }
+      }
+    },
+    "holdout_access": {
+      "type": "object",
+      "required": [
+        "authorized",
+        "outcome_paths",
+        "reserved_regimes_read",
+        "pilot_tuning_confirmatory_validation_disjoint"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "authorized": {
+          "type": "boolean"
+        },
+        "outcome_paths": {
+          "type": "array",
+          "maxItems": 0
+        },
+        "reserved_regimes_read": {
+          "type": "boolean"
+        },
+        "pilot_tuning_confirmatory_validation_disjoint": {
+          "type": "boolean"
+        }
+      }
+    },
+    "stop_conditions": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 6,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "pilot_bounds": {
+      "type": "object",
+      "required": [
+        "max_pairs",
+        "episodes_per_pair",
+        "steps_per_episode",
+        "max_tasks_per_episode",
+        "max_simulation_s_per_policy_unit",
+        "max_cpu_hours_total",
+        "output_path_proposal",
+        "data_classification",
+        "executed"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "max_pairs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "episodes_per_pair": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "steps_per_episode": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_tasks_per_episode": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_simulation_s_per_policy_unit": {
+          "type": "number",
+          "minimum": 0
+        },
+        "max_cpu_hours_total": {
+          "type": "number",
+          "minimum": 0
+        },
+        "output_path_proposal": {
+          "type": "string",
+          "minLength": 1
+        },
+        "data_classification": {
+          "type": "string",
+          "minLength": 1
+        },
+        "executed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "rights": {
+      "type": "object",
+      "required": [
+        "external_dataset_imports",
+        "WAIKE_rights_cleared",
+        "original_fixture_local_engineering",
+        "article_license_approved",
+        "patent_clearance",
+        "additional_authors_funding_conflicts",
+        "external_application_execution_permitted"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "external_dataset_imports": {
+          "type": "array",
+          "maxItems": 0
+        },
+        "WAIKE_rights_cleared": {
+          "type": "boolean"
+        },
+        "original_fixture_local_engineering": {
+          "type": "boolean"
+        },
+        "article_license_approved": {
+          "type": "boolean"
+        },
+        "patent_clearance": {
+          "type": "boolean"
+        },
+        "additional_authors_funding_conflicts": {
+          "type": "string",
+          "minLength": 1
+        },
+        "external_application_execution_permitted": {
+          "type": "boolean"
+        }
+      }
+    },
+    "owner_decisions": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 9,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}
