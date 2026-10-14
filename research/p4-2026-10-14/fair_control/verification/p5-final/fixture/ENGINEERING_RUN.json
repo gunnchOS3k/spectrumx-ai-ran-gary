@@ -1,0 +1,289 @@
+{
+  "payload": {
+    "schema_version": "p5-engineering-result-0.1",
+    "mode": "ENGINEERING_TEST",
+    "fixture_id": "constructed-offline-copy",
+    "source_sha": "36c957862ba8d3e369899c7d5616dffaef2b479e",
+    "configuration_sha256": "03af941a61671e66329f3424c9edca81155b2ecdfdc55785caa14a6b0884da55",
+    "controller_revision": "dc1f742a7f397d9cf577754f629e18a4ec902acacc92c841b0bae7296e0ac59b",
+    "model_revision": "92aa9d3cb74c4d0e03a5402abfea72c993d1db71869c48be53bb584315a88a20",
+    "environment_revision": "5fc581435c9efbaf244bb40c1210cb9c8280464f905b2a508e18291587560402",
+    "seed_manifest": {
+      "kind": "CONSTRUCTED_NO_RANDOMNESS",
+      "seed_ids": [],
+      "heldout_paths": []
+    },
+    "policy_information_declaration": [
+      "timestamp_s",
+      "estimated_paths",
+      "task_queue",
+      "remaining_energy_j",
+      "previous_action",
+      "forecasts"
+    ],
+    "resource_budget_declaration": {
+      "cpu_mcycles_s": 10.0,
+      "memory_mb": 100.0,
+      "bandwidth_mbps": 10.0,
+      "power_w": 2.0,
+      "placement_cpu": [
+        [
+          "local",
+          5.0
+        ],
+        [
+          "edge",
+          10.0
+        ],
+        [
+          "cloud",
+          10.0
+        ]
+      ]
+    },
+    "compute_budget_declaration": {
+      "family": "hysteresis",
+      "observations": [
+        "timestamp_s",
+        "estimated_paths",
+        "task_queue",
+        "remaining_energy_j",
+        "previous_action",
+        "forecasts"
+      ],
+      "max_evaluations": 512,
+      "deadline_s": 0.1,
+      "horizon": 3,
+      "beam_width": 4,
+      "hysteresis": 0.05
+    },
+    "primary_outcome": {
+      "schema": "all_exogenous_tasks_correct_deadline_fresh_quality_durable_fraction",
+      "scheduled": 1,
+      "successes": 1,
+      "fraction": 1.0
+    },
+    "secondary_outcome": {
+      "energy_used_j": 2.0,
+      "queue_length": 0,
+      "failures": {},
+      "invalid_actions": 0
+    },
+    "decisions": [
+      {
+        "action": {
+          "network": null,
+          "placement": "local",
+          "allocations": [
+            {
+              "task_id": "copy",
+              "bandwidth_mbps": 0.0,
+              "cpu_mcycles_s": 5.0,
+              "memory_mb": 1.0,
+              "power_w": 2.0
+            }
+          ],
+          "fidelity": "target"
+        },
+        "status": "SOLVED",
+        "model_evaluations": 3,
+        "consumed_fields": [
+          "timestamp_s",
+          "estimated_paths",
+          "task_queue",
+          "remaining_energy_j",
+          "previous_action",
+          "forecasts"
+        ],
+        "observation_sha256": "3244e5d3a07498d58442e6fbcced94570bb055e1489cd9c0b37b8350bcea4d9d",
+        "catalog_sha256": "0e3e0e6491d706a2bd147789bb7e162dad2dd8d1d63e1730f78229715079eea8",
+        "predicted_completions": 1,
+        "error": null
+      }
+    ],
+    "checkpoint": {
+      "version": "p5-state-0.1",
+      "specs_hash": "22b7f7ef89fd0c81b096b62b1446e507713b012d607f97b5eafc427d173dadb2",
+      "model": {
+        "schema_version": "p5-synthetic-0.1",
+        "mode": "UNCALIBRATED_SYNTHETIC",
+        "network_stall_s": 0.05,
+        "network_energy_j": 0.01,
+        "placement_stall_s": 0.1,
+        "placement_energy_j": 0.02,
+        "degraded_quality": 0.5
+      },
+      "now_s": 1.0,
+      "energy_j": 8.0,
+      "initial_energy_j": 10.0,
+      "previous": {
+        "network": null,
+        "placement": "local",
+        "allocations": [
+          {
+            "task_id": "copy",
+            "bandwidth_mbps": 0.0,
+            "cpu_mcycles_s": 5.0,
+            "memory_mb": 1.0,
+            "power_w": 2.0
+          }
+        ],
+        "fidelity": "target"
+      },
+      "tasks": {
+        "copy": {
+          "state": "COMPLETED",
+          "progress_mcycles": 2.0,
+          "delivered_mbit": 0.0,
+          "latency_paid_s": 0.0,
+          "placement": "local",
+          "network": null,
+          "checkpoint": null,
+          "failure": null,
+          "history": [
+            {
+              "from": "CREATED",
+              "to": "QUEUED",
+              "at_s": 0.0,
+              "reason": "arrival"
+            },
+            {
+              "from": "QUEUED",
+              "to": "READY",
+              "at_s": 0.0,
+              "reason": "queued"
+            },
+            {
+              "from": "READY",
+              "to": "RUNNING",
+              "at_s": 0.0,
+              "reason": "allocation"
+            },
+            {
+              "from": "RUNNING",
+              "to": "COMPLETED",
+              "at_s": 0.4,
+              "reason": "verified_completion"
+            }
+          ]
+        }
+      },
+      "contents": [],
+      "observed": [
+        {
+          "task_id": "copy",
+          "finished_s": 0.4,
+          "output": "fixture",
+          "content_age_s": 0.0,
+          "quality": 1.0,
+          "durable": true
+        }
+      ],
+      "attempts": [
+        {
+          "task_id": "copy",
+          "finished_s": 0.4,
+          "output": "fixture",
+          "content_age_s": 0.0,
+          "quality": 1.0,
+          "durable": true
+        }
+      ],
+      "trace": [
+        {
+          "at_s": 1.0,
+          "action": {
+            "network": null,
+            "placement": "local",
+            "allocations": [
+              {
+                "task_id": "copy",
+                "bandwidth_mbps": 0.0,
+                "cpu_mcycles_s": 5.0,
+                "memory_mb": 1.0,
+                "power_w": 2.0
+              }
+            ],
+            "fidelity": "target"
+          },
+          "accepted": true,
+          "errors": [],
+          "cpu_mcycles": 2.0,
+          "delivered_mbit": 0.0,
+          "energy_j": 2.0,
+          "stall_s": 0.0,
+          "remaining_energy_j": 8.0,
+          "queue_length": 0
+        }
+      ]
+    },
+    "source_tree_sha256": "cfea0c45bbaf75feafeb80694dcfcdc3ee7de867424d2baeece8f5dea652aa3a",
+    "errors": [],
+    "campaign_executed": false,
+    "authorization": {
+      "scientific_protocol_approved": false,
+      "pilot_execution": false,
+      "confirmatory_execution": false,
+      "heldout_execution": false,
+      "human_scientific_approval": false,
+      "publication": false
+    }
+  },
+  "payload_sha256": "d8795f770d6d4a34765d26b18a18a8240db91a01d76e0fb42a91b71299989de5",
+  "timing_provenance": [
+    {
+      "elapsed_s": 0.00033075000101234764
+    }
+  ],
+  "environment": {
+    "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "packages": {
+      "jsonschema": "4.26.0",
+      "numpy": "2.5.4",
+      "scipy": "1.18.1"
+    },
+    "fresh_installation_tested": false
+  },
+  "manifest": {
+    "files": {
+      "src/fair_control/__init__.py": "7d09c59140cb3a653fadc3bf76e98c9b5f03f5a79d0cf195279a06279e9c67d2",
+      "src/fair_control/analysis.py": "b8a3bef073a35cd876a3fc4980ba2a4cc375c93516955c2a5cf3896ca5361b92",
+      "src/fair_control/calibration.py": "f963f7bab511a7735ca0ad3a9591b7a78e7d8fe8e37e03a77c53cbfd3c7d934b",
+      "src/fair_control/controllers.py": "dc1f742a7f397d9cf577754f629e18a4ec902acacc92c841b0bae7296e0ac59b",
+      "src/fair_control/core.py": "55d1678be7c5fe1eabe14efdae66beb39da8f0b2ebb06e01e112aeb9128d8495",
+      "src/fair_control/dynamics.py": "92aa9d3cb74c4d0e03a5402abfea72c993d1db71869c48be53bb584315a88a20",
+      "src/fair_control/fairness.py": "4bda61ea96b4d0191dc3facf91e0982aad54836a83c6cf65c786e845f4e81ddc",
+      "src/fair_control/isolation.py": "5bf17550a895be033c6f66c4cdef24e73fba5271ecc7881929578ca2514e895c",
+      "src/fair_control/runner.py": "bef49b22c90bd1484032638c57102388a9d474399f45e2ddfa7d85f88d7e16a7",
+      "src/fair_control/tasks.py": "5fc581435c9efbaf244bb40c1210cb9c8280464f905b2a508e18291587560402",
+      "src/fair_control/validation.py": "0bd6a18c7523dbfe3f53286f3a8f1a1775cd0ebebb863c0788e7fd2ef482d01d",
+      "tests/test_contracts.py": "180890cc22e6409a52e78b3dc399dc60ff1308921136b3e5cad9f17d69f2a278",
+      "tests/test_p5.py": "262e74c5bed28382acf87c20a65254e64ab8b0de6b190b50b17eded5d0e37866",
+      "configs/design.json": "06ed7266e883a342ca79ddfb6cdeb2b1450e713c3203548b480ab6859950ed25",
+      "schemas/config.schema.json": "8e9d1c7912fe2129a5ea7cb359a04da50a76e95ee042c446dc3011dc1229de93",
+      "schemas/future-result.schema.json": "7d4eeac4db46dddf2962be14d9ccb3dfe16d7e763a006a97a6c7dd8901fc2644",
+      "schemas/p5-engineering-result.schema.json": "dcce124eb0cdd014c2b3b9fbeff0645fa8eb225b7b314236c03d35ca86b1af59",
+      "schemas/results.schema.json": "f8b39ab2a356fad9c6564589e72194c839cc315b3fa2d9209c75e8c5d4100577",
+      "schemas/truth-frame.schema.json": "fe4d3c780bcbc37e15d09566336dd40d0610471c56d7e0c1b2ca8945559e574b",
+      "fixtures/constructed_truth.json": "3264c225eda2c61b023f5eae257cb10806f8902c1227cd05db9611258e9a0a25",
+      "fixtures/p5_offline.json": "a2eba175fc7bd4161b1aa6815ec4d1a4ed4856a21b8af239cfff79d9022bd7cf",
+      "p5/CALIBRATION_MATRIX.md": "adcbe007ac172628207209088ce82c0583c8f23cd5612c2805a5833f00d47f2a",
+      "p5/CALIBRATION_SOURCE_IDENTITIES.json": "61d35e1dfa416644fdcb2e376c7a8e05e41ccaf44f01ee526667dbf3b91d80e6",
+      "p5/CONTROLLER_CONTRACT.md": "fc0ee5ebfeb76757491adf62213450f0fc2107c184cc44f29ececdd5086b0698",
+      "p5/DATA_DICTIONARY.md": "5196afe5d77f00cf4f0ac68d9637bbb72382460dc3672ef6547fe5b9236f463b",
+      "p5/MODEL_AND_ARCHITECTURE.md": "dadae0ca0f848b646f6c814bdd901cbdf7f11490a783461885cc1223c89ec2f1",
+      "p5/READ_ME_FIRST.md": "3694378044ae7d371963d46bf7a50a52bd0afe2a952d0fdf6ee3bf2306ac5574",
+      "p5/REPRODUCIBILITY.md": "79fa252a3e48783f86ed6f12ed5da252af4410fe074bf5723b29c6e7ba6f1708",
+      "p5/REQUIREMENTS_AND_DECISIONS.md": "0c6a95e075821b2558bb400bcb34caa69218b5447b786219d374e134a8a6ccb3",
+      "p5/VALIDATION_AND_LIMITS.md": "b84c970108cfbec1dd1a83f335d9fc43c964ada7c7e57c243c10bc949d4e10f2",
+      "requirements.txt": "1fff1dabf453f510189f6698dc4938d04eb7589432f653f87d831d92d040abe8",
+      "prepare.py": "e41e9c67302df89d12b2cd9ffbbbb29b4b724af7f0bdbecefc1b0b251ac30a14",
+      "p5_check.py": "f76013ff55d30a9ebce869939f546dd0c66fc3fde8f06b7f3d589f22d66df0f9",
+      "p5_run.py": "cab4d173c0630f6f91679df675e29fcfcc6ecc109105a9f90e284101c25f8109",
+      "p5_worker.py": "223265e3dec9b32f1d9f5a9b201792044a46ff273a1837d2c3290a727c5005b2",
+      "LICENSE": "1ad252deea4446234308f5d0d3f3082ad4a14012099e5f548aa6079a5e629e03"
+    },
+    "source_tree_sha256": "cfea0c45bbaf75feafeb80694dcfcdc3ee7de867424d2baeece8f5dea652aa3a"
+  }
+}

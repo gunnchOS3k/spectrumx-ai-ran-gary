@@ -1,0 +1,11 @@
+{
+  "publication_repository_sha": "36c957862ba8d3e369899c7d5616dffaef2b479e",
+  "role": "Exact committed implementation content before portable-copy metadata/fixture output checkpoint",
+  "source_tree_sha256": "cfea0c45bbaf75feafeb80694dcfcdc3ee7de867424d2baeece8f5dea652aa3a",
+  "historical_experiments_unchanged": [
+    "86a5a6f3000fce7593ee1bdfe02bae6bc37d2498",
+    "b44357f764d440f983132bd44a9c23c180591f70"
+  ],
+  "research_execution_authorized": false,
+  "publication_authorized": false
+}
