@@ -240,3 +240,11 @@ class P5(unittest.TestCase):
         e=Environment([self.spec(checkpointable=False)],10);self.assertRaises(ContractError,e.checkpoint,'a',.1,0)
     def test_future_dated_content_not_available(self):
         e=Environment([self.spec(content_keys=('x',))],10,[Content('x','abc',2)]);self.step(e,self.action());self.assertEqual(e.tasks['a'].state,State.BLOCKED)
+
+    def test_timing_provenance_mutations(self):
+        r=run(self.config());r['timing_provenance'][0]['elapsed_s']=-1;self.assertRaises(ContractError,validate_output,r)
+        r=run(self.config());r['timing_provenance']=[];self.assertRaises(ContractError,validate_output,r)
+    def test_raw_outcome_scientific_mutation_with_new_hash(self):
+        r=run(self.config());r['payload']['checkpoint']['observed'][0]['output']='wrong';r['payload_sha256']=digest(r['payload']);self.assertRaises(ContractError,validate_output,r)
+    def test_primary_mismatch_with_rehashed_report(self):
+        r=run(self.config());r['payload']['primary_outcome'].update(successes=0,fraction=0.);r['payload_sha256']=digest(r['payload']);self.assertRaises(ContractError,validate_output,r)

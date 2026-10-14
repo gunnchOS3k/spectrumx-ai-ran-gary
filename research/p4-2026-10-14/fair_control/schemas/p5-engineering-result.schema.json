@@ -1,0 +1,245 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "P5 engineering-only outcome and provenance envelope; not a future campaign result",
+  "type": "object",
+  "required": [
+    "payload",
+    "payload_sha256",
+    "timing_provenance",
+    "environment",
+    "manifest"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "payload": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "mode",
+        "fixture_id",
+        "source_sha",
+        "campaign_executed",
+        "errors",
+        "authorization",
+        "configuration_sha256",
+        "controller_revision",
+        "model_revision",
+        "environment_revision",
+        "source_tree_sha256",
+        "seed_manifest",
+        "resource_budget_declaration",
+        "compute_budget_declaration",
+        "checkpoint",
+        "policy_information_declaration",
+        "primary_outcome",
+        "secondary_outcome",
+        "decisions"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "p5-engineering-result-0.1"
+        },
+        "mode": {
+          "const": "ENGINEERING_TEST"
+        },
+        "fixture_id": {
+          "const": "constructed-offline-copy"
+        },
+        "source_sha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "campaign_executed": {
+          "const": false
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "authorization": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scientific_protocol_approved",
+            "pilot_execution",
+            "confirmatory_execution",
+            "heldout_execution",
+            "human_scientific_approval",
+            "publication"
+          ],
+          "properties": {
+            "scientific_protocol_approved": {
+              "const": false
+            },
+            "pilot_execution": {
+              "const": false
+            },
+            "confirmatory_execution": {
+              "const": false
+            },
+            "heldout_execution": {
+              "const": false
+            },
+            "human_scientific_approval": {
+              "const": false
+            },
+            "publication": {
+              "const": false
+            }
+          }
+        },
+        "configuration_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "controller_revision": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "model_revision": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "environment_revision": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "source_tree_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "seed_manifest": {
+          "type": "object"
+        },
+        "resource_budget_declaration": {
+          "type": "object"
+        },
+        "compute_budget_declaration": {
+          "type": "object"
+        },
+        "checkpoint": {
+          "type": "object"
+        },
+        "policy_information_declaration": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "primary_outcome": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema",
+            "scheduled",
+            "successes",
+            "fraction"
+          ],
+          "properties": {
+            "schema": {
+              "const": "all_exogenous_tasks_correct_deadline_fresh_quality_durable_fraction"
+            },
+            "scheduled": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "successes": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "fraction": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        },
+        "secondary_outcome": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "energy_used_j",
+            "queue_length",
+            "failures",
+            "invalid_actions"
+          ],
+          "properties": {
+            "energy_used_j": {
+              "type": "number",
+              "minimum": 0
+            },
+            "queue_length": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "failures": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "invalid_actions": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "decisions": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "payload_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "timing_provenance": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "elapsed_s"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "elapsed_s": {
+            "type": "number",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "environment": {
+      "type": "object"
+    },
+    "manifest": {
+      "type": "object",
+      "required": [
+        "files",
+        "source_tree_sha256"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "files": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "source_tree_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    }
+  }
+}

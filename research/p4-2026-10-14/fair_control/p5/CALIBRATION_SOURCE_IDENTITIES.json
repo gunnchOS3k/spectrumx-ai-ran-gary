@@ -1,0 +1,32 @@
+{
+  "gunnchos-device-os": {
+    "revision": "4f321c2565669a0e476fc73c524ab84dffed90c0",
+    "inspection_only": true,
+    "physical_or_application_tests_run": false,
+    "files": {
+      "LICENSE": "20e51b032edae78c1fe11e92bceb8ec2be6f144a982c4f8227506458592e0b2c",
+      "gunnchos_device_os/device_lab/calibration.py": "a506b7f68e5fd96dca652eeeda36941518f1234c5d9b26c0ef69b5d601ca9b44",
+      "tests/device_lab/test_wp010_calibration_interfaces.py": "5c5714ade0fe5ca6a05918aff692a409e50ac4afa4e7035afa17f93f1f1d1279",
+      "artifacts/wp010_lab_calibration/LAB_CALIBRATION_INTERFACE_READINESS.json": "043fc95d2448240223e6e7fb7d06d4ed247bb06112bb8cfea423d30d48bff731",
+      "gunnchos_device_os/offline_sync.py": "6886cd21a219e94a3e58de84cf767ee03c5ba0e908d4aa9f3e4ab34f449bfe6b",
+      "gunnchos_device_os/service_continuity_execution/sync.py": "e028efa6362520addedfc84f60118ced50e5462c6617b45fa664442859e6732f"
+    }
+  },
+  "gunnchos-waike-learning-platform": {
+    "revision": "32e9c8e9a7eef71c49b8c68292b28e57b2ca88c1",
+    "inspection_only": true,
+    "physical_or_application_tests_run": false,
+    "files": {
+      "apps/client/src/lib/offline/syncCoordinator.ts": "8ca8f93b7a949d357fd16af167b776ed4e6eae6cbf4d92284ab5c2ef39fb4752"
+    }
+  },
+  "waike-research-ops": {
+    "revision": "dd1c5ae0a917ce3fc45e7def2439cc6981bf0ab7",
+    "inspection_only": true,
+    "physical_or_application_tests_run": false,
+    "files": {
+      "LICENSE": "20e51b032edae78c1fe11e92bceb8ec2be6f144a982c4f8227506458592e0b2c",
+      "tests/journeys/test_learner_journey.py": "c88531422a33fec40e1228bac25289912d98dd8bac484f8e0059ab0c40e74e4a"
+    }
+  }
+}

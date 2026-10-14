@@ -2,7 +2,7 @@
 from pathlib import Path
 from dataclasses import asdict
 import json,subprocess,hashlib,sys,platform,importlib.metadata,copy
-from .core import Action,Allocation,TruthFrame,PathTruth,Resources,ContractError,canonical,digest
+from .core import Action,Allocation,TruthFrame,PathTruth,Resources,ContractError,canonical,digest,number
 from .tasks import TaskSpec,TaskRequirement,Content
 from .dynamics import Environment,Model
 from .controllers import Hardware,Policy,decide,validate_estimates,FIELDS
@@ -27,7 +27,7 @@ def tree_manifest(root=ROOT):
         if not (root/d).exists():continue
         for p in sorted((root/d).rglob('*')):
             if p.is_file() and '__pycache__' not in p.parts:files[str(p.relative_to(root))]=hashlib.sha256(p.read_bytes()).hexdigest()
-    for name in ['requirements.txt','prepare.py','p5_check.py','p5_run.py','p5_worker.py']:
+    for name in ['requirements.txt','prepare.py','p5_check.py','p5_run.py','p5_worker.py','LICENSE']:
         p=root/name
         if p.exists():files[name]=hashlib.sha256(p.read_bytes()).hexdigest()
     return {'files':files,'source_tree_sha256':digest(files)}
@@ -73,6 +73,10 @@ def run(config,output=None):
     return record
 
 def validate_output(record):
+    from jsonschema import Draft202012Validator
+    from jsonschema.exceptions import ValidationError
+    try:Draft202012Validator(json.loads((ROOT/'schemas/p5-engineering-result.schema.json').read_text())).validate(record)
+    except ValidationError as ex:raise ContractError('Output schema: '+ex.message) from ex
     p=record['payload']
     if p['mode']!='ENGINEERING_TEST' or p['campaign_executed'] is not False or p['authorization']!=AUTH or record['payload_sha256']!=digest(p):raise ContractError('Invalid output integrity/auth')
     if p['seed_manifest']!={'kind':'CONSTRUCTED_NO_RANDOMNESS','seed_ids':[],'heldout_paths':[]}:raise ContractError('Holdout access')
@@ -81,4 +85,14 @@ def validate_output(record):
     for key in ['source_sha','configuration_sha256','controller_revision','model_revision','environment_revision','source_tree_sha256']:
         v=p[key];length=40 if key=='source_sha' else 64
         if not isinstance(v,str) or len(v)!=length or any(c not in '0123456789abcdef' for c in v):raise ContractError('Incomplete provenance')
+    if len(record['timing_provenance'])!=len(p['decisions']):raise ContractError('Timing provenance count')
+    for timing in record['timing_provenance']:
+        if set(timing)!= {'elapsed_s'}:raise ContractError('Timing provenance fields')
+        number(timing['elapsed_s'],'elapsed_s')
+    # Validate observed raw state independently of reported scores/counts.
+    cfg=json.loads((ROOT/'fixtures/p5_offline.json').read_text())
+    specs=[TaskSpec(requirement=TaskRequirement(**s['requirement']),**{k:tuple(v) if k=='content_keys' else v for k,v in s.items() if k!='requirement'}) for s in cfg['tasks']]
+    e=Environment.restart(specs,p['checkpoint'])
+    if e.evaluator.fraction(e.attempts)!=p['primary_outcome']['fraction'] or len(e.observed)!=s or len(specs)!=n:raise ContractError('Raw outcome/report mismatch')
+    if digest(record['manifest']['files'])!=record['manifest']['source_tree_sha256'] or record['manifest']['source_tree_sha256']!=p['source_tree_sha256']:raise ContractError('Provenance map identity')
     canonical(record)
