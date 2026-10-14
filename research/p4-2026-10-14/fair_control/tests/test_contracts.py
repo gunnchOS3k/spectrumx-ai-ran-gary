@@ -152,3 +152,10 @@ class Fixtures(unittest.TestCase):
         with self.assertRaises(ContractError):TaskOutcome('',.5,0,1,True,True)
         with self.assertRaises(ContractError):replace(self.truth,task_ids=('',))
         with self.assertRaises(ContractError):Observation({'x':{1:True}},['x'])
+
+    def test_sample_plan_does_not_falsely_reject_900_unit_cap(self):
+        # Independent practical boundary: sd=.15 with n=900 gives a paired-t
+        # half-width below .01 and enough normal-approximation power for gap=.02.
+        r=plan_size(.15,cap=900)
+        self.assertTrue(r['feasible_within_cap'])
+        self.assertLessEqual(r['n'],900)

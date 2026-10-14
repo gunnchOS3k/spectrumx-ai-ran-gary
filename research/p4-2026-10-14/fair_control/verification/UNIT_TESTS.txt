@@ -20,6 +20,7 @@ test_observation_selection_cannot_guarantee_true_feasibility (test_contracts.Fix
 test_precision_plan_hypothetical_variance_and_cap (test_contracts.Fixtures.test_precision_plan_hypothetical_variance_and_cap) ... ok
 test_raw_truth_rejects_invalid_probability_flags_and_numbers (test_contracts.Fixtures.test_raw_truth_rejects_invalid_probability_flags_and_numbers) ... ok
 test_same_primary_view_for_both_policies (test_contracts.Fixtures.test_same_primary_view_for_both_policies) ... ok
+test_sample_plan_does_not_falsely_reject_900_unit_cap (test_contracts.Fixtures.test_sample_plan_does_not_falsely_reject_900_unit_cap) ... ok
 test_schemas_are_valid_and_report_cannot_claim_campaign (test_contracts.Fixtures.test_schemas_are_valid_and_report_cannot_claim_campaign) ... ok
 test_seed_pairing_uses_ids_not_insertion_order (test_contracts.Fixtures.test_seed_pairing_uses_ids_not_insertion_order) ... ok
 test_statistics_sd_ci_and_zero_not_equivalence (test_contracts.Fixtures.test_statistics_sd_ci_and_zero_not_equivalence) ... ok
@@ -31,6 +32,6 @@ test_valid_action_and_inclusive_resource_bound (test_contracts.Fixtures.test_val
 test_versioned_truth_json_input_and_no_future_data (test_contracts.Fixtures.test_versioned_truth_json_input_and_no_future_data) ... ok
 
 ----------------------------------------------------------------------
-Ran 31 tests in 0.047s
+Ran 32 tests in 0.040s
 
 OK

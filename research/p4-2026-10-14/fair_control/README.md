@@ -28,3 +28,5 @@ Before a campaign: finalize the primary hypothesis/margin and planning alternati
 An initial new test expected three permitted observation reads while its fixture performed two. The failed log/result is retained; the expected count was corrected to the actual two reads. No historical or scientific-result test was changed.
 
 Constructed truth input is fixtures/constructed_truth.json; schemas/truth-frame.schema.json and truth_from_fixture validate version/types/duplicates/nonfinite values before immutable construction. It is not a measured trace or future reserved outcome. Timing hooks are cooperative accounting,not process preemption; hard wall-clock termination and whole-controller IPC isolation remain future integration.
+
+A final sample-planning boundary regression showed the initial df29-based upward jump could falsely reject a900-unit cap. Its failing log/result is retained; the planner now finds the smallest n satisfying its t-precision/normal-power approximation by monotone binary search. No new seed,outcome or scientific test was used to choose a favorable result.

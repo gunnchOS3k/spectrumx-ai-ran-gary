@@ -17,11 +17,16 @@ def paired_summary(left:dict[str,float],right:dict[str,float])->dict:
 def plan_size(sd:float,*,half_width:float=.01,effect_gap:float=.02,power:float=.9,cap:int=2500)->dict:
     number(sd,'pilot_sd');number(half_width,'half_width',positive=True);number(effect_gap,'effect_gap',positive=True)
     if not .5<power<1 or type(cap) is not int or cap<30: raise ContractError('Invalid power/cap')
-    n=30
-    while True:
+    # Required size decreases as t degrees of freedom increase. Find the
+    # smallest n satisfying both planning conditions,not a conservative first
+    # jump based on df29 that can falsely reject a usable compute/sample cap.
+    def required(n):
         critical=float(t.ppf(.975,n-1))
-        required=max(30,math.ceil((critical*sd/half_width)**2),math.ceil(((critical+float(norm.ppf(power)))*sd/effect_gap)**2))
-        if required<=n:break
-        n=required
-        if n>cap:return {'feasible_within_cap':False,'minimum_required_at_least':n,'cap':cap,'heldout_may_start':False}
-    return {'n':n,'feasible_within_cap':True,'pilot_sd_assumption':sd,'half_width_target':half_width,'effect_gap':effect_gap,'power_normal_approximation':power,'heldout_may_start':False,'scope':'Planning approximation, not a power guarantee; independent pilot and human freeze/authorization still required.'}
+        return max(30,math.ceil((critical*sd/half_width)**2),math.ceil(((critical+float(norm.ppf(power)))*sd/effect_gap)**2))
+    lo=30;hi=required(lo)
+    while lo<hi:
+        mid=(lo+hi)//2
+        if mid>=required(mid):hi=mid
+        else:lo=mid+1
+    n=lo
+    return {'n':n,'feasible_within_cap':n<=cap,'cap':cap,'pilot_sd_assumption':sd,'half_width_target':half_width,'effect_gap':effect_gap,'power_normal_approximation':power,'heldout_may_start':False,'scope':'Smallest n satisfying the stated t-precision/normal-power planning approximation; not an exact power guarantee. Independent pilot,human freeze and authorization still required.'}
