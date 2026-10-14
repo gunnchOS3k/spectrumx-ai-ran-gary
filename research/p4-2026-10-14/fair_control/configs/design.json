@@ -1,0 +1,55 @@
+{
+  "schema_version": "0.1",
+  "experiment_id": "paper-ii-p4-fair-control-draft",
+  "status": "DESIGN_DRAFT_ENGINEERING_ONLY",
+  "authorization": {
+    "campaign_execution": false,
+    "publication": false
+  },
+  "policies": [
+    {
+      "id": "beam_mpc_candidate",
+      "observations": [
+        "timestamp_s",
+        "estimated_paths",
+        "task_queue",
+        "remaining_energy_j",
+        "previous_action",
+        "forecasts"
+      ]
+    },
+    {
+      "id": "matched_hysteresis_candidate",
+      "observations": [
+        "timestamp_s",
+        "estimated_paths",
+        "task_queue",
+        "remaining_energy_j",
+        "previous_action",
+        "forecasts"
+      ]
+    }
+  ],
+  "compute": {
+    "max_model_evaluations": 512,
+    "deadline_s": 0.1
+  },
+  "heldout": {
+    "seed_ids": null,
+    "outcome_paths": []
+  },
+  "analysis": {
+    "primary_unit": "independent_paired_seed_mean",
+    "practical_effect": 0.02,
+    "target_half_width": 0.01,
+    "power": 0.9,
+    "maximum_units": 2500
+  },
+  "pending_decisions": [
+    "Independent task oracle, workload/dynamics/calibration and resource/cost units",
+    "Practical superiority margin and planning alternative",
+    "Candidate controller implementations and tuning freeze",
+    "Pilot sample-size/budget freeze",
+    "Human scientific/originality/rights review and separate execution authorization"
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:gunnchos:research:p4:fair-control:future-result:0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "source_sha",
+    "config_sha256",
+    "input_sha256",
+    "unit_id",
+    "policy_id",
+    "scheduled_tasks",
+    "successes",
+    "invalid_actions",
+    "timeouts",
+    "model_evaluations",
+    "decision_seconds",
+    "observation_digest",
+    "action_trace_sha256",
+    "outcome_trace_sha256",
+    "evidence_class"
+  ],
+  "properties": {
+    "source_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "config_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "input_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "unit_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "policy_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scheduled_tasks": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "successes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "invalid_actions": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "timeouts": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "model_evaluations": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "decision_seconds": {
+      "type": "number",
+      "minimum": 0
+    },
+    "observation_digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "action_trace_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "outcome_trace_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "evidence_class": {
+      "const": "PROSPECTIVE_DIGITAL_SIMULATION"
+    }
+  }
+}

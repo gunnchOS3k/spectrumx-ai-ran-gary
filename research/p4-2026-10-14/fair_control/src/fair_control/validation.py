@@ -25,7 +25,17 @@ def validate_result(record:dict)->None:
 
 def provenance(root:Path)->dict:
     files={}
+    for f in ['prepare.py','requirements.txt']:
+        p=root/f
+        if p.exists():files[f]=hashlib.sha256(p.read_bytes()).hexdigest()
     for d in ['src','schemas','configs','tests']:
         for p in sorted((root/d).rglob('*')):
             if p.is_file() and '__pycache__' not in p.parts:files[str(p.relative_to(root))]=hashlib.sha256(p.read_bytes()).hexdigest()
     return {'evidence_class':'ENGINEERING_VALIDATION','files':files,'source_tree_sha256':digest(files),'python':sys.version,'platform':platform.platform(),'campaign_executed':False,'publication_authorized':False}
+
+
+def validate_future_result_shape(record:dict)->None:
+    """Structural validation only. It never generates/loads a reserved outcome."""
+    schema=json.loads((ROOT/'schemas/future-result.schema.json').read_text())
+    Draft202012Validator(schema).validate(record);canonical(record)
+    if record['successes']>record['scheduled_tasks']:raise ContractError('Numerator exceeds fixed task population')

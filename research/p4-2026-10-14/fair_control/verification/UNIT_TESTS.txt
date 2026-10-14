@@ -1,0 +1,33 @@
+test_canonical_hash_detects_scientific_configuration_change (test_contracts.Fixtures.test_canonical_hash_detects_scientific_configuration_change) ... ok
+test_capacities_not_merely_positive_flags (test_contracts.Fixtures.test_capacities_not_merely_positive_flags) ... ok
+test_common_objective_hook_and_stable_tie_order (test_contracts.Fixtures.test_common_objective_hook_and_stable_tie_order) ... ok
+test_compute_limit_counts_actual_calls_and_timeout_defers (test_contracts.Fixtures.test_compute_limit_counts_actual_calls_and_timeout_defers) ... ok
+test_config_valid_draft_and_invalid_mutations (test_contracts.Fixtures.test_config_valid_draft_and_invalid_mutations) ... ok
+test_connected_but_wrong_stale_late_poor_or_nondurable_fails (test_contracts.Fixtures.test_connected_but_wrong_stale_late_poor_or_nondurable_fails) ... ok
+test_defer_is_explicit_zero_resource_action (test_contracts.Fixtures.test_defer_is_explicit_zero_resource_action) ... ok
+test_duplicate_outcomes_cannot_inflate_success (test_contracts.Fixtures.test_duplicate_outcomes_cannot_inflate_success) ... ok
+test_duplicate_unknown_or_invalid_task_allocations_fail (test_contracts.Fixtures.test_duplicate_unknown_or_invalid_task_allocations_fail) ... ok
+test_each_resource_budget_is_enforced (test_contracts.Fixtures.test_each_resource_budget_is_enforced) ... ok
+test_elapsed_time_budget_includes_scorer_time (test_contracts.Fixtures.test_elapsed_time_budget_includes_scorer_time) ... ok
+test_first_action_no_switch_and_common_cost (test_contracts.Fixtures.test_first_action_no_switch_and_common_cost) ... ok
+test_future_result_population_and_nan_rejected (test_contracts.Fixtures.test_future_result_population_and_nan_rejected) ... ok
+test_local_execution_cannot_claim_network_resources (test_contracts.Fixtures.test_local_execution_cannot_claim_network_resources) ... ok
+test_missing_tasks_stay_in_denominator (test_contracts.Fixtures.test_missing_tasks_stay_in_denominator) ... ok
+test_nonfinite_and_negative_allocations_fail (test_contracts.Fixtures.test_nonfinite_and_negative_allocations_fail) ... ok
+test_observation_does_not_retain_truth_or_alias_inputs (test_contracts.Fixtures.test_observation_does_not_retain_truth_or_alias_inputs) ... ok
+test_observation_selection_cannot_guarantee_true_feasibility (test_contracts.Fixtures.test_observation_selection_cannot_guarantee_true_feasibility) ... ok
+test_precision_plan_hypothetical_variance_and_cap (test_contracts.Fixtures.test_precision_plan_hypothetical_variance_and_cap) ... ok
+test_raw_truth_rejects_invalid_probability_flags_and_numbers (test_contracts.Fixtures.test_raw_truth_rejects_invalid_probability_flags_and_numbers) ... ok
+test_same_primary_view_for_both_policies (test_contracts.Fixtures.test_same_primary_view_for_both_policies) ... ok
+test_schemas_are_valid_and_report_cannot_claim_campaign (test_contracts.Fixtures.test_schemas_are_valid_and_report_cannot_claim_campaign) ... ok
+test_seed_pairing_uses_ids_not_insertion_order (test_contracts.Fixtures.test_seed_pairing_uses_ids_not_insertion_order) ... ok
+test_statistics_sd_ci_and_zero_not_equivalence (test_contracts.Fixtures.test_statistics_sd_ci_and_zero_not_equivalence) ... ok
+test_transition_energy_included (test_contracts.Fixtures.test_transition_energy_included) ... ok
+test_truth_is_frozen (test_contracts.Fixtures.test_truth_is_frozen) ... ok
+test_unavailable_gateway_visibility_or_terminal_power_rejected (test_contracts.Fixtures.test_unavailable_gateway_visibility_or_terminal_power_rejected) ... ok
+test_valid_action_and_inclusive_resource_bound (test_contracts.Fixtures.test_valid_action_and_inclusive_resource_bound) ... ok
+
+----------------------------------------------------------------------
+Ran 28 tests in 0.035s
+
+OK

@@ -1,0 +1,14 @@
+{
+  "clean_directory": "/var/folders/dp/z5frf3m511jcdpdf8v878v8h0000gn/T/p4-fair-control-portable-ov56ug8z/fair_control",
+  "constructed_tests_passed": 28,
+  "exact_source_tree_sha256": "1d236ba7dcc2ddf0067cd272c50411609e5ac5dedfa698c2e35c791ae9be5746",
+  "clean_copy_report_identical": true,
+  "execution_guard_exit_status": 2,
+  "execution_guard_message": "Campaign execution is outside P4; no runner, reserved seeds or authorization are supplied.",
+  "campaign_executed": false,
+  "new_seed_list_created": false,
+  "future_outcome_read": false,
+  "existing_environment_reused": true,
+  "fresh_dependency_installation_tested": false,
+  "publication_authorized": false
+}

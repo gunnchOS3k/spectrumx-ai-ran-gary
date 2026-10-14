@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:gunnchos:research:p4:fair-control:engineering-report:0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "evidence_class",
+    "campaign_executed",
+    "publication_authorized",
+    "tests_run",
+    "failures",
+    "errors",
+    "source_tree_sha256"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1"
+    },
+    "evidence_class": {
+      "const": "ENGINEERING_VALIDATION"
+    },
+    "campaign_executed": {
+      "const": false
+    },
+    "publication_authorized": {
+      "const": false
+    },
+    "tests_run": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "failures": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "errors": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "source_tree_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

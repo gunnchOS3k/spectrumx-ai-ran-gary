@@ -1,0 +1,21 @@
+{
+  "evidence_class": "ENGINEERING_VALIDATION",
+  "files": {
+    "prepare.py": "425c05de874c9d80002976f07aaeed99f4278598b8716cb31d05cb3e582f96fc",
+    "requirements.txt": "1fff1dabf453f510189f6698dc4938d04eb7589432f653f87d831d92d040abe8",
+    "src/fair_control/__init__.py": "7d09c59140cb3a653fadc3bf76e98c9b5f03f5a79d0cf195279a06279e9c67d2",
+    "src/fair_control/analysis.py": "bfa7b484a997147094d09452f5ce611f252e2511c0986ce7e3f8e53578a01ed2",
+    "src/fair_control/core.py": "afd9ce5e3ec899f525130da096efb61a4d0d82e3c1c3dd643ff0bd2b199c58a5",
+    "src/fair_control/validation.py": "6551fe6fba00d6b73c1cfa82057d3f3242d050a80907f3519dc40ec43fe26d6f",
+    "schemas/config.schema.json": "8e9d1c7912fe2129a5ea7cb359a04da50a76e95ee042c446dc3011dc1229de93",
+    "schemas/future-result.schema.json": "7d4eeac4db46dddf2962be14d9ccb3dfe16d7e763a006a97a6c7dd8901fc2644",
+    "schemas/results.schema.json": "f8b39ab2a356fad9c6564589e72194c839cc315b3fa2d9209c75e8c5d4100577",
+    "configs/design.json": "06ed7266e883a342ca79ddfb6cdeb2b1450e713c3203548b480ab6859950ed25",
+    "tests/test_contracts.py": "37b5a108352d8c7c113a86d57a530ad3df36cff3a591032101a1bae231e50227"
+  },
+  "source_tree_sha256": "1d236ba7dcc2ddf0067cd272c50411609e5ac5dedfa698c2e35c791ae9be5746",
+  "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "campaign_executed": false,
+  "publication_authorized": false
+}
