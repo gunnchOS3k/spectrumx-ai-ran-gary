@@ -3,7 +3,7 @@ Status may become READY FOR OWNER REVIEW after local acceptance; that does not a
 
 1. Read preprint.pdf and SCIENTIFIC_READINESS_DECISION.md. Decide if this implementation-specific negative/methodological contribution merits dissemination. Do not approve a broad twin-superiority claim.
 2. Inspect source inequalities, zero-latency exception and optimizer failure/residual bound; confirm implemented score/objective match text.
-3. Check original/revised paired statistics separately, n5 scope, harmful fidelity/checkpoint outcomes and inconclusive greedy comparison. Inspect raw seed means and claim links.
+3. Check original/revised paired statistics separately, n=5 scope, harmful fidelity/checkpoint outcomes and inconclusive greedy comparison. Inspect raw seed means and claim links.
 4. Review baseline feasibility/information/computation and truth-changing interventions; decide whether qualifications are sufficient for exploratory release.
 5. Inspect all references and originality; full text of Sun/Dai/Jain remains an access limitation. Human originality verification remains false.
 6. Confirm author list/contributions, funding/sponsors/conflicts, rights and prior dissemination; do not treat unspecified as none. Confirm AI-use statement.

@@ -1,0 +1,33 @@
+{
+  "checkpoints": {
+    "7gc-digital-twin": {
+      "branch": "publication/paper-i-owner-review-2026-10-12",
+      "head": "ebb6221fd64e8942a2b63775f5416042b2d424f5",
+      "status_at_recovery": "clean"
+    },
+    "spectrumx-ai-ran-gary": {
+      "branch": "publication/paper-ii-owner-review-2026-10-12",
+      "head": "f7b07300b5204f4ea1cf44eb925d603fe9705117",
+      "status_at_recovery": "clean before new PaperII files"
+    },
+    "ntn-resilience-sim": {
+      "branch": "publication/paper-iii-owner-review-2026-10-12",
+      "head": "8617f0b1666c3110e8ac745a1de108489a301fcc",
+      "status_at_recovery": "clean"
+    },
+    "gunnchos-research-portal": {
+      "branch": "publication/three-paper-owner-review-2026-10-12",
+      "head": "0fa1c2e184bac6fce2269b7eca42347b9e40b13e",
+      "status_at_recovery": "clean"
+    }
+  },
+  "experimental_shas": {
+    "original": "86a5a6f3000fce7593ee1bdfe02bae6bc37d2498",
+    "revised": "b44357f764d440f983132bd44a9c23c180591f70"
+  },
+  "protocol_predecessor": "72044d4008dc7624b1246b880387a693c37150e7",
+  "preserved_submission_sha": "f7b07300b5204f4ea1cf44eb925d603fe9705117",
+  "frozen_git_bytes_verified": 19,
+  "reset_or_push": false,
+  "publication_authorized": false
+}

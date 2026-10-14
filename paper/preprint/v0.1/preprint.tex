@@ -60,7 +60,7 @@ The gross continuity $g_t$ uses a configured 500~ms normalization, not an applic
 
 \subsection{Switching, Energy, and Fairness}
 The transition charge is
-\begin{equation}c_t=0.05\mathbb{1}[n_t\ne n_{t-1}]+0.03\mathbb{1}[v_t\ne v_{t-1}],\label{eq:cost}\end{equation}
+\begin{equation}c_t=0.05\,\mathbf{1}[n_t\ne n_{t-1}]+0.03\,\mathbf{1}[v_t\ne v_{t-1}],\label{eq:cost}\end{equation}
 with $c_1=0$. Net utility is $U_t=\max\{-1,g_t-c_t\}$. Charges are dimensionless deductions, not measured transition durations or energy. Episode utility is the mean of $T=16$ slots, whereas reported charge $C$ is the episode sum. Thus $C/T$ is comparable with average utility.
 
 The energy proxy is
@@ -86,7 +86,7 @@ Uniform initialization receives seeded noise of standard deviation $10^{-6}$. Fo
 
 For the fixed $B=20$ domain, every feasible coordinate is below 99, so $\partial f/\partial x_i=-1/(1+x_i)+0.01<0$. The exact optimum uses the full budget; strict convexity and equal derivatives then yield the unique allocation $x_i^*=20/N_t$. This is an allocation subproblem, not maximization of the reported network/placement utility. Distributing an unchanged sum differently does not improve that primary score.
 
-Numerical output is approximate. The source supplies no tolerance override or post-solve budget projection. A focused component audit checks all existing seed values 0--4 and100--104 with each $N=4,\ldots,8$, separately for both versions (100 small solves). Maximum absolute budget residual is $3.1883\times10^{-6}$ and maximum share deviation from the exact optimum is $2.5557\times10^{-6}$; 26 returned sums exceed the budget strictly. The original exact-budget audit assertion failed and its log is retained. SLSQP reports success while the source accepts small residuals; no exact numerical feasibility is asserted.
+Numerical output is approximate. The source supplies no tolerance override or post-solve budget projection. A focused component audit checks all existing seed values 0--4 and 100--104 with each $N=4,\ldots,8$, separately for both versions (100 small solves). Maximum absolute budget residual is $3.1883\times10^{-6}$ and maximum share deviation from the exact optimum is $2.5557\times10^{-6}$; 26 returned sums exceed the budget strictly. The original exact-budget audit assertion failed and its log is retained. SLSQP reports success while the source accepts small residuals; no exact numerical feasibility is asserted.
 
 At fixed discrete/fidelity/checkpoint choices, these source bounds give $|\Delta u|\le1.5942\times10^{-7}$. Bounding the score derivative by 1.83 gives absolute slot-score impact below $2.918\times10^{-7}$. The choices themselves do not depend on optimized shares. This conditional bound is too small to reverse either retained negative comparison; it does not repair broader fairness or resource-feasibility limitations. No historical allocation or result is projected or replaced.
 
@@ -94,10 +94,10 @@ At fixed discrete/fidelity/checkpoint choices, these source bounds give $|\Delta
 The stored \pol{information\_equivalent} policy scores available network and positive-capacity placement combinations using
 \begin{align}
 S_t(n,v)={}&-0.004\ell_t\alpha_n\beta_v-0.02q_t\\
-&-0.35\mathbb{1}[\text{outage},n=\text{terrestrial}]\nonumber\\
-&-0.002(50-e_t)\mathbb{1}[e_t<50,v=\text{cloud}]\nonumber\\
-&+0.25\mathbb{1}[\text{strict},v=\text{edge}]\nonumber\\
-&+0.15\mathbb{1}[\ell_t>40,v=\text{edge}].\nonumber
+&-0.35\,\mathbf{1}[\text{outage},n=\text{terrestrial}]\nonumber\\
+&-0.002(50-e_t)\,\mathbf{1}[e_t<50,v=\text{cloud}]\nonumber\\
+&+0.25\,\mathbf{1}[\text{strict},v=\text{edge}]\nonumber\\
+&+0.15\,\mathbf{1}[\ell_t>40,v=\text{edge}].\nonumber
 \end{align}
 It chooses the largest score, resolves ties by iteration order, and uses uniform shares and unit power. Loss contributes a constant across candidates, so it does not change the selected action. Switching cost is absent from selection. We preserve all weights without further tuning.
 
@@ -106,14 +106,14 @@ The stored \pol{oracle} evaluates $U_t$ over current available networks and posi
 
 \subsection{Linear-Selector Collapse and Its Domain}
 \label{sec:selector}
-Let $B_e=0.25\mathbb{1}[\mathrm{strict}]+0.15\mathbb{1}[\ell>40]$ and $P_c=0.002\max\{50-e,0\}$. For a fixed available network $n$, the implemented score differences are
+Let $B_e=0.25\,\mathbf{1}[\mathrm{strict}]+0.15\,\mathbf{1}[\ell>40]$ and $P_c=0.002\max\{50-e,0\}$. For a fixed available network $n$, the implemented score differences are
 \begin{align}
  S(n,e)-S(n,c)&=0.004\ell\alpha_n(0.15)+B_e+P_c,\label{eq:edgecloud}\\
  S(n,e)-S(n,l)&=0.004\ell\alpha_n(0.25)+B_e.\label{eq:edgelocal}
 \end{align}
 Here $e,c,l$ in score arguments denote edge, cloud and local placement. If edge is a candidate, $\ell>0$, $\alpha_n>0$, and the frozen nonnegative bonuses and placement coefficients apply, both differences are strictly positive. Edge therefore dominates the other placements. These conditions hold for every full original family; independently inspected revised full-family inputs have the same property. They are sufficient conditions, not a theorem for arbitrary weights, absent edge or all interventions.
 
-Loss adds a constant across selection candidates. An outage removes terrestrial from the generated available set, so its mismatch penalty cannot distinguish the remaining candidates. With edge selected, the argmax minimizes $\alpha_n$ among available paths: terrestrial, otherwise local-edge Wi-Fi if available, otherwise degraded-local. The revised optional offline category has coefficient10 and does not beat these available alternatives. Shares are uniform, power is one; the revised linear action defaults to target fidelity and no checkpoint or recovery. Its linear score has no fidelity-choice dimension. Features change score magnitudes or margins without changing this argmax within the stated domain; latency and loss still affect the subsequently evaluated utility.
+Loss adds a constant across selection candidates. An outage removes terrestrial from the generated available set, so its mismatch penalty cannot distinguish the remaining candidates. With edge selected, the argmax minimizes $\alpha_n$ among available paths: terrestrial, otherwise local-edge Wi-Fi if available, otherwise degraded-local. The revised optional offline category has coefficient 10 and does not beat these available alternatives. Shares are uniform, power is one; the revised linear action defaults to target fidelity and no checkpoint or recovery. Its linear score has no fidelity-choice dimension. Features change score magnitudes or margins without changing this argmax within the stated domain; latency and loss still affect the subsequently evaluated utility.
 
 A focused source check reconstructs the existing five-seed input sequences for train, held-out and three shifted families, preserving each version's random-draw schedule. It calls only the respective selector and independent simplified-rule/inequality assertions. All 9,600 states in each version pass separately. No per-slot action traces were retained in the original summary files; these are reconstructed-input assertions, not a new held-out performance study or additional seed replicates.
 
@@ -200,7 +200,7 @@ Figure~\ref{fig:switch} decomposes net utility and average slot charge. Procedur
 
 \begin{figure*}[t]
 \centering\includegraphics[width=.94\textwidth]{figures/switch_cost.pdf}
-\caption{Original switching decomposition. Left: mean slot cost added to net utility recovers gross continuity. Right: switches per episode. Left vertical axis begins at0.75. Charges are configured dimensionless penalties.}\label{fig:switch}
+\caption{Original switching decomposition. Left: mean slot cost added to net utility recovers gross continuity. Right: switches per episode. Left vertical axis begins at 0.75. Charges are configured dimensionless penalties.}\label{fig:switch}
 \end{figure*}
 
 Zeroing scored switch penalties with unchanged rule and episodes improves utility by 0.03011, with paired interval $[0.02865,0.03158]$. It does not remove switching events or estimate physical cost. Recorded charges remain in JSON while subtraction is disabled; the intervention confirms an accounting effect.
@@ -242,7 +242,7 @@ Table~\ref{tab:revised} reports the revised run. Target, degraded, and minimum-u
 \centering\scriptsize\input{tables/revised.tex}
 \end{table}
 
-Adaptive fidelity averages 0.74198 versus fixed target 0.79650. Adaptive checkpoint averages 0.62375 versus checkpoint disabled 0.68230. Both are unfavorable adaptive outcomes. Paired differences are -0.05452 with 95\% interval $[-0.05866,-0.05039]$, and -0.05855 with interval $[-0.06015,-0.05695]$, respectively. These additional paired calculations are post hoc. Base network/placement choices also differ, making these whole-policy comparisons rather than isolated feature effects. No application process checkpoints or resumes. Retrospective reproduction does not turn the extension into the original hypothesis or field evidence.
+Adaptive fidelity averages 0.74198 versus fixed target 0.79650. Adaptive checkpoint averages 0.62375 versus checkpoint disabled 0.68230. Both are unfavorable adaptive outcomes. Paired differences are $-0.05452$ with 95\% interval $[-0.05866,-0.05039]$, and $-0.05855$ with interval $[-0.06015,-0.05695]$, respectively. These additional paired calculations are post hoc. Base network/placement choices also differ, making these whole-policy comparisons rather than isolated feature effects. No application process checkpoints or resumes. Retrospective reproduction does not turn the extension into the original hypothesis or field evidence.
 
 \section{Discussion and Threats to Validity}
 \subsection{What the Negative Result Explains}

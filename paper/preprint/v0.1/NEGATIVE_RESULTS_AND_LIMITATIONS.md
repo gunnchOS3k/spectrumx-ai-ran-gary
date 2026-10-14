@@ -1,6 +1,6 @@
 # Negative results and limitations
 
-Preserved original twin-minus-cloud-fallback mean-.01359863,pairedCI[-.01477592,-.01242134]; revised-.01254544,CI[-.01479626,-.01029462], separatelyn5. These are unfavorable model-score results, not optimizer import failures. Existing intendedSLSQP reproduction preserves them. The large paired d_z values characterize tightly constrained simulation only.
+Preserved original twin-minus-cloud-fallback mean-.01359863,paired CI[-.01477592,-.01242134]; revised-.01254544,CI[-.01479626,-.01029462], separatelyn=5. These are unfavorable model-score results, not optimizer import failures. Existing intendedSLSQP reproduction preserves them. The large paired d_z values characterize tightly constrained simulation only.
 
 Positive within model: original linear exceeds procedural by.03436917 and favorable procedural-minus-fallback means occur under high-blockage/outage-heavy priors. Switching decomposition identifies a small gross gain overridden by extra deductions. These findings are conditional and do not validate twin context, scalar action complexity or physical handovers. Inconclusive: linear versus greedy, significance/novelty, deployability and predictive fidelity. No equivalence claim follows fromzero-containing or overlapping intervals.
 

@@ -1,0 +1,17 @@
+{
+  "inputs": "Existing seeds0..4 and100..104, n_users4..8,B20; all frozen optimizer input combinations, two sources separately. No new seed or policy outcome.",
+  "component_solves": 100,
+  "max_absolute_budget_residual": 3.1882259854398853e-06,
+  "strict_budget_overshoots": 26,
+  "max_share_error": 2.5556650316005403e-06,
+  "max_utilization_error": 1.5941129927199427e-07,
+  "fixed_action_primary_score_lipschitz_constant": 1.83,
+  "worst_absolute_slot_score_impact_bound": 2.917226776677495e-07,
+  "bound_conditions": "Fixed network/placement/fidelity/checkpoint decisions (shares do not select them), source priors and score; no physical interpretation. Does not remove discrete-policy or observation confounding.",
+  "paired_negative_margin_minimum": 0.010294622848085685,
+  "material_to_preserved_negative_direction": false,
+  "scipy_slsqp_local_signature": "(func, x0, args=(), jac=None, bounds=None, constraints=(), maxiter=100, ftol=1e-06, iprint=1, disp=False, eps=np.float64(1.4901161193847656e-08), callback=None, finite_diff_rel_step=None, workers=None, **unknown_options)",
+  "exact_mathematical_optimum_uniform": true,
+  "numerical_solutions_exactly_optimal_or_strictly_feasible": false,
+  "human_approval": false
+}

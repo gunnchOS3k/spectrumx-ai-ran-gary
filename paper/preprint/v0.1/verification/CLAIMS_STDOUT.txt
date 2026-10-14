@@ -1,0 +1,15 @@
+{
+  "claim_pointer_links_verified": 14,
+  "result_tables_byte_equal_to_regenerated": [
+    "ablations.tex",
+    "domain_shift.tex",
+    "heldout.tex",
+    "paired.tex",
+    "revised.tex",
+    "summary_metrics.csv"
+  ],
+  "summary_metrics_independently_checked": 1477,
+  "frozen_source_objects": "separately checked by verify_integrity.py",
+  "figure_inputs": "generate_figures.py reads exact frozen/rerun JSON with independent t calculations; final plots visually inspected",
+  "new_campaign": false
+}
