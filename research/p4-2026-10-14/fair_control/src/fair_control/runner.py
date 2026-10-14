@@ -27,7 +27,7 @@ def tree_manifest(root=ROOT):
         if not (root/d).exists():continue
         for p in sorted((root/d).rglob('*')):
             if p.is_file() and '__pycache__' not in p.parts:files[str(p.relative_to(root))]=hashlib.sha256(p.read_bytes()).hexdigest()
-    for name in ['requirements.txt','prepare.py','p5_check.py','p5_run.py']:
+    for name in ['requirements.txt','prepare.py','p5_check.py','p5_run.py','p5_worker.py']:
         p=root/name
         if p.exists():files[name]=hashlib.sha256(p.read_bytes()).hexdigest()
     return {'files':files,'source_tree_sha256':digest(files)}
@@ -59,7 +59,7 @@ def run(config,output=None):
         for s in specs:
             v=env.tasks[s.task_id]
             if v.state.value in {'CREATED','FAILED','COMPLETED'}:continue
-            est['task_queue'].append({'task_id':s.task_id,'remaining_mcycles':s.work_mcycles-v.progress_mcycles,'remaining_mbit':s.input_mbit-v.delivered_mbit,'memory_mb':s.memory_mb,'deadline_s':s.requirement.deadline_s,'minimum_quality':s.requirement.minimum_quality,'content_age_s':env._age(s,env.now_s) if all(k in env.contents for k in s.content_keys) else s.requirement.max_age_s+1,'max_age_s':s.requirement.max_age_s,'local_eligible':s.local_eligible,'network_required':s.network_required})
+            est['task_queue'].append({'task_id':s.task_id,'remaining_mcycles':s.work_mcycles-v.progress_mcycles,'remaining_mbit':s.input_mbit-v.delivered_mbit,'memory_mb':s.memory_mb,'deadline_s':s.requirement.deadline_s,'minimum_quality':s.requirement.minimum_quality,'content_age_s':env._age(s,env.now_s) if all(k in env.contents for k in s.content_keys) else s.requirement.max_age_s+1,'max_age_s':s.requirement.max_age_s,'local_eligible':s.local_eligible,'network_required':s.network_required,'work_mcycles':s.work_mcycles,'input_mbit':s.input_mbit,'placement':v.placement,'network':v.network,'latency_paid_s':v.latency_paid_s,'content_available':all(k in env.contents for k in s.content_keys),'supported':s.operation in {'copy','reverse','upper'}})
         decision=decide(policy,est,hw,model);decisions.append(asdict(decision));env.step(truth,decision.action,f['latency_s'])
     p=tree_manifest();source=revision();component=lambda name:hashlib.sha256((ROOT/'src/fair_control'/name).read_bytes()).hexdigest()
     timing=[{'elapsed_s':d.pop('elapsed_s')} for d in decisions] # retained separately, deterministic scientific/engineering payload

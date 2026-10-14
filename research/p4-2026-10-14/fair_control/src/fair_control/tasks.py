@@ -60,6 +60,9 @@ class Observed:
     content_age_s:float
     quality:float
     durable:bool
+    def __post_init__(self):
+        if not isinstance(self.output,str):raise ContractError('Observed bytes required as UTF-8 text')
+        TaskOutcome(self.task_id,self.finished_s,self.content_age_s,self.quality,True,self.durable)
 
 class Evaluator:
     """No policy predictions or connectivity flags enter the success definition."""
@@ -94,9 +97,10 @@ class TaskRuntime:
     def fail(self,at,reason):
         if self.state not in TERMINAL:self.move(State.FAILED,at,reason);self.failure=reason
 
-def execute_payload(spec:TaskSpec)->str:
+def execute_payload(spec:TaskSpec,payload:str|None=None)->str:
     # Synthetic deterministic backend; reference digests belong to independently authored specs.
-    if spec.operation=='copy':return spec.payload
-    if spec.operation=='reverse':return spec.payload[::-1]
-    if spec.operation=='upper':return spec.payload.upper()
+    payload=spec.payload if payload is None else payload
+    if spec.operation=='copy':return payload
+    if spec.operation=='reverse':return payload[::-1]
+    if spec.operation=='upper':return payload.upper()
     raise ContractError('Unsupported workload')

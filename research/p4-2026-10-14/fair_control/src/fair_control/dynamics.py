@@ -4,7 +4,7 @@ from dataclasses import dataclass, asdict, replace
 import copy, json
 from .core import (Action,Allocation,TruthFrame,Resources,TransitionCost,ContractError,
                    transition,validate_action,number,digest,canonical)
-from .tasks import State,TERMINAL,TaskSpec,TaskRuntime,Content,Observed,Evaluator,execute_payload
+from .tasks import State,TERMINAL,TRANSITIONS,TaskSpec,TaskRuntime,Content,Observed,Evaluator,execute_payload
 
 @dataclass(frozen=True)
 class Model:
@@ -27,7 +27,7 @@ class Model:
 class Environment:
     def __init__(self,specs,energy_j,contents=(),model=Model()):
         self.specs=tuple(specs);self.evaluator=Evaluator(self.specs);self.model=model
-        self.tasks={s.task_id:TaskRuntime() for s in self.specs};self.contents={c.key:c for c in contents}
+        self.tasks={s.task_id:TaskRuntime() for s in self.specs};contents=tuple(contents);self.contents={c.key:c for c in contents}
         if len(self.contents)!=len(tuple(contents)):raise ContractError('Duplicate content')
         self.now_s=0.;self.initial_energy_j=number(energy_j,'energy');self.energy_j=self.initial_energy_j
         self.previous=None;self.observed=[];self.attempts=[];self.trace=[]
@@ -66,15 +66,26 @@ class Environment:
             t=self.tasks[s.task_id]
             if not 0<=t.progress_mcycles<=s.work_mcycles or not 0<=t.delivered_mbit<=s.input_mbit:raise ContractError('Invalid progress')
             number(t.latency_paid_s,'latency')
+            if t.placement not in {None,'local','edge','cloud'}:raise ContractError('Invalid execution placement')
+            if t.network is not None and not isinstance(t.network,str):raise ContractError('Invalid execution network')
             if (t.state==State.COMPLETED)!=(s.task_id in ids):raise ContractError('Completion-state mismatch')
             if t.state==State.COMPLETED and not self.evaluator.accepts(next(o for o in self.observed if o.task_id==s.task_id)):raise ContractError('Invalid successful completion')
             state=State.CREATED;last=-1.
             for h in t.history:
-                if h['from']!=state.value or State(h['to']) not in __import__('fair_control.tasks',fromlist=['TRANSITIONS']).TRANSITIONS[state] or not last<=h['at_s']<=self.now_s:raise ContractError('Invalid lifecycle history')
+                if h['from']!=state.value or State(h['to']) not in TRANSITIONS[state] or not last<=h['at_s']<=self.now_s:raise ContractError('Invalid lifecycle history')
                 state=State(h['to']);last=h['at_s']
             if state!=t.state:raise ContractError('State/history mismatch')
             if t.checkpoint:self._verify_checkpoint(s.task_id,t.checkpoint)
         if self.queue_length<0:raise ContractError('Negative queue')
+        spent=0.;last_time=0.
+        for row in self.trace:
+            for k in ('energy_j','cpu_mcycles','delivered_mbit','stall_s','maintenance_duration_s'):
+                if k in row:number(row[k],k)
+            if not last_time<=row['at_s']<=self.now_s:raise ContractError('Invalid trace time')
+            last_time=row['at_s'];spent+=row['energy_j']
+        # Floating addition order may differ; this is a ledger identity check, not budget forgiveness.
+        import math
+        if not math.isclose(spent+self.energy_j,self.initial_energy_j,rel_tol=1e-12,abs_tol=1e-12):raise ContractError('Energy ledger mismatch')
     def _age(self,s,at):
         return max([0.]+[at-self.contents[k].generated_s for k in s.content_keys])
     def _ready(self,s,t,at):
@@ -133,7 +144,7 @@ class Environment:
                 work=min(s.work_mcycles-t.progress_mcycles,a.cpu_mcycles_s*available);t.progress_mcycles+=work;used_cpu+=work
                 if t.progress_mcycles>=s.work_mcycles:
                     finish=self.now_s+stall+paid+delivery_time+(work/a.cpu_mcycles_s if a.cpu_mcycles_s else 0.)
-                    o=Observed(s.task_id,finish,execute_payload(s),self._age(s,finish),1. if action.fidelity=='target' else self.model.degraded_quality,True)
+                    o=Observed(s.task_id,finish,execute_payload(s,''.join(self.contents[k].value for k in s.content_keys) if s.content_keys else None),self._age(s,finish),1. if action.fidelity=='target' else self.model.degraded_quality,True)
                     self.attempts.append(o)
                     if self.evaluator.accepts(o):t.move(State.COMPLETED,finish,'verified_completion');self.observed.append(o)
                     else:t.fail(finish,'outcome_rejected')

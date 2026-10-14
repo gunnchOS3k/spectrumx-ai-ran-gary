@@ -20,7 +20,7 @@ class P5(unittest.TestCase):
         return Action(None if place=='local' else network,place,(Allocation(id,bw,cpu,memory,power),),fidelity)
     def step(self,e,a,**kw):return e.step(self.truth(e,**kw),a,{'TN':0,'NTN':0})
     def estimates(self,**kw):
-        x={'timestamp_s':0.,'estimated_paths':[{'name':'TN','up':True,'capacity_mbps':10.,'latency_s':0.}], 'task_queue':[{'task_id':'a','remaining_mcycles':4.,'remaining_mbit':0.,'memory_mb':1.,'deadline_s':10.,'minimum_quality':1.,'content_age_s':0.,'max_age_s':100.,'local_eligible':True,'network_required':False}], 'remaining_energy_j':100.,'previous_action':None,'forecasts':[{'timestamp_s':1.,'duration_s':1.,'paths':[{'name':'TN','up':True,'capacity_mbps':10.,'latency_s':0.}]},{'timestamp_s':2.,'duration_s':1.,'paths':[{'name':'TN','up':True,'capacity_mbps':10.,'latency_s':0.}]}]}
+        x={'timestamp_s':0.,'estimated_paths':[{'name':'TN','up':True,'capacity_mbps':10.,'latency_s':0.}], 'task_queue':[{'task_id':'a','remaining_mcycles':4.,'remaining_mbit':0.,'memory_mb':1.,'deadline_s':10.,'minimum_quality':1.,'content_age_s':0.,'max_age_s':100.,'local_eligible':True,'network_required':False,'work_mcycles':4.,'input_mbit':0.,'placement':None,'network':None,'latency_paid_s':0.,'content_available':True,'supported':True}], 'remaining_energy_j':100.,'previous_action':None,'forecasts':[{'timestamp_s':1.,'duration_s':1.,'paths':[{'name':'TN','up':True,'capacity_mbps':10.,'latency_s':0.}]},{'timestamp_s':2.,'duration_s':1.,'paths':[{'name':'TN','up':True,'capacity_mbps':10.,'latency_s':0.}]}]}
         x.update(kw);return x
     def test_offline_success(self):
         e=Environment([self.spec()],10);self.step(e,self.action(),up=False);self.assertEqual(e.evaluator.fraction(e.observed),1)
@@ -160,3 +160,83 @@ class P5(unittest.TestCase):
         m=tree_manifest();verify_manifest(m);m=copy.deepcopy(m);m['files'].pop(next(iter(m['files'])));self.assertRaises(ContractError,verify_manifest,m)
     def test_provenance_empty_revision_rejected(self):
         r=run(self.config());r['payload']['source_sha']='';r['payload_sha256']=digest(r['payload']);self.assertRaises(ContractError,validate_output,r)
+
+    def test_network_change_pays_new_latency(self):
+        e=Environment([self.spec(work=100)],10,model=Model(network_stall_s=0));self.step(e,self.action(place='edge',cpu=2))
+        r=e.step(self.truth(e),self.action(place='edge',network='NTN',cpu=2),{'TN':0,'NTN':.5});self.assertEqual(r['cpu_mcycles'],1)
+    def test_zero_budget_catalog_defer(self):
+        self.assertEqual(catalog(self.estimates(remaining_energy_j=0),Hardware()),(Action.defer(),))
+    def test_allocation_matters_to_outcome(self):
+        a=Environment([self.spec(work=4,deadline=1)],10);b=Environment([self.spec(work=4,deadline=1)],10)
+        self.step(a,self.action(cpu=4));self.step(b,self.action(cpu=2));self.assertEqual(a.evaluator.fraction(a.observed),1);self.assertEqual(b.evaluator.fraction(b.observed),0)
+    def test_common_dependency_failure(self):
+        e=Environment([self.spec()],10);t=self.truth(e);t=replace(t,paths=tuple(replace(p,gateway_up=False) for p in t.paths));r=e.step(t,self.action(place='edge'),{'TN':0,'NTN':0});self.assertIn('unavailable_path',r['errors'])
+    def test_process_controller_success(self):
+        from fair_control.isolation import decide_isolated
+        d,r=decide_isolated(Policy('hysteresis'),self.estimates());self.assertEqual(r['process_status'],'RETURNED');self.assertEqual(d.status,'SOLVED')
+    def test_process_timeout_reaps(self):
+        from fair_control.isolation import process_call
+        with tempfile.TemporaryDirectory() as p:
+            worker=Path(p)/'hang.py';worker.write_text('import time\ntime.sleep(10)\n')
+            r=process_call({},.05,worker);self.assertEqual(r['status'],'PROCESS_TIMEOUT');self.assertIsNone(r['decision']);self.assertLess(r['outer_elapsed_s'],2)
+    def test_process_failure_defers(self):
+        from fair_control.isolation import process_call
+        with tempfile.TemporaryDirectory() as p:
+            worker=Path(p)/'fail.py';worker.write_text('raise RuntimeError("constructed failure")\n')
+            r=process_call({},1.,worker);self.assertEqual(r['status'],'PROCESS_ERROR')
+    def test_attempted_wrong_output_retained(self):
+        e=Environment([self.spec(expected_sha256=sha('wrong'))],10);self.step(e,self.action());self.assertEqual(len(e.attempts),1);self.assertEqual(e.evaluator.fraction(e.attempts),0)
+
+    def test_predict_fluid_matches_known_execution(self):
+        x=self.estimates();a=self.action(cpu=4);n,y=predict(x,a,Hardware(),Model());e=Environment([self.spec()],100);self.step(e,a)
+        self.assertEqual(n,len(e.observed));self.assertEqual(y['remaining_energy_j'],e.energy_j)
+    def test_predict_preserves_latency_and_migration(self):
+        x=self.estimates(previous_action=asdict(self.action()));x['task_queue'][0].update(remaining_mcycles=2.,work_mcycles=100.,placement='local')
+        n,y=predict(x,self.action(place='edge',cpu=2),Hardware(),Model());self.assertEqual(n,0);self.assertAlmostEqual(y['task_queue'][0]['remaining_mcycles'],98.3)
+    def test_predict_subinterval_completion_deadline(self):
+        x=self.estimates();x['task_queue'][0].update(deadline_s=.5,remaining_mcycles=1.,work_mcycles=1.)
+        n,y=predict(x,self.action(cpu=2),Hardware(),Model());self.assertEqual(n,1)
+    def test_prediction_no_content_success(self):
+        x=self.estimates();x['task_queue'][0]['content_available']=False;n,y=predict(x,self.action(cpu=4),Hardware(),Model());self.assertEqual(n,0)
+
+    def test_fair_opportunity_resource_and_cost_mutations(self):
+        from fair_control.fairness import Opportunity,validate_opportunities
+        o=Opportunity(Hardware(),Model());p=[Policy('mpc'),Policy('hysteresis')];x=self.estimates();validate_opportunities([o,o],p,[x,x])
+        for changed in [replace(o,hardware=replace(o.hardware,memory_mb=200)),replace(o,model=replace(o.model,network_energy_j=1)),replace(o,max_evaluations=1)]:self.assertRaises(ContractError,validate_opportunities,[o,changed],p,[x,x])
+    def test_common_opportunity_operational(self):
+        from fair_control.fairness import Opportunity,matched_decisions
+        ds=matched_decisions([Policy('mpc'),Policy('hysteresis')],[self.estimates(),self.estimates()],Opportunity(Hardware(),Model()))
+        self.assertEqual(ds[0].observation_sha256,ds[1].observation_sha256);self.assertEqual(ds[0].catalog_sha256,ds[1].catalog_sha256)
+    def test_switch_cost_same_execution_math(self):
+        a=Environment([self.spec(work=100)],10);b=Environment([self.spec(work=100)],10)
+        for e in [a,b]:self.step(e,self.action(place='edge'));self.step(e,self.action(place='edge',network='NTN'))
+        self.assertEqual(a.trace,b.trace);self.assertEqual(a.energy_j,b.energy_j)
+    def test_energy_ledger_trace_mutation(self):
+        e=Environment([self.spec()],10);self.step(e,self.action());s=e.snapshot();s['trace'][0]['energy_j']=0.;self.assertRaises(ContractError,Environment.restart,e.specs,s)
+    def test_checkpoint_model_mismatch(self):
+        e=Environment([self.spec()],10);c=e.checkpoint('a',.1,0);e.crash('a');c['spec_hash']='0'*64;c['sha256']=digest({k:v for k,v in c.items() if k!='sha256'});e.tasks['a'].checkpoint=c;self.assertRaises(ContractError,e.restore,'a',.1,0)
+    def test_failed_task_has_no_service(self):
+        e=Environment([self.spec(deadline=0)],10);self.step(e,Action.defer());s=e.snapshot();r=self.step(e,self.action());self.assertIn('inactive_task',r['errors']);self.assertEqual(e.tasks['a'].progress_mcycles,0)
+    def test_low_quality_failed_attempt_retained(self):
+        e=Environment([self.spec()],10);self.step(e,self.action(fidelity='degraded'));self.assertEqual(e.tasks['a'].failure,'outcome_rejected');self.assertEqual(e.evaluator.fraction(e.attempts),0)
+    def test_resource_change_alters_primary_not_score(self):
+        e=Environment([self.spec(deadline=1)],10);self.step(e,self.action(cpu=4),cpu=2);self.assertEqual(e.evaluator.fraction(e.attempts),0);self.assertEqual(e.energy_j,10)
+
+    def test_mpc_known_future_prediction_analytical(self):
+        # H=2 known forecast: edge at 2 cycles/s finishes work=3 by deadline t=2;
+        # local at 1 cycle/s cannot. This checks the finite prediction objective,
+        # not general optimality or empirical controller superiority.
+        x=self.estimates();x['task_queue'][0].update(remaining_mcycles=3.,work_mcycles=3.,deadline_s=2.)
+        h=Hardware(placement_cpu=(('local',1.),('edge',2.)))
+        x['forecasts']=x['forecasts'][:1];x['forecasts'][0]['paths'][0]['up']=True
+        d=decide(Policy('mpc',horizon=2),x,h,Model(network_stall_s=0,placement_stall_s=0));self.assertEqual(d.predicted_completions,1);self.assertEqual(d.action.placement,'edge')
+
+    def test_content_bytes_actually_determine_output(self):
+        e=Environment([self.spec(content_keys=('x',))],10,[Content('x','wrong bytes',0)]);self.step(e,self.action());self.assertEqual(e.tasks['a'].failure,'outcome_rejected');self.assertEqual(e.attempts[0].output,'wrong bytes')
+        e=Environment([self.spec(content_keys=('x',))],10,[Content('x','abc',0)]);self.step(e,self.action());self.assertEqual(e.evaluator.fraction(e.attempts),1)
+    def test_checkpoint_energy_exhaustion(self):
+        e=Environment([self.spec(work=100)],.1);self.assertRaises(ContractError,e.checkpoint,'a',.1,.2);self.assertEqual(e.energy_j,.1);self.assertEqual(e.now_s,0)
+    def test_noncheckpointable_workload(self):
+        e=Environment([self.spec(checkpointable=False)],10);self.assertRaises(ContractError,e.checkpoint,'a',.1,0)
+    def test_future_dated_content_not_available(self):
+        e=Environment([self.spec(content_keys=('x',))],10,[Content('x','abc',2)]);self.step(e,self.action());self.assertEqual(e.tasks['a'].state,State.BLOCKED)

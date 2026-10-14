@@ -55,11 +55,12 @@ def validate_estimates(x):
     tasks=x['task_queue'];ids=[]
     if len(tasks)>64 or len(x['estimated_paths'])>4:raise ContractError('Bounded engineering input size')
     for t in tasks:
-        if set(t)!= {'task_id','remaining_mcycles','remaining_mbit','memory_mb','deadline_s','minimum_quality','content_age_s','max_age_s','local_eligible','network_required'}:raise ContractError('Task estimate fields')
+        if set(t)!= {'task_id','remaining_mcycles','remaining_mbit','memory_mb','deadline_s','minimum_quality','content_age_s','max_age_s','local_eligible','network_required','work_mcycles','input_mbit','placement','network','latency_paid_s','content_available','supported'}:raise ContractError('Task estimate fields')
         if not isinstance(t['task_id'],str) or not t['task_id']:raise ContractError('Task ID')
         ids.append(t['task_id'])
-        for k in ['remaining_mcycles','remaining_mbit','memory_mb','deadline_s','minimum_quality','content_age_s','max_age_s']:number(t[k],k)
-        if t['minimum_quality']>1 or type(t['local_eligible']) is not bool or type(t['network_required']) is not bool:raise ContractError('Task estimate types')
+        for k in ['remaining_mcycles','remaining_mbit','memory_mb','deadline_s','minimum_quality','content_age_s','max_age_s','work_mcycles','input_mbit','latency_paid_s']:number(t[k],k)
+        if t['minimum_quality']>1 or type(t['local_eligible']) is not bool or any(type(t[k]) is not bool for k in ('network_required','content_available','supported')):raise ContractError('Task estimate types')
+        if t['placement'] not in {None,'local','edge','cloud'} or (t['network'] is not None and not isinstance(t['network'],str)):raise ContractError('Task estimate execution state')
     if len(set(ids))!=len(ids):raise ContractError('Duplicate task estimates')
     frames=[{'timestamp_s':x['timestamp_s'],'duration_s':1.,'paths':x['estimated_paths']}]+list(x['forecasts'])
     if len(x['forecasts'])>2:raise ContractError('Forecast bound H=3')
@@ -77,7 +78,7 @@ def validate_estimates(x):
     if x['previous_action']:action_from_dict(x['previous_action'])
     freeze(x)
 
-def catalog(x,hardware:Hardware, *, fixed_target=False):
+def catalog(x,hardware:Hardware, *, fixed_target=False,model=Model()):
     """Public hardware + estimates only. No true-feasibility query or hidden label."""
     tasks=list(x['task_queue']);paths=list(x['estimated_paths']);actions=[Action.defer()]
     for place,pcpu in hardware.placement_cpu:
@@ -93,12 +94,17 @@ def catalog(x,hardware:Hardware, *, fixed_target=False):
             for profile in ('equal','priority','deadline'):
                 weights=[1. if profile=='equal' else (max(t['remaining_mcycles'],1e-9) if profile=='priority' else 1/max(t['deadline_s']-x['timestamp_s'],1e-9)) for t in selected]
                 denom=sum(weights);cpu=min(hardware.cpu_mcycles_s,pcpu)
-                alloc=tuple(Allocation(t['task_id'],cap*w/denom,cpu*w/denom,t['memory_mb'],hardware.power_w*w/denom) for t,w in zip(selected,weights))
+                def shares(total):
+                    vals=[total*w/denom for w in weights[:-1]];vals.append(max(0.,total-sum(vals)))
+                    while sum(vals)>total:vals[-1]=math.nextafter(vals[-1],0.)
+                    return vals
+                bs,cs,ps=shares(cap),shares(cpu),shares(hardware.power_w)
+                alloc=tuple(Allocation(t['task_id'],b,c,t['memory_mb'],p) for t,b,c,p in zip(selected,bs,cs,ps))
                 for fidelity in (('target',) if fixed_target else ('target','degraded')):actions.append(Action(path['name'] if path else None,place,alloc,fidelity))
     # Check public estimate feasibility; this frame contains no environment truth.
     if tasks:
         estimated=TruthFrame('ESTIMATE_ONLY',tuple(t['task_id'] for t in tasks),tuple(PathTruth(p['name'],p['up'],p['capacity_mbps']) for p in paths),hardware.placement_cpu,Resources(hardware.bandwidth_mbps,hardware.cpu_mcycles_s,hardware.memory_mb,hardware.power_w,x['remaining_energy_j']),1.)
-        actions=[a for a in actions if not validate_action(estimated,a)]
+        actions=[a for a in actions if not validate_action(estimated,a,cost=model.cost(action_from_dict(x['previous_action']),a))]
     # Stable lexicographic tie order, duplicate profiles collapsed by byte identity.
     unique={digest(asdict(a)):a for a in actions}
     return tuple(sorted(unique.values(),key=lambda a:(a.placement,a.network or '',a.fidelity,digest(asdict(a)))))
@@ -116,13 +122,18 @@ def predict(x,a,hardware,model,duration_s=1.):
     remaining=[];byid={z.task_id:z for z in a.allocations}
     for t in y['task_queue']:
         z=byid.get(t['task_id']);success=False
-        if z:
+        if z and t['content_available'] and t['supported']:
+            if t['placement'] is not None and t['placement']!=a.placement:
+                t['remaining_mcycles']=t['work_mcycles'];t['remaining_mbit']=t['input_mbit'];t['latency_paid_s']=0.
+            if t['network']!=a.network:t['latency_paid_s']=0.
+            t['placement']=a.placement;t['network']=a.network
             dt=max(0.,min(duration_s,t['deadline_s']-x['timestamp_s'])-cost.stall_s)
-            dt=max(0.,dt-(paths[a.network]['latency_s'] if a.network else 0.))
-            bits=min(t['remaining_mbit'],z.bandwidth_mbps*dt);t['remaining_mbit']-=bits;dt-=bits/z.bandwidth_mbps if z.bandwidth_mbps else 0.
+            latency=paths[a.network]['latency_s'] if a.network else 0.
+            paid=min(dt,max(0.,latency-t['latency_paid_s']));t['latency_paid_s']+=paid;dt-=paid
+            bits=min(t['remaining_mbit'],z.bandwidth_mbps*dt);t['remaining_mbit']-=bits;transfer_time=bits/z.bandwidth_mbps if z.bandwidth_mbps else 0.;dt-=transfer_time
             work=min(t['remaining_mcycles'],z.cpu_mcycles_s*dt);t['remaining_mcycles']-=work
-            finish=x['timestamp_s']+min(duration_s,max(0.,t['deadline_s']-x['timestamp_s']))
-            success=t['remaining_mcycles']==0 and t['remaining_mbit']==0 and quality>=t['minimum_quality'] and t['content_age_s']+duration_s<=t['max_age_s'] and finish<=t['deadline_s']
+            finish=x['timestamp_s']+cost.stall_s+paid+transfer_time+(work/z.cpu_mcycles_s if z.cpu_mcycles_s else 0.)
+            success=t['remaining_mcycles']==0 and t['remaining_mbit']==0 and quality>=t['minimum_quality'] and t['content_age_s']+(finish-x['timestamp_s'])<=t['max_age_s'] and finish<=t['deadline_s']
         if success:completed+=1
         elif t['deadline_s']>x['timestamp_s']+duration_s:
             t['content_age_s']+=duration_s;remaining.append(t)
@@ -148,7 +159,7 @@ def decide(policy:Policy,estimates,hardware=Hardware(),model=Model(),clock=time.
     try:
         # Read all authorized inputs before catalog construction; report actual repeated reads too.
         x={k:thaw(o[k]) for k in policy.observations};ledger.check()
-        options=catalog(x,hardware,fixed_target=policy.family=='fixed_target');ledger.check()
+        options=catalog(x,hardware,fixed_target=policy.family=='fixed_target',model=model);ledger.check()
         if policy.family in {'static','fallback','rule'}:
             executable=[a for a in options if a.placement!='defer']
             if policy.family=='static':preferred=[a for a in executable if a.placement=='edge' and a.network=='TN' and a.fidelity=='target']
@@ -166,7 +177,7 @@ def decide(policy:Policy,estimates,hardware=Hardware(),model=Model(),clock=time.
                         if depth-1>=len(fs):continue
                         f=fs[depth-1];state=copy.deepcopy(state);state['estimated_paths']=f['paths'];state['timestamp_s']=f['timestamp_s'];dt=f['duration_s']
                     else:dt=1.
-                    for i,a in enumerate(catalog(state,hardware)):
+                    for i,a in enumerate(catalog(state,hardware,model=model)):
                         ledger.charge();v,next_state=predict(state,a,hardware,model,dt);ledger.check()
                         expanded.append((value+v,next_state,first or a,path+(i,)))
                 if not expanded:break
