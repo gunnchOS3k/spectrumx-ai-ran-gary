@@ -11,6 +11,7 @@ test_each_resource_budget_is_enforced (test_contracts.Fixtures.test_each_resourc
 test_elapsed_time_budget_includes_scorer_time (test_contracts.Fixtures.test_elapsed_time_budget_includes_scorer_time) ... ok
 test_first_action_no_switch_and_common_cost (test_contracts.Fixtures.test_first_action_no_switch_and_common_cost) ... ok
 test_future_result_population_and_nan_rejected (test_contracts.Fixtures.test_future_result_population_and_nan_rejected) ... ok
+test_json_input_rejects_nonfinite_budget_and_duplicate_tasks (test_contracts.Fixtures.test_json_input_rejects_nonfinite_budget_and_duplicate_tasks) ... ok
 test_local_execution_cannot_claim_network_resources (test_contracts.Fixtures.test_local_execution_cannot_claim_network_resources) ... ok
 test_missing_tasks_stay_in_denominator (test_contracts.Fixtures.test_missing_tasks_stay_in_denominator) ... ok
 test_nonfinite_and_negative_allocations_fail (test_contracts.Fixtures.test_nonfinite_and_negative_allocations_fail) ... ok
@@ -22,12 +23,14 @@ test_same_primary_view_for_both_policies (test_contracts.Fixtures.test_same_prim
 test_schemas_are_valid_and_report_cannot_claim_campaign (test_contracts.Fixtures.test_schemas_are_valid_and_report_cannot_claim_campaign) ... ok
 test_seed_pairing_uses_ids_not_insertion_order (test_contracts.Fixtures.test_seed_pairing_uses_ids_not_insertion_order) ... ok
 test_statistics_sd_ci_and_zero_not_equivalence (test_contracts.Fixtures.test_statistics_sd_ci_and_zero_not_equivalence) ... ok
+test_task_identity_and_flag_domains_cannot_silently_coerce (test_contracts.Fixtures.test_task_identity_and_flag_domains_cannot_silently_coerce) ... ok
 test_transition_energy_included (test_contracts.Fixtures.test_transition_energy_included) ... ok
 test_truth_is_frozen (test_contracts.Fixtures.test_truth_is_frozen) ... ok
 test_unavailable_gateway_visibility_or_terminal_power_rejected (test_contracts.Fixtures.test_unavailable_gateway_visibility_or_terminal_power_rejected) ... ok
 test_valid_action_and_inclusive_resource_bound (test_contracts.Fixtures.test_valid_action_and_inclusive_resource_bound) ... ok
+test_versioned_truth_json_input_and_no_future_data (test_contracts.Fixtures.test_versioned_truth_json_input_and_no_future_data) ... ok
 
 ----------------------------------------------------------------------
-Ran 28 tests in 0.035s
+Ran 31 tests in 0.047s
 
 OK

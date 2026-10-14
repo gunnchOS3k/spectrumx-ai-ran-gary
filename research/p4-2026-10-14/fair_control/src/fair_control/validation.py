@@ -28,7 +28,7 @@ def provenance(root:Path)->dict:
     for f in ['prepare.py','requirements.txt']:
         p=root/f
         if p.exists():files[f]=hashlib.sha256(p.read_bytes()).hexdigest()
-    for d in ['src','schemas','configs','tests']:
+    for d in ['src','schemas','configs','tests','fixtures']:
         for p in sorted((root/d).rglob('*')):
             if p.is_file() and '__pycache__' not in p.parts:files[str(p.relative_to(root))]=hashlib.sha256(p.read_bytes()).hexdigest()
     return {'evidence_class':'ENGINEERING_VALIDATION','files':files,'source_tree_sha256':digest(files),'python':sys.version,'platform':platform.platform(),'campaign_executed':False,'publication_authorized':False}
@@ -39,3 +39,11 @@ def validate_future_result_shape(record:dict)->None:
     schema=json.loads((ROOT/'schemas/future-result.schema.json').read_text())
     Draft202012Validator(schema).validate(record);canonical(record)
     if record['successes']>record['scheduled_tasks']:raise ContractError('Numerator exceeds fixed task population')
+
+
+def truth_from_fixture(payload:dict):
+    """Versioned JSON -> immutable truth, restricted to constructed fixture input."""
+    from .core import TruthFrame,PathTruth,Resources
+    schema=json.loads((ROOT/'schemas/truth-frame.schema.json').read_text())
+    Draft202012Validator(schema).validate(payload);canonical(payload)
+    return TruthFrame(payload['frame_id'],tuple(payload['task_ids']),tuple(PathTruth(**x) for x in payload['paths']),tuple(payload['placement_cpu'].items()),Resources(**payload['resources']),payload['duration_s'])

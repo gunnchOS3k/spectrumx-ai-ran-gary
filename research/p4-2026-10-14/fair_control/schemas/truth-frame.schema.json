@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:gunnchos:research:p4:engineering-truth-frame:0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "evidence_class",
+    "frame_id",
+    "task_ids",
+    "paths",
+    "placement_cpu",
+    "resources",
+    "duration_s"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1"
+    },
+    "evidence_class": {
+      "const": "ENGINEERING_FIXTURE"
+    },
+    "frame_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "paths": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "up",
+          "capacity_mbps",
+          "gateway_up",
+          "terminal_power",
+          "visible"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "capacity_mbps": {
+            "type": "number",
+            "minimum": 0
+          },
+          "up": {
+            "type": "boolean"
+          },
+          "gateway_up": {
+            "type": "boolean"
+          },
+          "terminal_power": {
+            "type": "boolean"
+          },
+          "visible": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "placement_cpu": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "local": {
+          "type": "number",
+          "minimum": 0
+        },
+        "edge": {
+          "type": "number",
+          "minimum": 0
+        },
+        "cloud": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "bandwidth_mbps",
+        "cpu_mcycles_s",
+        "memory_mb",
+        "power_w",
+        "energy_j"
+      ],
+      "properties": {
+        "bandwidth_mbps": {
+          "type": "number",
+          "minimum": 0
+        },
+        "cpu_mcycles_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "memory_mb": {
+          "type": "number",
+          "minimum": 0
+        },
+        "power_w": {
+          "type": "number",
+          "minimum": 0
+        },
+        "energy_j": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "duration_s": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    }
+  }
+}

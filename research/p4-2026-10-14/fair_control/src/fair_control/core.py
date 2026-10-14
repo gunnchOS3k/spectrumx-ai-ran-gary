@@ -22,7 +22,9 @@ def number(x: float, name: str, *, positive: bool=False) -> float:
     return float(x)
 
 def freeze(x: Any) -> Any:
-    if isinstance(x,Mapping): return MappingProxyType({k:freeze(v) for k,v in x.items()})
+    if isinstance(x,Mapping):
+        if any(not isinstance(k,str) for k in x):raise ContractError('Observation keys must be strings')
+        return MappingProxyType({k:freeze(v) for k,v in x.items()})
     if isinstance(x,(list,tuple)): return tuple(freeze(v) for v in x)
     if isinstance(x,float) and not math.isfinite(x): raise ContractError('Nonfinite observation')
     if x is None or isinstance(x,(str,bool,int,float)):return x
@@ -70,7 +72,7 @@ class TruthFrame:
     def __post_init__(self):
         if type(self.task_ids) is not tuple or type(self.paths) is not tuple or type(self.placement_cpu) is not tuple:
             raise ContractError('Immutable tuples required')
-        if not self.frame_id or not self.task_ids or len(set(self.task_ids))!=len(self.task_ids):
+        if not isinstance(self.frame_id,str) or not self.frame_id or not self.task_ids or any(not isinstance(k,str) or not k for k in self.task_ids) or len(set(self.task_ids))!=len(self.task_ids):
             raise ContractError('Unique nonempty frame/task identifiers required')
         if not isinstance(self.resources,Resources) or any(not isinstance(p,PathTruth) for p in self.paths): raise ContractError('Invalid truth component')
         if any(type(p) is not tuple or len(p)!=2 for p in self.placement_cpu):raise ContractError('Immutable placement pairs required')
@@ -132,6 +134,7 @@ def validate_action(truth: TruthFrame, action: Action, *, cost: TransitionCost=T
     if any(not isinstance(a,Allocation) for a in action.allocations):return ('invalid_allocation_contract',)
     if action.placement=='defer':
         return () if action.network is None and not action.allocations and action.fidelity=='target' else ('defer_must_use_no_resource',)
+    if any(not isinstance(a.task_id,str) or not a.task_id for a in action.allocations):return ('invalid_task_identifier',)
     if action.fidelity not in {'target','degraded'}: errors.append('unknown_fidelity')
     placements=dict(truth.placement_cpu)
     if action.placement not in placements: errors.append('unknown_placement')
@@ -194,6 +197,7 @@ class TaskRequirement:
     minimum_quality: float
     requires_durable: bool=True
     def __post_init__(self):
+        if not isinstance(self.task_id,str) or not self.task_id or type(self.requires_durable) is not bool:raise ContractError('Invalid task identity/durability requirement')
         for k in ['released_s','deadline_s','max_age_s','minimum_quality']: number(getattr(self,k),k)
         if self.deadline_s<self.released_s or self.minimum_quality>1: raise ContractError('Invalid task requirement')
 
@@ -206,6 +210,7 @@ class TaskOutcome:
     correct: bool
     durable: bool
     def __post_init__(self):
+        if not isinstance(self.task_id,str) or not self.task_id:raise ContractError('Invalid task identity')
         for k in ['finished_s','content_age_s','quality']: number(getattr(self,k),k)
         if self.quality>1 or type(self.correct) is not bool or type(self.durable) is not bool: raise ContractError('Invalid outcome')
 

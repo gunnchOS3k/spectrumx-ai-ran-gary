@@ -3,11 +3,12 @@
 from pathlib import Path
 import sys,json,unittest,argparse,platform,importlib.metadata,hashlib
 ROOT=Path(__file__).resolve().parent;sys.path.insert(0,str(ROOT/'src'))
-from fair_control.validation import validate_config,validate_result,provenance
+from fair_control.validation import validate_config,validate_result,provenance,truth_from_fixture
 parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--check',action='store_true');parser.add_argument('--execute',action='store_true');a=parser.parse_args()
 if a.execute:parser.exit(2,'Campaign execution is outside P4; no runner, reserved seeds or authorization are supplied.\n')
 if not a.check:parser.error('Use --check for engineering validation only')
 validate_config(json.loads((ROOT/'configs/design.json').read_text()))
+truth_from_fixture(json.loads((ROOT/'fixtures/constructed_truth.json').read_text()))
 V=ROOT/'verification';V.mkdir(exist_ok=True)
 with (V/'UNIT_TESTS.txt').open('w') as out:
  result=unittest.TextTestRunner(stream=out,verbosity=2).run(unittest.defaultTestLoader.discover(str(ROOT/'tests')))

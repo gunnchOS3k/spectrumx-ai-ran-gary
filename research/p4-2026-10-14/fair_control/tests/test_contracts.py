@@ -5,7 +5,7 @@ from dataclasses import replace,FrozenInstanceError
 from jsonschema import ValidationError,Draft202012Validator
 from fair_control.core import *
 from fair_control.analysis import paired_summary,plan_size
-from fair_control.validation import ROOT,validate_config,validate_result,validate_future_result_shape,provenance
+from fair_control.validation import ROOT,validate_config,validate_result,validate_future_result_shape,truth_from_fixture,provenance
 
 class Fixtures(unittest.TestCase):
     def setUp(self):
@@ -136,3 +136,19 @@ class Fixtures(unittest.TestCase):
         validate_future_result_shape(r)
         with self.assertRaises(ContractError):validate_future_result_shape({**r,'successes':2})
         with self.assertRaises(ValueError):validate_future_result_shape({**r,'decision_seconds':float('nan')})
+
+    def test_versioned_truth_json_input_and_no_future_data(self):
+        p=json.loads((ROOT/'fixtures/constructed_truth.json').read_text());truth=truth_from_fixture(p)
+        self.assertEqual(truth.task_ids,('a','b'));self.assertEqual(validate_action(truth,self.action),())
+        for changes in [{'evidence_class':'MEASURED_NTN'},{'future_holdout':[]},{'schema_version':'9'}]:
+            with self.assertRaises(ValidationError):truth_from_fixture({**p,**changes})
+    def test_json_input_rejects_nonfinite_budget_and_duplicate_tasks(self):
+        p=json.loads((ROOT/'fixtures/constructed_truth.json').read_text())
+        with self.assertRaises(ValueError):truth_from_fixture({**p,'resources':{**p['resources'],'energy_j':float('nan')}})
+        with self.assertRaises(ValidationError):truth_from_fixture({**p,'task_ids':['a','a']})
+
+    def test_task_identity_and_flag_domains_cannot_silently_coerce(self):
+        with self.assertRaises(ContractError):TaskRequirement('a',0,1,1,.9,requires_durable='false')
+        with self.assertRaises(ContractError):TaskOutcome('',.5,0,1,True,True)
+        with self.assertRaises(ContractError):replace(self.truth,task_ids=('',))
+        with self.assertRaises(ContractError):Observation({'x':{1:True}},['x'])

@@ -1,0 +1,40 @@
+{
+  "schema_version": "0.1",
+  "evidence_class": "ENGINEERING_FIXTURE",
+  "frame_id": "constructed-feasibility-only",
+  "task_ids": [
+    "a",
+    "b"
+  ],
+  "paths": [
+    {
+      "name": "tn",
+      "up": true,
+      "capacity_mbps": 10,
+      "gateway_up": true,
+      "terminal_power": true,
+      "visible": true
+    },
+    {
+      "name": "ntn",
+      "up": true,
+      "capacity_mbps": 3,
+      "gateway_up": true,
+      "terminal_power": true,
+      "visible": true
+    }
+  ],
+  "placement_cpu": {
+    "local": 2,
+    "edge": 20,
+    "cloud": 30
+  },
+  "resources": {
+    "bandwidth_mbps": 10,
+    "cpu_mcycles_s": 20,
+    "memory_mb": 100,
+    "power_w": 5,
+    "energy_j": 50
+  },
+  "duration_s": 2
+}
