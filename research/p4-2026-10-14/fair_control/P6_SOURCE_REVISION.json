@@ -1,0 +1,14 @@
+{
+  "implementation_content_sha": "96f110df393c78a185a9dfd72855f77262d0bfa8",
+  "source_tree_sha256": "f3983b9d6d1b3b918e961e426ec3fde59cee83f601f9aaa3039b6c13e7aa6a11",
+  "repository": "gunnchOS3k/spectrumx-ai-ran-gary",
+  "branch": "research/p6-calibration-design-2026-10-14",
+  "p5_historical_checkpoint": "aa0f1d28a94a0e9058bf4f5b85ca99d592c00561",
+  "p5_implementation_content_anchor": "dda07bd2126ad335d29547ad31c87d830e0c4fb0",
+  "p6_interrupted_recovery_sha": "32cdd85c4e584be0a8a710057804d6b08d20e167",
+  "role": "Committed source inputs before candidate and review packaging metadata; not a scientific freeze",
+  "scientific_protocol_approved": false,
+  "pilot_execution_authorized": false,
+  "heldout_execution_authorized": false,
+  "publication_authorized": false
+}
