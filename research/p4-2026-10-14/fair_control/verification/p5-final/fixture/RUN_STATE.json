@@ -1,7 +1,7 @@
 {
   "mode": "ENGINEERING_TEST",
   "state": "COMPLETED",
-  "payload_sha256": "d8795f770d6d4a34765d26b18a18a8240db91a01d76e0fb42a91b71299989de5",
+  "payload_sha256": "4630a77652464bc80eb857707104e1f2b306f237e8c28beff39ff0fdf108a8c0",
   "authorization": {
     "scientific_protocol_approved": false,
     "pilot_execution": false,
