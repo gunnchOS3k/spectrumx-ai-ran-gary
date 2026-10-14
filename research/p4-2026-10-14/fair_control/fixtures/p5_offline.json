@@ -1,0 +1,114 @@
+{
+  "version": "p5-engineering-fixture-0.1",
+  "mode": "ENGINEERING_TEST",
+  "fixture_id": "constructed-offline-copy",
+  "seed_manifest": {
+    "kind": "CONSTRUCTED_NO_RANDOMNESS",
+    "seed_ids": [],
+    "heldout_paths": []
+  },
+  "authorization": {
+    "scientific_protocol_approved": false,
+    "pilot_execution": false,
+    "confirmatory_execution": false,
+    "heldout_execution": false,
+    "human_scientific_approval": false,
+    "publication": false
+  },
+  "model": {},
+  "hardware": {
+    "cpu_mcycles_s": 10.0,
+    "memory_mb": 100.0,
+    "bandwidth_mbps": 10.0,
+    "power_w": 2.0,
+    "placement_cpu": [
+      [
+        "local",
+        5.0
+      ],
+      [
+        "edge",
+        10.0
+      ],
+      [
+        "cloud",
+        10.0
+      ]
+    ]
+  },
+  "energy_j": 10.0,
+  "tasks": [
+    {
+      "requirement": {
+        "task_id": "copy",
+        "released_s": 0.0,
+        "deadline_s": 3.0,
+        "max_age_s": 10.0,
+        "minimum_quality": 1.0,
+        "requires_durable": true
+      },
+      "work_mcycles": 2.0,
+      "memory_mb": 1.0,
+      "payload": "fixture",
+      "expected_sha256": "f16d05ec6b29248d2c61adb1e9263f78e4f7bace1b955014a2d17872cfe4064d",
+      "operation": "copy",
+      "content_keys": [],
+      "input_mbit": 0.0,
+      "network_required": false,
+      "local_eligible": true,
+      "checkpointable": true
+    }
+  ],
+  "contents": [],
+  "frames": [
+    {
+      "truth": {
+        "frame_id": "offline",
+        "task_ids": [
+          "copy"
+        ],
+        "paths": [
+          {
+            "name": "TN",
+            "up": false,
+            "capacity_mbps": 10.0
+          }
+        ],
+        "placement_cpu": {
+          "local": 5.0,
+          "edge": 10.0,
+          "cloud": 10.0
+        },
+        "resources": {
+          "bandwidth_mbps": 10.0,
+          "cpu_mcycles_s": 10.0,
+          "memory_mb": 100.0,
+          "power_w": 2.0,
+          "energy_j": 10.0
+        },
+        "duration_s": 1.0
+      },
+      "latency_s": {
+        "TN": 0.0
+      },
+      "estimates": {
+        "timestamp_s": 0.0,
+        "estimated_paths": [
+          {
+            "name": "TN",
+            "up": false,
+            "capacity_mbps": 10.0,
+            "latency_s": 0.0
+          }
+        ],
+        "task_queue": [],
+        "remaining_energy_j": 10.0,
+        "previous_action": null,
+        "forecasts": []
+      }
+    }
+  ],
+  "policy": {
+    "family": "hysteresis"
+  }
+}
