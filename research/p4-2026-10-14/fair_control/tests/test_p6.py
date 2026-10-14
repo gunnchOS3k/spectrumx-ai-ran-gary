@@ -199,3 +199,17 @@ class P6(unittest.TestCase):
         x=self.view();x['task_queue']=[{'task_id':'x'*32000,'remaining_mcycles':1.,'remaining_mbit':0.,'memory_mb':1.,'deadline_s':5.,'minimum_quality':1.,'content_age_s':0.,'max_age_s':30.,'local_eligible':True,'network_required':False,'work_mcycles':1.,'input_mbit':0.,'placement':None,'network':None,'latency_paid_s':0.,'content_available':True,'supported':True}]
         with tempfile.TemporaryDirectory() as p:
             f=Path(p)/'hang.py';f.write_text("import time\nprint('READY',flush=True)\ntime.sleep(5)\n");d,r=controlled_decision(Policy('greedy'),x,worker=f);self.assertEqual(d.action,Action.defer());self.assertEqual(r['process_status'],'DECISION_TIMEOUT');self.assertLess(r['outer_elapsed_s'],2)
+
+    def test_p6_provenance_missing_source_detection(self):
+        from fair_control.p6_provenance import manifest,verify
+        m=manifest();verify(m);m['files'].pop('p6_run.py');self.assertRaises(ContractError,verify,m)
+    def test_config_declared_measurement_or_external_rights_rejected(self):
+        c=self.config();c['calibration']['physical_calibration_available']=True;self.assertRaises(ContractError,validate_candidate,c)
+        c=self.config();c['rights']['WAIKE_rights_cleared']=True;self.assertRaises(ContractError,validate_candidate,c)
+
+    def test_configuration_duplicate_components_and_policy_ids(self):
+        c=self.config();c['scenario']['gates'][1]['name']=c['scenario']['gates'][0]['name'];self.assertRaises(ContractError,validate_candidate,c)
+        c=self.config();c['policies'][1]['id']=c['policies'][0]['id'];self.assertRaises(ContractError,validate_candidate,c)
+    def test_configuration_primary_direction_alpha(self):
+        c=self.config();c['analysis']['primary_contrast']='hysteresis_minus_MPC';self.assertRaises(ContractError,validate_candidate,c)
+        c=self.config();c['analysis']['alpha']=.5;self.assertRaises(ContractError,validate_candidate,c)

@@ -1,0 +1,5 @@
+# P6 source extension
+
+Existing fair_control package; P5 source/records unchanged. Read the canonical research portal docs/publication/three-paper-2026-10/p6/P6_FINAL_REPORT.md and component reports. New p6_ modules implement original reference application outcomes,causal scenarios/estimator,unit/source/rights calibration adapters,phase-accounted process wrapper,planning/configuration/seals/provenance. p6_check.py executes constructed engineering tests only; p6_draft.py exports/verifies a review candidate; p6_run.py refuses all research execution.
+
+All values are proposed/uncalibrated and owner approvals false. Deadline budgets in task catalog are relative to exogenous release; service/host timing is not conflated. Original reference adapters are not production WAIKE/Device OS measurements. No prospective campaign or physical calibration. Calibration/data/power/forecast/work/fidelity/compute-delay/arrival-cap/sampling/rights decisions remain open. Model/scenario/byte behavior can be tested without those human scientific approvals. Source-controlled diagrams and full owner worksheet remain in the canonical portal rather than a competing dashboard.
