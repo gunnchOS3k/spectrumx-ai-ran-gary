@@ -1,0 +1,10 @@
+{
+  "evidence_class": "P7A_CONSTRUCTED_ENGINEERING_TESTS",
+  "collected": 18,
+  "tests_run": 18,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "campaign_executed": false,
+  "pilot_execution_authorized": false
+}

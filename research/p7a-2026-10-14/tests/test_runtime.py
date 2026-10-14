@@ -86,3 +86,45 @@ class Runtime(unittest.TestCase):
                 dest=Path(p)/mode
                 r=subprocess.run([sys.executable,str(ROOT/'p7a_run.py'),'--mode',mode,'--config',str(Path(p)/'never-open'),'--output',str(dest)],capture_output=True,text=True)
                 self.assertEqual(r.returncode,2);self.assertFalse(dest.exists());self.assertIn('before config/output',r.stderr)
+    def test_full_64_request_boundary_and_retirement(self):
+        v=fixtures()[0]['estimated_input']
+        with Session(Policy('hysteresis')) as s:
+            for i in range(64):
+                d,r=s.decide(v);self.assertEqual(r['request_id'],i);self.assertEqual(r['process_status'],'RETURNED')
+            self.assertRaises(ContractError,s.decide,v)
+        self.assertTrue(s.summary['direct_child_reaped'])
+    def test_independent_byte_oracle_and_all_task_denominator(self):
+        from fair_control.core import TaskRequirement
+        from fair_control.tasks import TaskSpec,Evaluator,Observed,sha
+        specs=[TaskSpec(TaskRequirement(t,0,5,30,1,True),5,8,'literal original output\n',sha('literal original output\n')) for t in ['a','b']]
+        e=Evaluator(specs);ok=Observed('a',1,'literal original output\n',1,1,True)
+        self.assertEqual(e.fraction([ok]),.5);self.assertEqual(e.fraction([]),0)
+        self.assertEqual(e.fraction([Observed('a',1,'corruption',1,1,True)]),0)
+    def design_base(self):
+        from p7a import P6
+        from fair_control.p6_configuration import candidate
+        from p7a.design import file_hash
+        c=candidate('96f110df393c78a185a9dfd72855f77262d0bfa8',file_hash(P6.parent/'PROSPECTIVE_PROTOCOL.md'));c['configuration_status']['configuration_technically_validated']=True;return c
+    def test_new_design_does_not_mutate_sealed_p6(self):
+        from p7a.design import make_candidate,validate,BASE_SHA
+        b=self.design_base();h=digest(b);c=make_candidate('0'*40,b,'1'*64,'2'*64);validate(c,b,'1'*64,'2'*64)
+        self.assertEqual(digest(b),h);self.assertEqual(h,BASE_SHA);self.assertEqual(c['pilot']['decisions'],24576);self.assertFalse(c['authorization']['scientific_protocol_approved'])
+    def test_new_design_approval_and_inconsistent_budget_reject(self):
+        from p7a.design import make_candidate,validate
+        b=self.design_base()
+        for change in ['approval','budget','holdout','field']:
+            c=make_candidate('0'*40,b,'1'*64,'2'*64)
+            if change=='approval':c['authorization']['pilot_execution_authorized']=True
+            elif change=='budget':c['pilot']['pairs']=9
+            elif change=='holdout':c['holdout']['paths']=['reserved']
+            else:c.pop('calibration')
+            self.assertRaises((ContractError,KeyError),validate,c,b,'1'*64,'2'*64)
+    def test_new_design_source_protocol_and_catalog_bindings_reject(self):
+        from p7a.design import make_candidate,validate
+        b=self.design_base();c=make_candidate('0'*40,b,'1'*64,'2'*64)
+        self.assertRaises(ContractError,validate,c,b,'3'*64,'2'*64)
+        c['task_catalog']['requires_durable']=False;self.assertRaises(ContractError,validate,c,b,'1'*64,'2'*64)
+    def test_unsigned_decision_record_rejects_claimed_approval(self):
+        from p7a.design import validate_decisions
+        r={'explicit_approved_scientific_decisions':[],'scientific_protocol_approved':False,'pilot_execution_authorized':False,'heldout_execution_authorized':False,'publication_authorized':False,'owner_signature':None,'signed_at':None,'decisions':[{'owner_approved':False,'owner_response':None,'approval_evidence':None,'status':'PENDING_OWNER_REVIEW'}]}
+        validate_decisions(r);r['decisions'][0]['owner_approved']=True;self.assertRaises(ContractError,validate_decisions,r)

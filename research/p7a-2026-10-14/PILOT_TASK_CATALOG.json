@@ -1,0 +1,27 @@
+{
+  "version": "p7a-constructed-byte-tasks-0.1",
+  "status": "UNAPPROVED_DESIGN_PROPOSAL",
+  "evidence_class": "ORIGINAL_SYNTHETIC_BYTE_SURROGATES",
+  "owner_approved": false,
+  "primary_backend": "P5 TaskSpec operation=copy and independent Evaluator; not production execution or P6 real reference adapters inside service timing",
+  "payload_utf8": "Draft note\nEdited locally.\n",
+  "expected_output_source": "Independent original literal above; digest fixed before decisions; never controller score",
+  "profiles": [
+    {"id":"offline-copy","input_mbit":0.0,"network_required":false,"local_eligible":true,"weight":0.5},
+    {"id":"network-copy","input_mbit":1.0,"network_required":true,"local_eligible":true,"weight":0.5}
+  ],
+  "demand_profiles": [
+    {"id":"light","work_mcycles":2.5,"memory_mb":8.0,"weight":0.5},
+    {"id":"heavy","work_mcycles":20.0,"memory_mb":16.0,"weight":0.5}
+  ],
+  "assignment": "Independent exogenous product weights 0.25 for four combinations, fixed before either policy; future generation not executed",
+  "deadline_after_release_s":5.0,
+  "freshness_limit_s":30.0,
+  "minimum_quality":1.0,
+  "requires_durable":true,
+  "content_generated_at":"exogenous release time",
+  "checkpointable":true,
+  "eligibility":"Every exogenously released constructed task in the declared arrival window; no policy-dependent admission or success filtering",
+  "negative_controls":"P6 unsupported-server and corrupted/late/stale/nondurable reference examples remain separate engineering checks, not selectively deleted primary pilot observations",
+  "limits":"Freshness30s is nonbinding when generated at release and deadline5s; do not count it as independent validation. No calibrated application demand, actual satellite, physical energy or human usefulness claims."
+}

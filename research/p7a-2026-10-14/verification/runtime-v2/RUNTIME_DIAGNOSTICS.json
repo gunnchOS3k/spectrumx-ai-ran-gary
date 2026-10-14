@@ -1,0 +1,1196 @@
+{
+  "evidence_class": "CONSTRUCTED_RUNTIME_DIAGNOSTIC_NOT_SCIENTIFIC_OUTCOMES",
+  "requests": 72,
+  "fixed_cases": 6,
+  "repetitions": 3,
+  "random_seeds": [],
+  "sessions": [
+    {
+      "family": "mpc",
+      "wall_s": 0.27398562500457047,
+      "parent_cpu_s": 0.015898000000000023,
+      "child_cpu_s": 0.2557240000000003,
+      "startup_s": 0.054576375005126465,
+      "direct_child_reaped": true,
+      "cpu_scope": "Sequential child, reaped RUSAGE_CHILDREN delta including startup/IPC/serialization/termination; unrelated overlapping children invalidate attribution"
+    },
+    {
+      "family": "hysteresis",
+      "wall_s": 0.09732612500374671,
+      "parent_cpu_s": 0.014456999999999998,
+      "child_cpu_s": 0.08165499999999959,
+      "startup_s": 0.05234562500118045,
+      "direct_child_reaped": true,
+      "cpu_scope": "Sequential child, reaped RUSAGE_CHILDREN delta including startup/IPC/serialization/termination; unrelated overlapping children invalidate attribution"
+    }
+  ],
+  "groups": [
+    {
+      "mode": "FRESH_P6",
+      "family": "mpc",
+      "fixture": "empty",
+      "requests": 3,
+      "process_status_counts": {
+        "RETURNED": 3
+      },
+      "decision_status_counts": {
+        "BOUNDED_SEARCH_COMPLETE": 3
+      },
+      "decision_window_s": {
+        "n": 3,
+        "min": 0.004995999996026512,
+        "median": 0.005125542003952432,
+        "mean": 0.006379111667532318,
+        "max": 0.009015793002618011
+      },
+      "startup_s": {
+        "n": 3,
+        "min": 0.04722512499574805,
+        "median": 0.048348875003284775,
+        "mean": 0.07482345833219976,
+        "max": 0.12889637499756645
+      },
+      "worker_s": {
+        "n": 3,
+        "min": 0.00037754199729533866,
+        "median": 0.0003825840030913241,
+        "mean": 0.0004458753319340758,
+        "max": 0.0005774999954155646
+      },
+      "calls": {
+        "n": 3,
+        "min": 3,
+        "median": 3,
+        "mean": 3,
+        "max": 3
+      },
+      "unavailable_calls": 0,
+      "resident_bytes": null
+    },
+    {
+      "mode": "FRESH_P6",
+      "family": "mpc",
+      "fixture": "local-1",
+      "requests": 3,
+      "process_status_counts": {
+        "RETURNED": 3
+      },
+      "decision_status_counts": {
+        "BOUNDED_SEARCH_COMPLETE": 3
+      },
+      "decision_window_s": {
+        "n": 3,
+        "min": 0.00582441600272432,
+        "median": 0.006157540992717259,
+        "mean": 0.006120249665400479,
+        "max": 0.006378792000759859
+      },
+      "startup_s": {
+        "n": 3,
+        "min": 0.0468925000022864,
+        "median": 0.050980749998416286,
+        "mean": 0.04968126400005227,
+        "max": 0.051170541999454144
+      },
+      "worker_s": {
+        "n": 3,
+        "min": 0.0009193330042762682,
+        "median": 0.0009367919992655516,
+        "mean": 0.0009335833334868463,
+        "max": 0.0009446249969187193
+      },
+      "calls": {
+        "n": 3,
+        "min": 9,
+        "median": 9,
+        "mean": 9,
+        "max": 9
+      },
+      "unavailable_calls": 0,
+      "resident_bytes": null
+    },
+    {
+      "mode": "FRESH_P6",
+      "family": "mpc",
+      "fixture": "local-8",
+      "requests": 3,
+      "process_status_counts": {
+        "RETURNED": 3
+      },
+      "decision_status_counts": {
+        "BOUNDED_SEARCH_COMPLETE": 3
+      },
+      "decision_window_s": {
+        "n": 3,
+        "min": 0.007802707994414959,
+        "median": 0.008195749993319623,
+        "mean": 0.008163916327854773,
+        "max": 0.008493290995829739
+      },
+      "startup_s": {
+        "n": 3,
+        "min": 0.04812066700105788,
+        "median": 0.04920762500114506,
+        "mean": 0.04934319466701709,
+        "max": 0.05070129199884832
+      },
+      "worker_s": {
+        "n": 3,
+        "min": 0.0029820830022799782,
+        "median": 0.0029883339957450517,
+        "mean": 0.0029914586654437394,
+        "max": 0.0030039589983061887
+      },
+      "calls": {
+        "n": 3,
+        "min": 14,
+        "median": 14,
+        "mean": 14,
+        "max": 14
+      },
+      "unavailable_calls": 0,
+      "resident_bytes": null
+    },
+    {
+      "mode": "FRESH_P6",
+      "family": "mpc",
+      "fixture": "local-64",
+      "requests": 3,
+      "process_status_counts": {
+        "RETURNED": 3
+      },
+      "decision_status_counts": {
+        "BOUNDED_SEARCH_COMPLETE": 3
+      },
+      "decision_window_s": {
+        "n": 3,
+        "min": 0.014478707998932805,
+        "median": 0.014862000003631692,
+        "mean": 0.014862930334250754,
+        "max": 0.015248083000187762
+      },
+      "startup_s": {
+        "n": 3,
+        "min": 0.04786091699497774,
+        "median": 0.0494685420053429,
+        "mean": 0.048987152998355064,
+        "max": 0.04963199999474455
+      },
+      "worker_s": {
+        "n": 3,
+        "min": 0.008736083000258077,
+        "median": 0.00875645800260827,
+        "mean": 0.008802291333267931,
+        "max": 0.008914332996937446
+      },
+      "calls": {
+        "n": 3,
+        "min": 19,
+        "median": 19,
+        "mean": 19,
+        "max": 19
+      },
+      "unavailable_calls": 0,
+      "resident_bytes": null
+    },
+    {
+      "mode": "FRESH_P6",
+      "family": "mpc",
+      "fixture": "network-8",
+      "requests": 3,
+      "process_status_counts": {
+        "RETURNED": 3
+      },
+      "decision_status_counts": {
+        "BOUNDED_SEARCH_COMPLETE": 3
+      },
+      "decision_window_s": {
+        "n": 3,
+        "min": 0.0202132500053267,
+        "median": 0.02052841700060526,
+        "mean": 0.020441319667346153,
+        "max": 0.020582291996106505
+      },
+      "startup_s": {
+        "n": 3,
+        "min": 0.04756170800101245,
+        "median": 0.04809937499521766,
+        "mean": 0.05010597233194858,
+        "max": 0.05465683399961563
+      },
+      "worker_s": {
+        "n": 3,
+        "min": 0.01528554200194776,
+        "median": 0.015288000002328772,
+        "mean": 0.015364722334197722,
+        "max": 0.015520624998316634
+      },
+      "calls": {
+        "n": 3,
+        "min": 63,
+        "median": 63,
+        "mean": 63,
+        "max": 63
+      },
+      "unavailable_calls": 0,
+      "resident_bytes": null
+    },
+    {
+      "mode": "FRESH_P6",
+      "family": "mpc",
+      "fixture": "network-64",
+      "requests": 3,
+      "process_status_counts": {
+        "RETURNED": 3
+      },
+      "decision_status_counts": {
+        "BOUNDED_SEARCH_COMPLETE": 3
+      },
+      "decision_window_s": {
+        "n": 3,
+        "min": 0.044393083997420035,
+        "median": 0.04519020799489226,
+        "mean": 0.045111055662952516,
+        "max": 0.04574987499654526
+      },
+      "startup_s": {
+        "n": 3,
+        "min": 0.046208958003262524,
+        "median": 0.04747454200696666,
+        "mean": 0.04709102800309969,
+        "max": 0.04758958399906987
+      },
+      "worker_s": {
+        "n": 3,
+        "min": 0.03872366699943086,
+        "median": 0.03972849999991013,
+        "mean": 0.03959019466856262,
+        "max": 0.04031841700634686
+      },
+      "calls": {
+        "n": 3,
+        "min": 87,
+        "median": 87,
+        "mean": 87,
+        "max": 87
+      },
+      "unavailable_calls": 0,
+      "resident_bytes": null
+    },
+    {
+      "mode": "FRESH_P6",
+      "family": "hysteresis",
+      "fixture": "empty",
+      "requests": 3,
+      "process_status_counts": {
+        "RETURNED": 3
+      },
+      "decision_status_counts": {
+        "SOLVED": 3
+      },
+      "decision_window_s": {
+        "n": 3,
+        "min": 0.004447832994628698,
+        "median": 0.004814416002773214,
+        "mean": 0.004849694332127304,
+        "max": 0.005286833998980001
+      },
+      "startup_s": {
+        "n": 3,
+        "min": 0.0476396250014659,
+        "median": 0.04791554199618986,
+        "mean": 0.049359861334475376,
+        "max": 0.052524417005770374
+      },
+      "worker_s": {
+        "n": 3,
+        "min": 0.0002564589958637953,
+        "median": 0.00028279199614189565,
+        "mean": 0.0002834586630342528,
+        "max": 0.00031112499709706753
+      },
+      "calls": {
+        "n": 3,
+        "min": 1,
+        "median": 1,
+        "mean": 1,
+        "max": 1
+      },
+      "unavailable_calls": 0,
+      "resident_bytes": null
+    },
+    {
+      "mode": "FRESH_P6",
+      "family": "hysteresis",
+      "fixture": "local-1",
+      "requests": 3,
+      "process_status_counts": {
+        "RETURNED": 3
+      },
+      "decision_status_counts": {
+        "SOLVED": 3
+      },
+      "decision_window_s": {
+        "n": 3,
+        "min": 0.005249292000371497,
+        "median": 0.005627999998978339,
+        "mean": 0.005515083665765512,
+        "max": 0.005667958997946698
+      },
+      "startup_s": {
+        "n": 3,
+        "min": 0.04737816700071562,
+        "median": 0.050373416001093574,
+        "mean": 0.050523069333091065,
+        "max": 0.05381762499746401
+      },
+      "worker_s": {
+        "n": 3,
+        "min": 0.0004604170026141219,
+        "median": 0.0004671669958042912,
+        "mean": 0.00047095866466406733,
+        "max": 0.0004852919955737889
+      },
+      "calls": {
+        "n": 3,
+        "min": 2,
+        "median": 2,
+        "mean": 2,
+        "max": 2
+      },
+      "unavailable_calls": 0,
+      "resident_bytes": null
+    },
+    {
+      "mode": "FRESH_P6",
+      "family": "hysteresis",
+      "fixture": "local-8",
+      "requests": 3,
+      "process_status_counts": {
+        "RETURNED": 3
+      },
+      "decision_status_counts": {
+        "SOLVED": 3
+      },
+      "decision_window_s": {
+        "n": 3,
+        "min": 0.00553533300262643,
+        "median": 0.005887583007279318,
+        "mean": 0.005846986001415644,
+        "max": 0.0061180419943411835
+      },
+      "startup_s": {
+        "n": 3,
+        "min": 0.047424249998584855,
+        "median": 0.04944104099558899,
+        "mean": 0.04880834699724801,
+        "max": 0.04955974999757018
+      },
+      "worker_s": {
+        "n": 3,
+        "min": 0.0008281669943244196,
+        "median": 0.0008529999977326952,
+        "mean": 0.0008453473322636759,
+        "max": 0.0008548750047339126
+      },
+      "calls": {
+        "n": 3,
+        "min": 2,
+        "median": 2,
+        "mean": 2,
+        "max": 2
+      },
+      "unavailable_calls": 0,
+      "resident_bytes": null
+    },
+    {
+      "mode": "FRESH_P6",
+      "family": "hysteresis",
+      "fixture": "local-64",
+      "requests": 3,
+      "process_status_counts": {
+        "RETURNED": 3
+      },
+      "decision_status_counts": {
+        "SOLVED": 3
+      },
+      "decision_window_s": {
+        "n": 3,
+        "min": 0.00814316600735765,
+        "median": 0.008458457996312063,
+        "mean": 0.008363999668896819,
+        "max": 0.008490375003020745
+      },
+      "startup_s": {
+        "n": 3,
+        "min": 0.04766495900548762,
+        "median": 0.04939054200076498,
+        "mean": 0.04927826433413429,
+        "max": 0.05077929199615028
+      },
+      "worker_s": {
+        "n": 3,
+        "min": 0.0025606660055927932,
+        "median": 0.0025942920037778094,
+        "mean": 0.0026297500032039047,
+        "max": 0.002734292000241112
+      },
+      "calls": {
+        "n": 3,
+        "min": 2,
+        "median": 2,
+        "mean": 2,
+        "max": 2
+      },
+      "unavailable_calls": 0,
+      "resident_bytes": null
+    },
+    {
+      "mode": "FRESH_P6",
+      "family": "hysteresis",
+      "fixture": "network-8",
+      "requests": 3,
+      "process_status_counts": {
+        "RETURNED": 3
+      },
+      "decision_status_counts": {
+        "SOLVED": 3
+      },
+      "decision_window_s": {
+        "n": 3,
+        "min": 0.006596958002774045,
+        "median": 0.007002500002272427,
+        "mean": 0.006968527668504976,
+        "max": 0.007306125000468455
+      },
+      "startup_s": {
+        "n": 3,
+        "min": 0.04769083400606178,
+        "median": 0.04952983299881453,
+        "mean": 0.05100763900069675,
+        "max": 0.05580224999721395
+      },
+      "worker_s": {
+        "n": 3,
+        "min": 0.0018787910012179054,
+        "median": 0.0019482920033624396,
+        "mean": 0.0019580276663570353,
+        "max": 0.0020469999944907613
+      },
+      "calls": {
+        "n": 3,
+        "min": 7,
+        "median": 7,
+        "mean": 7,
+        "max": 7
+      },
+      "unavailable_calls": 0,
+      "resident_bytes": null
+    },
+    {
+      "mode": "FRESH_P6",
+      "family": "hysteresis",
+      "fixture": "network-64",
+      "requests": 3,
+      "process_status_counts": {
+        "RETURNED": 3
+      },
+      "decision_status_counts": {
+        "SOLVED": 3
+      },
+      "decision_window_s": {
+        "n": 3,
+        "min": 0.010218208008154761,
+        "median": 0.010657374994480051,
+        "mean": 0.010749708667087058,
+        "max": 0.011373542998626363
+      },
+      "startup_s": {
+        "n": 3,
+        "min": 0.04752679100056412,
+        "median": 0.049548833005246706,
+        "mean": 0.04893554133498886,
+        "max": 0.049730999999155756
+      },
+      "worker_s": {
+        "n": 3,
+        "min": 0.004702500002167653,
+        "median": 0.004916167003102601,
+        "mean": 0.0049385556679529445,
+        "max": 0.005196999998588581
+      },
+      "calls": {
+        "n": 3,
+        "min": 7,
+        "median": 7,
+        "mean": 7,
+        "max": 7
+      },
+      "unavailable_calls": 0,
+      "resident_bytes": null
+    },
+    {
+      "mode": "REUSE_ENGINEERING",
+      "family": "mpc",
+      "fixture": "empty",
+      "requests": 3,
+      "process_status_counts": {
+        "RETURNED": 3
+      },
+      "decision_status_counts": {
+        "BOUNDED_SEARCH_COMPLETE": 3
+      },
+      "decision_window_s": {
+        "n": 3,
+        "min": 0.00044520800292957574,
+        "median": 0.00047104199620662257,
+        "mean": 0.0005697499994615404,
+        "max": 0.0007929999992484227
+      },
+      "startup_s": null,
+      "worker_s": {
+        "n": 3,
+        "min": 0.0002613339966046624,
+        "median": 0.0003040000010514632,
+        "mean": 0.0003269169998626846,
+        "max": 0.0004154170019319281
+      },
+      "calls": {
+        "n": 3,
+        "min": 3,
+        "median": 3,
+        "mean": 3,
+        "max": 3
+      },
+      "unavailable_calls": 0,
+      "resident_bytes": {
+        "n": 3,
+        "min": 25165824,
+        "median": 28295168,
+        "mean": 27252053.333333332,
+        "max": 28295168
+      }
+    },
+    {
+      "mode": "REUSE_ENGINEERING",
+      "family": "mpc",
+      "fixture": "local-1",
+      "requests": 3,
+      "process_status_counts": {
+        "RETURNED": 3
+      },
+      "decision_status_counts": {
+        "BOUNDED_SEARCH_COMPLETE": 3
+      },
+      "decision_window_s": {
+        "n": 3,
+        "min": 0.0009252500021830201,
+        "median": 0.0009910000007948838,
+        "mean": 0.0010021946679141063,
+        "max": 0.0010903340007644147
+      },
+      "startup_s": null,
+      "worker_s": {
+        "n": 3,
+        "min": 0.0007339169969782233,
+        "median": 0.0007876249947003089,
+        "mean": 0.0007953749979302908,
+        "max": 0.0008645830021123402
+      },
+      "calls": {
+        "n": 3,
+        "min": 9,
+        "median": 9,
+        "mean": 9,
+        "max": 9
+      },
+      "unavailable_calls": 0,
+      "resident_bytes": {
+        "n": 3,
+        "min": 25182208,
+        "median": 27787264,
+        "mean": 27088213.333333332,
+        "max": 28295168
+      }
+    },
+    {
+      "mode": "REUSE_ENGINEERING",
+      "family": "mpc",
+      "fixture": "local-8",
+      "requests": 3,
+      "process_status_counts": {
+        "RETURNED": 3
+      },
+      "decision_status_counts": {
+        "BOUNDED_SEARCH_COMPLETE": 3
+      },
+      "decision_window_s": {
+        "n": 3,
+        "min": 0.003101750000496395,
+        "median": 0.003164707995892968,
+        "mean": 0.0031632083337171935,
+        "max": 0.0032231670047622174
+      },
+      "startup_s": null,
+      "worker_s": {
+        "n": 3,
+        "min": 0.002795499996864237,
+        "median": 0.002833124999597203,
+        "mean": 0.0028366666665533558,
+        "max": 0.0028813750031986274
+      },
+      "calls": {
+        "n": 3,
+        "min": 14,
+        "median": 14,
+        "mean": 14,
+        "max": 14
+      },
+      "unavailable_calls": 0,
+      "resident_bytes": {
+        "n": 3,
+        "min": 25313280,
+        "median": 27787264,
+        "mean": 27131904,
+        "max": 28295168
+      }
+    },
+    {
+      "mode": "REUSE_ENGINEERING",
+      "family": "mpc",
+      "fixture": "local-64",
+      "requests": 3,
+      "process_status_counts": {
+        "RETURNED": 3
+      },
+      "decision_status_counts": {
+        "BOUNDED_SEARCH_COMPLETE": 3
+      },
+      "decision_window_s": {
+        "n": 3,
+        "min": 0.009984457996324636,
+        "median": 0.010256833003950305,
+        "mean": 0.010292138666651832,
+        "max": 0.010635124999680556
+      },
+      "startup_s": null,
+      "worker_s": {
+        "n": 3,
+        "min": 0.008625791997474153,
+        "median": 0.008909374999348074,
+        "mean": 0.008913235998382637,
+        "max": 0.009204540998325683
+      },
+      "calls": {
+        "n": 3,
+        "min": 19,
+        "median": 19,
+        "mean": 19,
+        "max": 19
+      },
+      "unavailable_calls": 0,
+      "resident_bytes": {
+        "n": 3,
+        "min": 26034176,
+        "median": 27787264,
+        "mean": 27372202.666666668,
+        "max": 28295168
+      }
+    },
+    {
+      "mode": "REUSE_ENGINEERING",
+      "family": "mpc",
+      "fixture": "network-8",
+      "requests": 3,
+      "process_status_counts": {
+        "RETURNED": 3
+      },
+      "decision_status_counts": {
+        "BOUNDED_SEARCH_COMPLETE": 3
+      },
+      "decision_window_s": {
+        "n": 3,
+        "min": 0.01554083399969386,
+        "median": 0.015586125002300832,
+        "mean": 0.015576055668740688,
+        "max": 0.015601208004227374
+      },
+      "startup_s": null,
+      "worker_s": {
+        "n": 3,
+        "min": 0.015207082993583754,
+        "median": 0.015223582995531615,
+        "mean": 0.015231513663214477,
+        "max": 0.01526387500052806
+      },
+      "calls": {
+        "n": 3,
+        "min": 63,
+        "median": 63,
+        "mean": 63,
+        "max": 63
+      },
+      "unavailable_calls": 0,
+      "resident_bytes": {
+        "n": 3,
+        "min": 26034176,
+        "median": 27787264,
+        "mean": 27372202.666666668,
+        "max": 28295168
+      }
+    },
+    {
+      "mode": "REUSE_ENGINEERING",
+      "family": "mpc",
+      "fixture": "network-64",
+      "requests": 3,
+      "process_status_counts": {
+        "RETURNED": 3
+      },
+      "decision_status_counts": {
+        "BOUNDED_SEARCH_COMPLETE": 3
+      },
+      "decision_window_s": {
+        "n": 3,
+        "min": 0.039922500000102445,
+        "median": 0.040906082998844795,
+        "mean": 0.04093901399998382,
+        "max": 0.04198845900100423
+      },
+      "startup_s": null,
+      "worker_s": {
+        "n": 3,
+        "min": 0.038512915998580866,
+        "median": 0.039457874998333864,
+        "mean": 0.03946711099949122,
+        "max": 0.04043054200155893
+      },
+      "calls": {
+        "n": 3,
+        "min": 87,
+        "median": 87,
+        "mean": 87,
+        "max": 87
+      },
+      "unavailable_calls": 0,
+      "resident_bytes": {
+        "n": 3,
+        "min": 27787264,
+        "median": 28295168,
+        "mean": 28125866.666666668,
+        "max": 28295168
+      }
+    },
+    {
+      "mode": "REUSE_ENGINEERING",
+      "family": "hysteresis",
+      "fixture": "empty",
+      "requests": 3,
+      "process_status_counts": {
+        "RETURNED": 3
+      },
+      "decision_status_counts": {
+        "SOLVED": 3
+      },
+      "decision_window_s": {
+        "n": 3,
+        "min": 0.0002879169987863861,
+        "median": 0.00030550000519724563,
+        "mean": 0.0004058890020435986,
+        "max": 0.0006242500021471642
+      },
+      "startup_s": null,
+      "worker_s": {
+        "n": 3,
+        "min": 0.0001642499992158264,
+        "median": 0.00016854199930094182,
+        "mean": 0.00021058366595146558,
+        "max": 0.0002989589993376285
+      },
+      "calls": {
+        "n": 3,
+        "min": 1,
+        "median": 1,
+        "mean": 1,
+        "max": 1
+      },
+      "unavailable_calls": 0,
+      "resident_bytes": {
+        "n": 3,
+        "min": 25264128,
+        "median": 25509888,
+        "mean": 25427968,
+        "max": 25509888
+      }
+    },
+    {
+      "mode": "REUSE_ENGINEERING",
+      "family": "hysteresis",
+      "fixture": "local-1",
+      "requests": 3,
+      "process_status_counts": {
+        "RETURNED": 3
+      },
+      "decision_status_counts": {
+        "SOLVED": 3
+      },
+      "decision_window_s": {
+        "n": 3,
+        "min": 0.00043179099884582683,
+        "median": 0.00046916700375732034,
+        "mean": 0.0004974443339354669,
+        "max": 0.0005913749992032535
+      },
+      "startup_s": null,
+      "worker_s": {
+        "n": 3,
+        "min": 0.0002843750044121407,
+        "median": 0.0003017919952981174,
+        "mean": 0.00032163900080680224,
+        "max": 0.0003787500027101487
+      },
+      "calls": {
+        "n": 3,
+        "min": 2,
+        "median": 2,
+        "mean": 2,
+        "max": 2
+      },
+      "unavailable_calls": 0,
+      "resident_bytes": {
+        "n": 3,
+        "min": 25264128,
+        "median": 25493504,
+        "mean": 25422506.666666668,
+        "max": 25509888
+      }
+    },
+    {
+      "mode": "REUSE_ENGINEERING",
+      "family": "hysteresis",
+      "fixture": "local-8",
+      "requests": 3,
+      "process_status_counts": {
+        "RETURNED": 3
+      },
+      "decision_status_counts": {
+        "SOLVED": 3
+      },
+      "decision_window_s": {
+        "n": 3,
+        "min": 0.0009001250000437722,
+        "median": 0.0009097500005736947,
+        "mean": 0.0009726390004895317,
+        "max": 0.0011080420008511283
+      },
+      "startup_s": null,
+      "worker_s": {
+        "n": 3,
+        "min": 0.0006253329993342049,
+        "median": 0.0006270420053624548,
+        "mean": 0.0006721803341254903,
+        "max": 0.000764165997679811
+      },
+      "calls": {
+        "n": 3,
+        "min": 2,
+        "median": 2,
+        "mean": 2,
+        "max": 2
+      },
+      "unavailable_calls": 0,
+      "resident_bytes": {
+        "n": 3,
+        "min": 25280512,
+        "median": 25493504,
+        "mean": 25427968,
+        "max": 25509888
+      }
+    },
+    {
+      "mode": "REUSE_ENGINEERING",
+      "family": "hysteresis",
+      "fixture": "local-64",
+      "requests": 3,
+      "process_status_counts": {
+        "RETURNED": 3
+      },
+      "decision_status_counts": {
+        "SOLVED": 3
+      },
+      "decision_window_s": {
+        "n": 3,
+        "min": 0.0036222499984432943,
+        "median": 0.003728667004907038,
+        "mean": 0.0037666390004839436,
+        "max": 0.003948999998101499
+      },
+      "startup_s": null,
+      "worker_s": {
+        "n": 3,
+        "min": 0.002306624999619089,
+        "median": 0.002419750002445653,
+        "mean": 0.0023867639999176995,
+        "max": 0.002433916997688357
+      },
+      "calls": {
+        "n": 3,
+        "min": 2,
+        "median": 2,
+        "mean": 2,
+        "max": 2
+      },
+      "unavailable_calls": 0,
+      "resident_bytes": {
+        "n": 3,
+        "min": 25460736,
+        "median": 25493504,
+        "mean": 25488042.666666668,
+        "max": 25509888
+      }
+    },
+    {
+      "mode": "REUSE_ENGINEERING",
+      "family": "hysteresis",
+      "fixture": "network-8",
+      "requests": 3,
+      "process_status_counts": {
+        "RETURNED": 3
+      },
+      "decision_status_counts": {
+        "SOLVED": 3
+      },
+      "decision_window_s": {
+        "n": 3,
+        "min": 0.0019950420028180815,
+        "median": 0.0020172079966869205,
+        "mean": 0.0020484863343881443,
+        "max": 0.002133209003659431
+      },
+      "startup_s": null,
+      "worker_s": {
+        "n": 3,
+        "min": 0.0016648750024614856,
+        "median": 0.0016878750029718503,
+        "mean": 0.0017181113362312317,
+        "max": 0.0018015840032603592
+      },
+      "calls": {
+        "n": 3,
+        "min": 7,
+        "median": 7,
+        "mean": 7,
+        "max": 7
+      },
+      "unavailable_calls": 0,
+      "resident_bytes": {
+        "n": 3,
+        "min": 25460736,
+        "median": 25493504,
+        "mean": 25488042.666666668,
+        "max": 25509888
+      }
+    },
+    {
+      "mode": "REUSE_ENGINEERING",
+      "family": "hysteresis",
+      "fixture": "network-64",
+      "requests": 3,
+      "process_status_counts": {
+        "RETURNED": 3
+      },
+      "decision_status_counts": {
+        "SOLVED": 3
+      },
+      "decision_window_s": {
+        "n": 3,
+        "min": 0.005950624996330589,
+        "median": 0.005965207994449884,
+        "mean": 0.005979944330950578,
+        "max": 0.006024000002071261
+      },
+      "startup_s": null,
+      "worker_s": {
+        "n": 3,
+        "min": 0.004632791999028996,
+        "median": 0.00464345799991861,
+        "mean": 0.004648889000236522,
+        "max": 0.004670417001761962
+      },
+      "calls": {
+        "n": 3,
+        "min": 7,
+        "median": 7,
+        "mean": 7,
+        "max": 7
+      },
+      "unavailable_calls": 0,
+      "resident_bytes": {
+        "n": 3,
+        "min": 25493504,
+        "median": 25493504,
+        "mean": 25498965.333333332,
+        "max": 25509888
+      }
+    }
+  ],
+  "projections": {
+    "FRESH_P6": {
+      "measured_requests": 36,
+      "measured_parent_plus_child_cpu_s": 2.1809399999999997,
+      "measured_wall_s": 2.2869923319958616,
+      "cpu_s_per_request": 0.06058166666666666,
+      "wall_s_per_request": 0.06352756477766282,
+      "full_40x24x64x2_cpu_hours": 2.067854222222222,
+      "full_40x24x64x2_wall_hours": 2.168407544410891,
+      "threefold_controller_only_cpu_hours": 6.203562666666667,
+      "smaller_8x24x64x2_threefold_cpu_hours": 1.240712533333333,
+      "later_867x24x64x2_cpu_hours": 44.820740266666654,
+      "scope": "Equal-weight six engineering inputs; linear arithmetic,not confidence bounds or full-harness runtime. Threefold factor is an explicit unvalidated contingency assumption. Reuse includes observed restart/startup and per-session bookkeeping,not a proven long-run leak or host-load bound."
+    },
+    "REUSE_ENGINEERING": {
+      "measured_requests": 36,
+      "measured_parent_plus_child_cpu_s": 0.3677339999999999,
+      "measured_wall_s": 0.3713117500083172,
+      "cpu_s_per_request": 0.010214833333333331,
+      "wall_s_per_request": 0.01031421527800881,
+      "full_40x24x64x2_cpu_hours": 0.348666311111111,
+      "full_40x24x64x2_wall_hours": 0.3520585481560341,
+      "threefold_controller_only_cpu_hours": 1.045998933333333,
+      "smaller_8x24x64x2_threefold_cpu_hours": 0.2091997866666666,
+      "later_867x24x64x2_cpu_hours": 7.557342293333331,
+      "scope": "Equal-weight six engineering inputs; linear arithmetic,not confidence bounds or full-harness runtime. Threefold factor is an explicit unvalidated contingency assumption. Reuse includes observed restart/startup and per-session bookkeeping,not a proven long-run leak or host-load bound."
+    }
+  },
+  "semantic_comparison": [
+    {
+      "fixture": "empty",
+      "family": "mpc",
+      "all_semantic_signatures_equal": true,
+      "all_action_hashes_equal": true,
+      "interpretation": "Timing-cutoff differences must be retained; equality on these inputs does not prove universal parity"
+    },
+    {
+      "fixture": "empty",
+      "family": "hysteresis",
+      "all_semantic_signatures_equal": true,
+      "all_action_hashes_equal": true,
+      "interpretation": "Timing-cutoff differences must be retained; equality on these inputs does not prove universal parity"
+    },
+    {
+      "fixture": "local-1",
+      "family": "mpc",
+      "all_semantic_signatures_equal": true,
+      "all_action_hashes_equal": true,
+      "interpretation": "Timing-cutoff differences must be retained; equality on these inputs does not prove universal parity"
+    },
+    {
+      "fixture": "local-1",
+      "family": "hysteresis",
+      "all_semantic_signatures_equal": true,
+      "all_action_hashes_equal": true,
+      "interpretation": "Timing-cutoff differences must be retained; equality on these inputs does not prove universal parity"
+    },
+    {
+      "fixture": "local-8",
+      "family": "mpc",
+      "all_semantic_signatures_equal": true,
+      "all_action_hashes_equal": true,
+      "interpretation": "Timing-cutoff differences must be retained; equality on these inputs does not prove universal parity"
+    },
+    {
+      "fixture": "local-8",
+      "family": "hysteresis",
+      "all_semantic_signatures_equal": true,
+      "all_action_hashes_equal": true,
+      "interpretation": "Timing-cutoff differences must be retained; equality on these inputs does not prove universal parity"
+    },
+    {
+      "fixture": "local-64",
+      "family": "mpc",
+      "all_semantic_signatures_equal": true,
+      "all_action_hashes_equal": true,
+      "interpretation": "Timing-cutoff differences must be retained; equality on these inputs does not prove universal parity"
+    },
+    {
+      "fixture": "local-64",
+      "family": "hysteresis",
+      "all_semantic_signatures_equal": true,
+      "all_action_hashes_equal": true,
+      "interpretation": "Timing-cutoff differences must be retained; equality on these inputs does not prove universal parity"
+    },
+    {
+      "fixture": "network-8",
+      "family": "mpc",
+      "all_semantic_signatures_equal": true,
+      "all_action_hashes_equal": true,
+      "interpretation": "Timing-cutoff differences must be retained; equality on these inputs does not prove universal parity"
+    },
+    {
+      "fixture": "network-8",
+      "family": "hysteresis",
+      "all_semantic_signatures_equal": true,
+      "all_action_hashes_equal": true,
+      "interpretation": "Timing-cutoff differences must be retained; equality on these inputs does not prove universal parity"
+    },
+    {
+      "fixture": "network-64",
+      "family": "mpc",
+      "all_semantic_signatures_equal": true,
+      "all_action_hashes_equal": true,
+      "interpretation": "Timing-cutoff differences must be retained; equality on these inputs does not prove universal parity"
+    },
+    {
+      "fixture": "network-64",
+      "family": "hysteresis",
+      "all_semantic_signatures_equal": true,
+      "all_action_hashes_equal": true,
+      "interpretation": "Timing-cutoff differences must be retained; equality on these inputs does not prove universal parity"
+    }
+  ],
+  "environment": {
+    "python": "3.14.7",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "logical_cpus": 8,
+    "dependencies": {
+      "numpy": "2.5.4",
+      "scipy": "1.18.1",
+      "jsonschema": "4.26.0"
+    },
+    "cpu_name": {
+      "value": null,
+      "status": "UNAVAILABLE_SANDBOX_RESTRICTION",
+      "exit_code": 1,
+      "diagnostic": "sysctl: sysctl fmt -1 1024 1: Operation not permitted"
+    },
+    "load_before": [
+      4.9296875,
+      4.408203125,
+      3.591796875
+    ],
+    "exclusive_host": false,
+    "fresh_dependency_install": false,
+    "measurement_scope": "Sequential local fixed engineering requests; no environment step/task-completion outcome,seed or future workload",
+    "rss_method": "Darwin proc_pidinfo PROC_PIDTASKINFO.pti_resident_size bytes; raw ru_maxrss retained separately with no conversion",
+    "clock": {
+      "implementation": "mach_absolute_time()",
+      "monotonic": true,
+      "adjustable": false,
+      "resolution": 4.166666666666666e-08
+    },
+    "load_after": [
+      4.61474609375,
+      4.3515625,
+      3.576171875
+    ],
+    "parent_peak_rss_raw": 29802496
+  },
+  "elapsed_wall_s": 2.674486167001305,
+  "parent_plus_children_cpu_s": 2.5643069999999994,
+  "pilot_executed": false,
+  "heldout_accessed": false,
+  "publication_authorized": false,
+  "source_revision": "c407487af962a6b8fd1c9852d6627a635a547ca1",
+  "input_catalog_sha256": "083a52d4540250602add17f55fe470831e74f0750e45527bf5934ad59187364e"
+}
