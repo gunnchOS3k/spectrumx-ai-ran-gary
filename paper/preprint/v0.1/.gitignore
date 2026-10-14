@@ -5,3 +5,5 @@
 *.blg
 __pycache__/
 evidence/generated/
+verification/source_staging/
+figure_source/generated/

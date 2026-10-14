@@ -1,0 +1,33 @@
+{
+  "classification": "READY FOR OWNER REVIEW",
+  "gates": {
+    "SOURCE_SEMANTICS_AUDITED": true,
+    "LINEAR_SELECTOR_CHARACTERIZED": true,
+    "OPTIMIZER_VERIFIED": true,
+    "BASELINE_FAIRNESS_AUDITED": true,
+    "NEGATIVE_RESULTS_PRESERVED": true,
+    "STATISTICS_VERIFIED": true,
+    "CITATIONS_VERIFIED": true,
+    "CLAIMS_EVIDENCE_ALIGNED": true,
+    "NOVELTY_BOUNDARY_DOCUMENTED": true,
+    "CROSS_PAPER_OVERLAP_REVIEWED": true,
+    "MANUSCRIPT_COMPILES": true,
+    "SOURCE_ARCHIVE_BUILDS": true,
+    "REPRODUCIBILITY_ARCHIVE_VERIFIED": true,
+    "FIGURES_VERIFIED": true,
+    "OWNER_REVIEW_READY": true,
+    "OWNER_SCIENTIFIC_APPROVAL": false,
+    "ORIGINALITY_HUMAN_VERIFIED": false,
+    "ARTICLE_LICENSE_APPROVED": false,
+    "PUBLICATION_AUTHORIZED": false
+  },
+  "scope_limits": {
+    "OPTIMIZER_VERIFIED": "Objective/analytical optimum and numerical behavior independently checked;26strictovershoots retained; exact numerical feasibility is FALSE.",
+    "BASELINE_FAIRNESS_AUDITED": "Differences diagnosed, not made fair; historical results unchanged.",
+    "STATISTICS_VERIFIED": "n5conditional synthetic estimates and retrospective paired arithmetic; no population/equivalence claim.",
+    "CITATIONS_VERIFIED": "Ten cited identities and bounded claim support; Sun/Dai/Jain full-text access limits disclosed; not exhaustive originality verification.",
+    "REPRODUCIBILITY_ARCHIVE_VERIFIED": "Bounded instructions accepted on recorded existing environment, frozen byte hashes and shipped payload manifest; not fresh-install/cross-platform/human replication.",
+    "OWNER_REVIEW_READY": "Complete technical packet for owner scientific review only, subject to final package re-extraction hash check.",
+    "NOVELTY_BOUNDARY_DOCUMENTED": "No priority established."
+  }
+}

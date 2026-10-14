@@ -1,0 +1,33 @@
+{
+  "source_sha": "617f01c6631feb7fbb00365c0ba64f3b0c62f647",
+  "exact_core_files_compared_to_git": [
+    "preprint.tex",
+    "preprint.pdf",
+    "references.bib",
+    "BUILD.sh",
+    "figures/heldout.png",
+    "figures/domain_shift.png",
+    "figures/heldout.pdf",
+    "figures/domain_shift.pdf",
+    "figures/switch_cost.pdf",
+    "figures/switch_cost.png",
+    "figures/cost_rescaling.pdf",
+    "figures/cost_rescaling.png",
+    "tables/summary_metrics.csv",
+    "tables/ablations.tex",
+    "tables/domain_shift.tex",
+    "tables/heldout.tex",
+    "tables/revised.tex",
+    "tables/paired.tex",
+    "figure_source/generate_figures.py",
+    "figure_source/SOFTWARE_LICENSE.txt",
+    "figure_source/README.md",
+    "figure_source/data/original_reproduced/rq2_cross_layer_continuity_ablation.json",
+    "figure_source/data/original_reproduced/rq2_cross_layer_continuity_domain_shift.json",
+    "figure_source/data/original_reproduced/rq2_cross_layer_continuity_heldout.json",
+    "figure_source/data/original_reproduced/rq2_cross_layer_continuity_train.json",
+    "figure_source/data/revised_reproduced/rq2_cross_layer_continuity_heldout.json",
+    "figure_source/data/revised_reproduced/rq2_cross_layer_continuity_train.json"
+  ],
+  "passed": true
+}

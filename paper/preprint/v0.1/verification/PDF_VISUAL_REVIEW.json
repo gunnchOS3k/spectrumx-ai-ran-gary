@@ -1,0 +1,60 @@
+{
+  "page_count": 10,
+  "reviewer": "AI-assisted coordinating agent; not human peer/scientific review",
+  "method": "Every rendered page viewed at1700px; affected pages re-inspected after corrections; final clean rebuild rasters identical",
+  "pdf_sha256": "faf9f91cd0eb26d7cc011030eca1a309cb530dc901e40ae185e655826e1594c3",
+  "pages": [
+    {
+      "page": 1,
+      "sha256": "8b29cfaedf533740c4bc861fdab310abdd560ae0698e04ee6ed267f32137d6d4",
+      "review_note": "Title, confirmed identity, exploratory/nonpublic label, abstract and motivation checked."
+    },
+    {
+      "page": 2,
+      "sha256": "9ce449ed1ce2db9793e26f3abcd45b507761ae7ae8d21720f925571f3de406c2",
+      "review_note": "Related-work bounds and model equations1\u20137 checked; indicator glyph corrected and re-inspected."
+    },
+    {
+      "page": 3,
+      "sha256": "a63f7afd1a559dca638ac77e796441bc7ab3ff1683d995afbd40e0176877c7fb",
+      "review_note": "Energy/share model, SLSQP objective and residual bounds readable; all indicators re-inspected."
+    },
+    {
+      "page": 4,
+      "sha256": "1ebe24dcac69f826b608d8a6abaa5408b94840450104186a30c4b47f458d8a9b",
+      "review_note": "Selector differences, conditions, zero-latency exception and baseline fairness checked after final symbol edit."
+    },
+    {
+      "page": 5,
+      "sha256": "e922b6290157b77aac69c565d86a9fec1df2d9ed9a1cbf497abe1e2df9399841",
+      "review_note": "Policy/priors tables and five-seed statistics readable."
+    },
+    {
+      "page": 6,
+      "sha256": "483c7ac401d9c0e3f1128137bd6f233ce71f36132384daf419be38fda6c9c2a5",
+      "review_note": "Held-out table/figure and switching decomposition text checked; Fig4 cross-reference repaired."
+    },
+    {
+      "page": 7,
+      "sha256": "e390df02c324ff1430cce2366573e560669ac1368d207dcd9a7b1b9f5bc80a2a",
+      "review_note": "Switching/count and retrospective algebra figures readable; negative signs fixed without broken line separation."
+    },
+    {
+      "page": 8,
+      "sha256": "3241bbc05d122d12f3548a94718823118cdcb950c04934fcf88cc7ebc96f058d",
+      "review_note": "Domain-shift figure, intervention table and revised harmful/neutral outcomes table checked."
+    },
+    {
+      "page": 9,
+      "sha256": "b03f62a2e2f60f5bc98db1e17c86d8fa999f0309d59187d0030f757380000d5c",
+      "review_note": "Conclusion, author/data rights and substantive AI disclosure checked; bibliography begins cleanly."
+    },
+    {
+      "page": 10,
+      "sha256": "6e17d8207ad9ea59e3c616ca3cdc75f43f354d4eb11c952d1b0e255d39e9b648",
+      "review_note": "Remaining bibliography entries readable, all10reference entries present; whitespace at end is normal."
+    }
+  ],
+  "missing_glyph_or_unresolved_reference_or_overfull_box_found": false,
+  "remaining_layout_notes": "Some harmless underfull justification warnings; no clipped figures, missing symbols, unresolved citations/references or overfull boxes. Figure2 truncated left axis is explicitly labeled in caption; not hidden."
+}

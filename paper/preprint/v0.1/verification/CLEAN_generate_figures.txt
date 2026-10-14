@@ -1,0 +1,26 @@
+
+Fontconfig error: No writable cache directories
+	/opt/homebrew/var/cache/fontconfig
+	/Users/gunnchos/.cache/fontconfig
+	/Users/gunnchos/.fontconfig
+
+Fontconfig error: No writable cache directories
+	/opt/homebrew/var/cache/fontconfig
+	/Users/gunnchos/.cache/fontconfig
+	/Users/gunnchos/.fontconfig
+
+Fontconfig error: No writable cache directories
+	/opt/homebrew/var/cache/fontconfig
+	/Users/gunnchos/.cache/fontconfig
+	/Users/gunnchos/.fontconfig
+
+Fontconfig error: No writable cache directories
+	/opt/homebrew/var/cache/fontconfig
+	/Users/gunnchos/.cache/fontconfig
+	/Users/gunnchos/.fontconfig
+
+Fontconfig error: No writable cache directories
+	/opt/homebrew/var/cache/fontconfig
+	/Users/gunnchos/.cache/fontconfig
+	/Users/gunnchos/.fontconfig
+Matplotlib is building the font cache; this may take a moment.

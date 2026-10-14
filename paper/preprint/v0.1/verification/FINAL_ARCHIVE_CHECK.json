@@ -1,0 +1,73 @@
+{
+  "final_archive_paths_and_hashes": {
+    "preprint.pdf": {
+      "path": "/Users/gunnchos/Downloads/gunnchos-7gc-research-product-spine/repos/_publication_worktrees/spectrumx-ai-ran-gary/paper/preprint/v0.1/preprint.pdf",
+      "bytes": 521750,
+      "sha256": "faf9f91cd0eb26d7cc011030eca1a309cb530dc901e40ae185e655826e1594c3"
+    },
+    "paper-ii-v0.1-source.zip": {
+      "path": "/Users/gunnchos/Downloads/gunnchos-7gc-research-product-spine/repos/_publication_worktrees/spectrumx-ai-ran-gary/paper/preprint/v0.1/paper-ii-v0.1-source.zip",
+      "bytes": 924052,
+      "sha256": "7e4ae5b70afcf8780e6fe1ee3128bafc24622714dc62ae0ae70f5eaaeccd1dcc"
+    },
+    "paper-ii-v0.1-evidence.zip": {
+      "path": "/Users/gunnchos/Downloads/gunnchos-7gc-research-product-spine/repos/_publication_worktrees/spectrumx-ai-ran-gary/paper/preprint/v0.1/paper-ii-v0.1-evidence.zip",
+      "bytes": 712637,
+      "sha256": "e77d8803716ecf88e95b314ee8fd8ac6160dfba49b910d957fe50043dee1f50d"
+    }
+  },
+  "source_payload_files_verified": 60,
+  "evidence_payload_files_verified": 104,
+  "all_archive_payload_bytes_verified": true,
+  "zip_crc_verified": true,
+  "safe_relative_members": true,
+  "final_extraction_directory": "/var/folders/dp/z5frf3m511jcdpdf8v878v8h0000gn/T/paper-ii-v01-final-fy404fzo",
+  "source_build_succeeded": true,
+  "all_10_page_rasters_identical_to_reviewed_candidate": true,
+  "final_evidence_execution_closure_equal_to_successful_acceptance": [
+    "source/protocol_predecessor.yaml",
+    "source/MANIFEST.json",
+    "source/original/experiment_protocol.yaml",
+    "source/original/LICENSE",
+    "source/original/requirements.txt",
+    "source/original/digital_programme.py",
+    "source/revised/experiment_protocol.yaml",
+    "source/revised/LICENSE",
+    "source/revised/requirements.txt",
+    "source/revised/digital_programme.py",
+    "scripts/audit_science.py",
+    "scripts/generate_figures.py",
+    "scripts/reproduce_heldout.py",
+    "scripts/verify_claims.py",
+    "scripts/optimizer_bounds.py",
+    "scripts/verify_integrity.py",
+    "data/original/rq2_cross_layer_continuity_summary.json",
+    "data/original/rq2_cross_layer_continuity_ablation.json",
+    "data/original/rq2_cross_layer_continuity_domain_shift.json",
+    "data/original/rq2_cross_layer_continuity_heldout.json",
+    "data/original/rq2_cross_layer_continuity_train.json",
+    "data/revised/rq2_cross_layer_continuity_summary.json",
+    "data/revised/rq2_cross_layer_continuity_ablation.json",
+    "data/revised/rq2_cross_layer_continuity_domain_shift.json",
+    "data/revised/rq2_cross_layer_continuity_heldout.json",
+    "data/revised/rq2_cross_layer_continuity_train.json",
+    "data/original_reproduced/rq2_cross_layer_continuity_summary.json",
+    "data/original_reproduced/rq2_cross_layer_continuity_ablation.json",
+    "data/original_reproduced/rq2_cross_layer_continuity_domain_shift.json",
+    "data/original_reproduced/rq2_cross_layer_continuity_heldout.json",
+    "data/original_reproduced/rq2_cross_layer_continuity_train.json",
+    "data/revised_reproduced/rq2_cross_layer_continuity_summary.json",
+    "data/revised_reproduced/rq2_cross_layer_continuity_ablation.json",
+    "data/revised_reproduced/rq2_cross_layer_continuity_domain_shift.json",
+    "data/revised_reproduced/rq2_cross_layer_continuity_heldout.json",
+    "data/revised_reproduced/rq2_cross_layer_continuity_train.json",
+    "environment/acceptance-requirements.txt",
+    "environment/HISTORICAL_REQUIREMENTS.txt",
+    "environment/ACCEPTANCE_ENVIRONMENT.json"
+  ],
+  "closure_file_count": 39,
+  "damaged_payload_rejected_by_manifest": true,
+  "scientific_rerun_repeated_after_documentation_only_packaging": false,
+  "independent_human_review": false,
+  "publication_authorized": false
+}

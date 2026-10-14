@@ -1,0 +1,23 @@
+{
+  "source_payload_files": 60,
+  "evidence_payload_files": 104,
+  "artifacts": {
+    "preprint.pdf": {
+      "path": "/Users/gunnchos/Downloads/gunnchos-7gc-research-product-spine/repos/_publication_worktrees/spectrumx-ai-ran-gary/paper/preprint/v0.1/preprint.pdf",
+      "bytes": 521750,
+      "sha256": "faf9f91cd0eb26d7cc011030eca1a309cb530dc901e40ae185e655826e1594c3"
+    },
+    "paper-ii-v0.1-source.zip": {
+      "path": "/Users/gunnchos/Downloads/gunnchos-7gc-research-product-spine/repos/_publication_worktrees/spectrumx-ai-ran-gary/paper/preprint/v0.1/paper-ii-v0.1-source.zip",
+      "bytes": 924052,
+      "sha256": "7e4ae5b70afcf8780e6fe1ee3128bafc24622714dc62ae0ae70f5eaaeccd1dcc"
+    },
+    "paper-ii-v0.1-evidence.zip": {
+      "path": "/Users/gunnchos/Downloads/gunnchos-7gc-research-product-spine/repos/_publication_worktrees/spectrumx-ai-ran-gary/paper/preprint/v0.1/paper-ii-v0.1-evidence.zip",
+      "bytes": 712637,
+      "sha256": "e77d8803716ecf88e95b314ee8fd8ac6160dfba49b910d957fe50043dee1f50d"
+    }
+  },
+  "publication_scientific_content_sha": "617f01c6631feb7fbb00365c0ba64f3b0c62f647",
+  "publication_authorized": false
+}

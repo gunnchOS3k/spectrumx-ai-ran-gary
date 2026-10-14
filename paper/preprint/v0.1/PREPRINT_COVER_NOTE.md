@@ -1,0 +1,3 @@
+Optional local cover note — not a platform requirement or submitted message.
+
+Controller Semantics and Negative Results in a Synthetic Cross-Layer Orchestration Study, Edmund Gunn, Jr., gunnchOS Research. Exploratory preprint v0.1, not peer reviewed or posted. The manuscript characterizes an archived synthetic controller comparison, preserves negative/adverse/inconclusive findings and provides separately versioned source/statistical evidence. No claim of measured network performance, adaptive superiority or established novelty. Author scientific/originality/rights/license declarations remain pending. Publication authorization:false. This note must not be sent without separate authorization.

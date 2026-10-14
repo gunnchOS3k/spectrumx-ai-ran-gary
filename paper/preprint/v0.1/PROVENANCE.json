@@ -1,0 +1,116 @@
+{
+  "repository": "gunnchOS3k/spectrumx-ai-ran-gary",
+  "branch": "publication/paper-ii-owner-review-2026-10-12",
+  "original_experimental_sha": "86a5a6f3000fce7593ee1bdfe02bae6bc37d2498",
+  "revised_experimental_sha": "b44357f764d440f983132bd44a9c23c180591f70",
+  "protocol_predecessor_sha": "72044d4008dc7624b1246b880387a693c37150e7",
+  "historical_author_review_sha": "f7b07300b5204f4ea1cf44eb925d603fe9705117",
+  "recovery_checkpoint_sha": "ef9fd69006fbe26c78cbed0b0c84e778e48b5782",
+  "publication_scientific_content_sha": "617f01c6631feb7fbb00365c0ba64f3b0c62f647",
+  "content_anchor_scope": "Exact manuscript TeX/PDF/bibliography/figure/table sources, scientific reports, frozen snapshots and audit/acceptance scripts. Packaging metadata, manifests, acceptance outputs and final readiness records are added later and individually hashed; final checkpoint is recorded in the portal outside these self-referential artifacts.",
+  "publication_authorized": false,
+  "human_scientific_approval": false,
+  "originality_human_verified": false,
+  "article_license_approved": false,
+  "article_doi": null,
+  "evidence_doi": null,
+  "local_candidate_date": "2026-10-14",
+  "seed_scope": "train0..4;heldout/domain100..104;5seedmeans/version;no new seeds",
+  "frozen_objects": {
+    "source/original/digital_programme.py": {
+      "source_sha": "86a5a6f3000fce7593ee1bdfe02bae6bc37d2498",
+      "git_path": "src/airan_research/experiments/digital_programme.py",
+      "sha256": "5024125de239c5aacf2a93c0338cdec45a119d097c32dae7a9b70a490a44b89f"
+    },
+    "source/original/experiment_protocol.yaml": {
+      "source_sha": "86a5a6f3000fce7593ee1bdfe02bae6bc37d2498",
+      "git_path": "paper/artifacts/experiment_protocol.yaml",
+      "sha256": "fd5e0504c8541284cb4bb3b3f035e075cba72745c1feaafcea9e436bade09d80"
+    },
+    "source/original/requirements.txt": {
+      "source_sha": "86a5a6f3000fce7593ee1bdfe02bae6bc37d2498",
+      "git_path": "requirements.txt",
+      "sha256": "e4839b182f73aa40f789e10a75d0d0db8a3f3c72374f34cb123ce44d24a013ab"
+    },
+    "source/original/LICENSE": {
+      "source_sha": "86a5a6f3000fce7593ee1bdfe02bae6bc37d2498",
+      "git_path": "LICENSE",
+      "sha256": "1ad252deea4446234308f5d0d3f3082ad4a14012099e5f548aa6079a5e629e03"
+    },
+    "data/original/rq2_cross_layer_continuity_summary.json": {
+      "source_sha": "86a5a6f3000fce7593ee1bdfe02bae6bc37d2498",
+      "git_path": "results/experiments/rq2_cross_layer_continuity_summary.json",
+      "sha256": "ba67660ace6c7285047dadb0bd1597c5500721101b33fa7bfef2f8186dc01a44"
+    },
+    "data/original/rq2_cross_layer_continuity_ablation.json": {
+      "source_sha": "86a5a6f3000fce7593ee1bdfe02bae6bc37d2498",
+      "git_path": "results/experiments/rq2_cross_layer_continuity_ablation.json",
+      "sha256": "b18a5ef569f14271a1193e98a4675d8747f6422ce0287e0c2639bd7ea51d27cc"
+    },
+    "data/original/rq2_cross_layer_continuity_domain_shift.json": {
+      "source_sha": "86a5a6f3000fce7593ee1bdfe02bae6bc37d2498",
+      "git_path": "results/experiments/rq2_cross_layer_continuity_domain_shift.json",
+      "sha256": "789a0847a35f96dab83cdb40db94a6f3e9c0e92bfc58be4ed35242d302dea177"
+    },
+    "data/original/rq2_cross_layer_continuity_heldout.json": {
+      "source_sha": "86a5a6f3000fce7593ee1bdfe02bae6bc37d2498",
+      "git_path": "results/experiments/rq2_cross_layer_continuity_heldout.json",
+      "sha256": "9ffcef797e6f0495492f88d99855c3a67a262d8335624f43ffe240c13ee7f22d"
+    },
+    "data/original/rq2_cross_layer_continuity_train.json": {
+      "source_sha": "86a5a6f3000fce7593ee1bdfe02bae6bc37d2498",
+      "git_path": "results/experiments/rq2_cross_layer_continuity_train.json",
+      "sha256": "92147db67d8d82d26e23ac7eb5d74ae45d9e56de7f01942852d5f283a37da063"
+    },
+    "source/revised/digital_programme.py": {
+      "source_sha": "b44357f764d440f983132bd44a9c23c180591f70",
+      "git_path": "src/airan_research/experiments/digital_programme.py",
+      "sha256": "896393229dc7244568dc7b5b39839b557ab0107c1a0474ed78a0161b086b550b"
+    },
+    "source/revised/experiment_protocol.yaml": {
+      "source_sha": "b44357f764d440f983132bd44a9c23c180591f70",
+      "git_path": "paper/artifacts/experiment_protocol.yaml",
+      "sha256": "39bafd34627ddb52b6530313da8f7e968f767750c2f6a60356f248c8e9d81aee"
+    },
+    "source/revised/requirements.txt": {
+      "source_sha": "b44357f764d440f983132bd44a9c23c180591f70",
+      "git_path": "requirements.txt",
+      "sha256": "e9b9780c08a1535fa611ce4175c00c32a1b4993562f340a7c60322a494ccfcfc"
+    },
+    "source/revised/LICENSE": {
+      "source_sha": "b44357f764d440f983132bd44a9c23c180591f70",
+      "git_path": "LICENSE",
+      "sha256": "1ad252deea4446234308f5d0d3f3082ad4a14012099e5f548aa6079a5e629e03"
+    },
+    "data/revised/rq2_cross_layer_continuity_summary.json": {
+      "source_sha": "b44357f764d440f983132bd44a9c23c180591f70",
+      "git_path": "results/experiments/rq2_cross_layer_continuity_summary.json",
+      "sha256": "82b10550a06ce3b98ca6785dc0a0d69c05fc28782c1d982e31e052184ec41b9c"
+    },
+    "data/revised/rq2_cross_layer_continuity_ablation.json": {
+      "source_sha": "b44357f764d440f983132bd44a9c23c180591f70",
+      "git_path": "results/experiments/rq2_cross_layer_continuity_ablation.json",
+      "sha256": "8ecbb9b7212f49f238b9cc4cea5c0ed9743893b9431d2df47152506fe2a7e4d5"
+    },
+    "data/revised/rq2_cross_layer_continuity_domain_shift.json": {
+      "source_sha": "b44357f764d440f983132bd44a9c23c180591f70",
+      "git_path": "results/experiments/rq2_cross_layer_continuity_domain_shift.json",
+      "sha256": "f31b9e67a99e5af096981de151a83e9c74b2d4c1d7b01cf799e3fd5b5ff0abdc"
+    },
+    "data/revised/rq2_cross_layer_continuity_heldout.json": {
+      "source_sha": "b44357f764d440f983132bd44a9c23c180591f70",
+      "git_path": "results/experiments/rq2_cross_layer_continuity_heldout.json",
+      "sha256": "d99576635c88f9b9d2d0606c5edfd1f821a887f15effa184fe9c2d05d46a8844"
+    },
+    "data/revised/rq2_cross_layer_continuity_train.json": {
+      "source_sha": "b44357f764d440f983132bd44a9c23c180591f70",
+      "git_path": "results/experiments/rq2_cross_layer_continuity_train.json",
+      "sha256": "a8b406fab5474c789d350ba8cfab79ceeb4c299f883fc83078f56c89c1a81813"
+    },
+    "source/protocol_predecessor.yaml": {
+      "source_sha": "72044d4008dc7624b1246b880387a693c37150e7",
+      "git_path": "paper/artifacts/experiment_protocol.yaml",
+      "sha256": "fd5e0504c8541284cb4bb3b3f035e075cba72745c1feaafcea9e436bade09d80"
+    }
+  }
+}
