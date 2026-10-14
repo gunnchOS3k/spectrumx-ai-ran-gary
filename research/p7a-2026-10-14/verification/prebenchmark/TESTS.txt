@@ -1,0 +1,21 @@
+test_65_visible_tasks_reject_not_trim (test_runtime.Runtime.test_65_visible_tasks_reject_not_trim) ... ok
+test_aba_no_cross_request_state (test_runtime.Runtime.test_aba_no_cross_request_state) ... ok
+test_all_fixture_contracts (test_runtime.Runtime.test_all_fixture_contracts) ... ok
+test_all_research_modes_guard_before_config_or_output (test_runtime.Runtime.test_all_research_modes_guard_before_config_or_output) ... ok
+test_budget_exhaustion_is_retained (test_runtime.Runtime.test_budget_exhaustion_is_retained) ... ok
+test_current_rss_bytes_if_supported (test_runtime.Runtime.test_current_rss_bytes_if_supported) ... ok
+test_equal_common_catalog_from_same_input (test_runtime.Runtime.test_equal_common_catalog_from_same_input) ... ok
+test_input_unchanged_and_family_contract (test_runtime.Runtime.test_input_unchanged_and_family_contract) ... ok
+test_partial_line_never_blocks_past_window (test_runtime.Runtime.test_partial_line_never_blocks_past_window) ... ok
+test_request_count_exhaustion (test_runtime.Runtime.test_request_count_exhaustion) ... ok
+test_reused_mpc_small_matches_direct (test_runtime.Runtime.test_reused_mpc_small_matches_direct) ... ok
+test_reused_one_step_small_matches_direct (test_runtime.Runtime.test_reused_one_step_small_matches_direct) ... ok
+test_startup_failure_reaped (test_runtime.Runtime.test_startup_failure_reaped) ... ok
+test_timeout_invalidates_reuse_and_reaps (test_runtime.Runtime.test_timeout_invalidates_reuse_and_reaps) ... ok
+test_unrequested_truth_rejected_before_send (test_runtime.Runtime.test_unrequested_truth_rejected_before_send) ... ok
+test_wrong_reply_identity_fails_closed (test_runtime.Runtime.test_wrong_reply_identity_fails_closed) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 1.056s
+
+OK
