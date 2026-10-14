@@ -59,9 +59,12 @@ test_estimate_no_future_truth (test_p5.P5.test_estimate_no_future_truth) ... ok
 test_estimated_catalog_resource_limits (test_p5.P5.test_estimated_catalog_resource_limits) ... ok
 test_failed_task_has_no_service (test_p5.P5.test_failed_task_has_no_service) ... ok
 test_fair_opportunity_resource_and_cost_mutations (test_p5.P5.test_fair_opportunity_resource_and_cost_mutations) ... ok
+test_forecast_input_size_enforced (test_p5.P5.test_forecast_input_size_enforced) ... ok
 test_future_dated_content_not_available (test_p5.P5.test_future_dated_content_not_available) ... ok
+test_hardware_nested_immutability (test_p5.P5.test_hardware_nested_immutability) ... ok
 test_hysteresis_reuses_same_ranked_objective (test_p5.P5.test_hysteresis_reuses_same_ranked_objective) ... ok
 test_independent_oracle_ignores_score (test_p5.P5.test_independent_oracle_ignores_score) ... ok
+test_invalid_action_type_cannot_execute (test_p5.P5.test_invalid_action_type_cannot_execute) ... ok
 test_invalid_state_transition (test_p5.P5.test_invalid_state_transition) ... ok
 test_latency_delivery_math (test_p5.P5.test_latency_delivery_math) ... ok
 test_local_network_requirement_rejected (test_p5.P5.test_local_network_requirement_rejected) ... ok
@@ -74,6 +77,7 @@ test_missing_content_block (test_p5.P5.test_missing_content_block) ... ok
 test_mpc_bounded_search_status (test_p5.P5.test_mpc_bounded_search_status) ... ok
 test_mpc_known_future_prediction_analytical (test_p5.P5.test_mpc_known_future_prediction_analytical) ... ok
 test_mpc_uses_predictions_not_future_truth (test_p5.P5.test_mpc_uses_predictions_not_future_truth) ... ok
+test_nested_previous_action_future_leak_rejected (test_p5.P5.test_nested_previous_action_future_leak_rejected) ... ok
 test_network_change_pays_new_latency (test_p5.P5.test_network_change_pays_new_latency) ... ok
 test_network_failure_rejected (test_p5.P5.test_network_failure_rejected) ... ok
 test_no_duplicate_completion (test_p5.P5.test_no_duplicate_completion) ... ok
@@ -118,6 +122,6 @@ test_whole_decision_elapsed_rejects (test_p5.P5.test_whole_decision_elapsed_reje
 test_zero_budget_catalog_defer (test_p5.P5.test_zero_budget_catalog_defer) ... ok
 
 ----------------------------------------------------------------------
-Ran 118 tests in 0.350s
+Ran 122 tests in 0.351s
 
 OK

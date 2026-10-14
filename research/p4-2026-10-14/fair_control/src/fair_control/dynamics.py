@@ -95,6 +95,7 @@ class Environment:
         return None
     def step(self,truth:TruthFrame,action:Action,latency_s:dict[str,float]):
         """One externally supplied current frame only; arrivals split at release boundaries by caller."""
+        if not isinstance(truth,TruthFrame) or not isinstance(action,Action):raise ContractError('Typed truth/action required')
         self._release();end=self.now_s+truth.duration_s
         if any(self.now_s<s.requirement.released_s<end for s in self.specs):raise ContractError('Split frame at task arrival')
         if set(truth.task_ids)!=set(self.tasks):raise ContractError('Truth task population mismatch')

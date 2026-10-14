@@ -248,3 +248,13 @@ class P5(unittest.TestCase):
         r=run(self.config());r['payload']['checkpoint']['observed'][0]['output']='wrong';r['payload_sha256']=digest(r['payload']);self.assertRaises(ContractError,validate_output,r)
     def test_primary_mismatch_with_rehashed_report(self):
         r=run(self.config());r['payload']['primary_outcome'].update(successes=0,fraction=0.);r['payload_sha256']=digest(r['payload']);self.assertRaises(ContractError,validate_output,r)
+
+    def test_nested_previous_action_future_leak_rejected(self):
+        x=self.estimates(previous_action=asdict(self.action()));x['previous_action']['future_truth']={};self.assertRaises(ObservationDenied,validate_estimates,x)
+        x=self.estimates(previous_action=asdict(self.action()));x['previous_action']['allocations'][0]['future_truth']=1;self.assertRaises(ObservationDenied,validate_estimates,x)
+    def test_hardware_nested_immutability(self):
+        self.assertRaises(ContractError,Hardware,placement_cpu=(['local',5.],))
+    def test_forecast_input_size_enforced(self):
+        x=self.estimates();x['forecasts'][0]['paths']*=5;self.assertRaises(ContractError,validate_estimates,x)
+    def test_invalid_action_type_cannot_execute(self):
+        e=Environment([self.spec()],10);self.assertRaises(ContractError,self.step,e,{});self.assertEqual(e.energy_j,10)

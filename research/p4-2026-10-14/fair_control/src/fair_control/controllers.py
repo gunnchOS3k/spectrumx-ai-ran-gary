@@ -21,7 +21,7 @@ class Hardware:
     placement_cpu:tuple= (('local',5.),('edge',10.),('cloud',10.))
     def __post_init__(self):
         for k in ['cpu_mcycles_s','memory_mb','bandwidth_mbps','power_w']:number(getattr(self,k),k,positive=True)
-        if type(self.placement_cpu) is not tuple or len(dict(self.placement_cpu))!=len(self.placement_cpu):raise ContractError('Placement contract')
+        if type(self.placement_cpu) is not tuple or any(type(x) is not tuple or len(x)!=2 for x in self.placement_cpu) or len(dict(self.placement_cpu))!=len(self.placement_cpu):raise ContractError('Placement contract')
         for k,v in self.placement_cpu:
             if k not in {'local','edge','cloud'}:raise ContractError('Placement')
             number(v,'placement CPU')
@@ -42,7 +42,11 @@ class Policy:
         number(self.deadline_s,'wall deadline',positive=True);number(self.hysteresis,'hysteresis')
         if not self.deadline_s<=.1 or type(self.horizon) is not int or not 1<=self.horizon<=3 or type(self.beam_width) is not int or not 1<=self.beam_width<=4:raise ContractError('P4 planning bounds')
 
-def action_from_dict(a):return Action(a['network'],a['placement'],tuple(Allocation(**x) for x in a['allocations']),a['fidelity']) if a else None
+def action_from_dict(a):
+    if a is None:return None
+    if set(a)!= {'network','placement','allocations','fidelity'}:raise ObservationDenied('Undeclared previous-action field')
+    if any(set(x)!= {'task_id','bandwidth_mbps','cpu_mcycles_s','memory_mb','power_w'} for x in a['allocations']):raise ObservationDenied('Undeclared allocation field')
+    return Action(a['network'],a['placement'],tuple(Allocation(**x) for x in a['allocations']),a['fidelity'])
 
 def thaw(v):
     if hasattr(v,'items'):return {k:thaw(x) for k,x in v.items()}
@@ -70,6 +74,7 @@ def validate_estimates(x):
         number(f['timestamp_s'],'forecast time');number(f['duration_s'],'predicted duration',positive=True)
         if f['timestamp_s']<prev:raise ContractError('Forecast time order')
         prev=f['timestamp_s'];names=[]
+        if len(f['paths'])>4:raise ContractError('Forecast path bound')
         for p in f['paths']:
             if set(p)!= {'name','up','capacity_mbps','latency_s'}:raise ObservationDenied('Path estimate fields')
             if not isinstance(p['name'],str) or not p['name'] or type(p['up']) is not bool:raise ContractError('Path estimate types')
