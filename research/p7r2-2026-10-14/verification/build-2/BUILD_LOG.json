@@ -1,0 +1,22 @@
+[
+  {
+    "args": [
+      "/Applications/Android Studio.app/Contents/jbr/Contents/Home/bin/javac",
+      "-source",
+      "8",
+      "-target",
+      "8",
+      "-classpath",
+      "/Users/gunnchos/Library/Android/sdk/platforms/android-35/android.jar",
+      "-d",
+      "research/p7r2-2026-10-14/verification/build-2/classes",
+      "/Users/gunnchos/Downloads/gunnchos-7gc-research-product-spine/repos/_publication_worktrees/spectrumx-ai-ran-gary/research/p7r2-2026-10-14/android/src/com/gunnchos/research/p7r/AcceptanceBudget.java",
+      "/Users/gunnchos/Downloads/gunnchos-7gc-research-product-spine/repos/_publication_worktrees/spectrumx-ai-ran-gary/research/p7r2-2026-10-14/android/src/com/gunnchos/research/p7r/CollectorActivity.java",
+      "/Users/gunnchos/Downloads/gunnchos-7gc-research-product-spine/repos/_publication_worktrees/spectrumx-ai-ran-gary/research/p7r2-2026-10-14/android/src/com/gunnchos/research/p7r/ProbeInstrumentation.java",
+      "/Users/gunnchos/Downloads/gunnchos-7gc-research-product-spine/repos/_publication_worktrees/spectrumx-ai-ran-gary/research/p7r2-2026-10-14/android/src/com/gunnchos/research/p7r/ScopedNetworkProbe.java"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": "warning: [options] bootstrap class path not set in conjunction with -source 8\n1 warning\n"
+  }
+]

@@ -1,0 +1,27 @@
+{
+  "evidence_category": "CONSTRUCTED_ENGINEERING_VERIFICATION",
+  "python": "3.14.7",
+  "python_tests_collected": 10,
+  "python_tests_run": 10,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "java_budget_result": "PASS 129 deterministic admission assertions;not Android runtime validation",
+  "source_sha256": {
+    ".gitignore": "5b005adff488d619c4325454ba3d4fac63d87312f8fd325f590f3552a4a979e2",
+    "LICENSE": "1ad252deea4446234308f5d0d3f3082ad4a14012099e5f548aa6079a5e629e03",
+    "android/AndroidManifest.xml": "760406128524649147b0d7de6dd8936dffbc215e2033a2b859f55c1db4fa55c2",
+    "android/build.py": "72c44a5efd1d86faf511384057d1f38f799a3650b9de71289a09da8d8588d0bc",
+    "android/src/com/gunnchos/research/p7r/AcceptanceBudget.java": "3190919d857886b26a2438130a3c0c492a1c702266585d6cff5acba408faab7e",
+    "android/src/com/gunnchos/research/p7r/CollectorActivity.java": "73ab496c304795e41c014604f63d60b1be32ffde389afbb97a1aad2f347cb903",
+    "android/src/com/gunnchos/research/p7r/ProbeInstrumentation.java": "10334a3ead53b65df5d4386a22bd88f869b31a13a44da666c3de24c323ed4457",
+    "android/src/com/gunnchos/research/p7r/ScopedNetworkProbe.java": "a1a6a69e9d7cf00d4975f994fac3655bcdd7c8eba6711c7775e778bf3144d96c",
+    "capture_review.py": "5fb3c4be9c443916a45c49f6f933fccd32f601ad61a02ec4a92219ecca9450ec",
+    "check.py": "2d7c8120847ac4a27d1dc2baa710be133027f40e94b4e00ecbdf137de16dec31",
+    "tests/BudgetCheck.java": "3f97e7a5db78b4a005c12683699551549d6896c35ccac0a5fc02cba24e650068",
+    "tests/test_preparation.py": "35550446dbe66b6b80f167c5fe21c69a0319ddd83ddc69d228688490affc1d75"
+  },
+  "device_or_endpoint_contact": false,
+  "measurement_generated": false,
+  "publication_authorized": false
+}

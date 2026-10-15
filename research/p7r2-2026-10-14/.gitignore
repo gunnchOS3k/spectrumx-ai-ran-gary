@@ -1,0 +1,6 @@
+__pycache__/
+verification/build-*/classes/
+verification/build-*/dex/
+verification/build-*/*.apk
+verification/build-*/*.idsig
+verification/build-*/*.keystore

@@ -1,0 +1,11 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.gunnchos.research.p7r2" android:versionCode="2" android:versionName="p7r2-0.1">
+  <uses-sdk android:minSdkVersion="29" android:targetSdkVersion="35" />
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+  <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+  <uses-permission android:name="android.permission.INTERNET" />
+  <uses-feature android:name="android.hardware.telephony" android:required="false" />
+  <application android:label="P7R2 Acceptance Collector" android:allowBackup="false" android:usesCleartextTraffic="false" android:theme="@android:style/Theme.Material.Light.NoActionBar">
+    <activity android:name=".CollectorActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity>
+  </application>
+  <instrumentation android:name=".ProbeInstrumentation" android:targetPackage="com.gunnchos.research.p7r2" android:label="P7R manually scoped endpoint probe" />
+</manifest>
