@@ -1,0 +1,24 @@
+{
+  "association_method": "Post-execution preservation of retained producer inputs;not a contemporaneously instrumented runtime Git/hash attestation",
+  "source_checkpoint_with_matching_producer_files": "4f243258583a623865be3c2332455e3d6c800afd",
+  "producer_sha256": {
+    "p7r_demo.py": "9c5f5bc4ffa5bc5e229bb355b86090fe62ebf90a4005567bb02f3ec128751478",
+    "src/p7r/__init__.py": "17d05651e1d3ca672035255f854ca22acbb5931ad31719ed6ec3374a6a0a33d0",
+    "src/p7r/contracts.py": "b5e382974fc366714c4fc0d0129e5a1377f473eaa625a66511a0370279514b70",
+    "src/p7r/workloads.py": "fffdf96ca7ed4cd9956e69743da97573e65a6a22493a7c0c9cc4fbb7cb753277",
+    "src/p7r/endpoint.py": "9ac112d5ed8599a401ac3ec3f4b3e981c4fcc63fcf54c8054cec0b335c8e170b",
+    "src/p7r/analysis.py": "8e748885567de8bda93b5dcb9cdd82acd22632881579b0afeffac1c6856d52f0",
+    "vendor/device_os/offline_sync.py": "6886cd21a219e94a3e58de84cf767ee03c5ba0e908d4aa9f3e4ab34f449bfe6b",
+    "vendor/device_os/PROVENANCE.json": "59943d791f88fd31572031eee2be6046024e88481466e0392ccd1252db209455",
+    "vendor/device_os/LICENSE": "20e51b032edae78c1fe11e92bceb8ec2be6f144a982c4f8227506458592e0b2c"
+  },
+  "raw_record_sha256": {
+    "CONTROLLED_LOOPBACK_TRANSACTIONS.json": "4c5cacf17af68022811a9589736fa00bed100a785c7cbe854a2cb62de0c1e950",
+    "DEVICE_OS_CORE_INTEGRATION.json": "bccb25a9e6c9bc340ee1290e9a90b25cd9823c775076ecb14ab701f6ff651d3b",
+    "ENGINEERING_DEMO_STATUS.json": "a841978b80bfc86ed4bd2485bfc8d5b7d51076316f64e19478e7cb49cf37262b",
+    "EXECUTABLE_WORKLOADS.json": "3e4c9a9aae4b6f6de09995c5bc96f509f662586b5f584de583ca15f4bf119cf7"
+  },
+  "evidence_category": "CONSTRUCTED_ENGINEERING_VERIFICATION",
+  "newly_generated_measurement": false,
+  "physical_authenticity_or_calibration_claim": false
+}
