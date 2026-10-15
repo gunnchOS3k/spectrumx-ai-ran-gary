@@ -1,0 +1,18 @@
+test_combined_window_exceeded_rejected (test_preparation.Review.test_combined_window_exceeded_rejected) ... ok
+test_duplicate_and_incomplete_export_rejected (test_preparation.Review.test_duplicate_and_incomplete_export_rejected) ... ok
+test_duplicate_or_missing_tasks_rejected (test_preparation.Review.test_duplicate_or_missing_tasks_rejected) ... ok
+test_export_corruption_rejected (test_preparation.Review.test_export_corruption_rejected) ... ok
+test_export_roundtrip (test_preparation.Review.test_export_roundtrip) ... ok
+test_fixture_category_cannot_become_measurement (test_preparation.Review.test_fixture_category_cannot_become_measurement) ... ok
+test_local_and_probe_combination (test_preparation.Review.test_local_and_probe_combination) ... ok
+test_local_correctness_is_independent (test_preparation.Review.test_local_correctness_is_independent) ... ok
+test_missing_telemetry_snapshot_rejected (test_preparation.Review.test_missing_telemetry_snapshot_rejected) ... ok
+test_probe_payload_cap_rejected (test_preparation.Review.test_probe_payload_cap_rejected) ... ok
+test_probe_requires_same_window_reference (test_preparation.Review.test_probe_requires_same_window_reference) ... ok
+test_raw_wrong_sum_cannot_pass_device_success_claim (test_preparation.Review.test_raw_wrong_sum_cannot_pass_device_success_claim) ... ok
+test_response_hash_mismatch_rejected (test_preparation.Review.test_response_hash_mismatch_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.006s
+
+OK

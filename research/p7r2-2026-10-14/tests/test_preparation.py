@@ -12,6 +12,7 @@ class Review(unittest.TestCase):
    if kind=='probe':
     raw=b'{"sum":55}';d.update(attempted_application_body_bytes=len(c.PAYLOAD),received_application_body_bytes=len(raw),request_body_sha256=c.H(c.PAYLOAD),response_body_sha256=c.H(raw),response_body_base64=base64.b64encode(raw).decode(),status=200)
    add('task_result',t+2,d)
+  add('snapshot',140 if kind=='local' else 215,{'network':{'active_network_available':False,'transports':[]},'reason':'Original engineering fixture,not a device measurement'})
   add('session_stop',150 if kind=='local' else 220,{});return rows
  def file(self,p,rows):p.write_text(''.join(json.dumps(r)+'\n' for r in rows));return p
  def stdout(self,body):return ('INSTRUMENTATION_RESULT: p7r_capture_base64='+base64.b64encode(body).decode()+'\nINSTRUMENTATION_RESULT: p7r_capture_sha256='+c.H(body)+'\nINSTRUMENTATION_CODE: -1\n').encode()
@@ -53,3 +54,6 @@ class Review(unittest.TestCase):
  def test_response_hash_mismatch_rejected(self):
   with tempfile.TemporaryDirectory() as tmp:
    p=Path(tmp);rows=self.fixture('probe');rows[1]['data']['response_body_sha256']='0'*64;a=self.file(p/'local',self.fixture());b=self.file(p/'probe',rows);self.assertRaises(ContractError,c.review,b,'probe',a)
+ def test_missing_telemetry_snapshot_rejected(self):
+  with tempfile.TemporaryDirectory() as tmp:
+   rows=self.fixture();rows[-2]['kind']='network_available';self.assertRaises(ContractError,c.review,self.file(Path(tmp)/'x',rows),'local')

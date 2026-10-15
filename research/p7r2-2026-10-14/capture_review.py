@@ -28,7 +28,7 @@ def review(path,kind,reference=None):
  start=rows[0]['data'].get('window_start_elapsed_ns');end=rows[-1]['elapsed_ns']
  if type(start) is not int or not 0<=start<=rows[0]['elapsed_ns']<=end or end-start>120000000000:raise ContractError('Acceptance window missing or exceeded;retain failed session')
  snapshots=sum(r['kind']=='snapshot' for r in rows)
- if snapshots>120:raise ContractError('Snapshot cap')
+ if not 1<=snapshots<=120:raise ContractError('Required telemetry snapshot missing or cap exceeded')
  tasks=[r for r in rows if r['kind']=='task_result'];ids=[r['data']['task_id'] for r in tasks];errors=[r for r in rows if r['kind']=='collector_error']
  if len(ids)!=len(set(ids)):raise ContractError('Repeated task/attempt')
  required={'original-java-sum','original-file-edit'} if kind=='local' else {'original-endpoint-sum'}
