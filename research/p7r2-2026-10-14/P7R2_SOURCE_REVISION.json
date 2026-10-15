@@ -1,0 +1,25 @@
+{
+  "implementation_content_sha": "1380ad212ad6f89d20389d138e83abdd5a16420d",
+  "native_build_content_sha": "7a5e6c12af58044e9a69a6667f9bed65eba3fc1f",
+  "derived_from_frozen_p7r_checkpoint": "2bfdfea5e3452f990fe86fc210bae9f9bda2e371",
+  "source_file_sha256": {
+    ".gitignore": "5b005adff488d619c4325454ba3d4fac63d87312f8fd325f590f3552a4a979e2",
+    "LICENSE": "1ad252deea4446234308f5d0d3f3082ad4a14012099e5f548aa6079a5e629e03",
+    "README.md": "4b6d61a9cddfa295f5ee4f791f542f41c0b305695e02fdc99b5194b85de3a118",
+    "android/AndroidManifest.xml": "760406128524649147b0d7de6dd8936dffbc215e2033a2b859f55c1db4fa55c2",
+    "android/build.py": "72c44a5efd1d86faf511384057d1f38f799a3650b9de71289a09da8d8588d0bc",
+    "android/src/com/gunnchos/research/p7r/AcceptanceBudget.java": "3190919d857886b26a2438130a3c0c492a1c702266585d6cff5acba408faab7e",
+    "android/src/com/gunnchos/research/p7r/CollectorActivity.java": "b1e6a4de738cdf0a286c88fa1e38c1b959e477bdd16c9f5c10f8d8fca77e8806",
+    "android/src/com/gunnchos/research/p7r/ProbeInstrumentation.java": "10334a3ead53b65df5d4386a22bd88f869b31a13a44da666c3de24c323ed4457",
+    "android/src/com/gunnchos/research/p7r/ScopedNetworkProbe.java": "f60bd0b17e34580021a2c9732a15fd250eee815ef4235e7a319169ece22c9683",
+    "capture_review.py": "c98bf3f834d33b8a0e77a83dbd5cd237285454370b29910d4a3346d57e1ac4db",
+    "check.py": "2d7c8120847ac4a27d1dc2baa710be133027f40e94b4e00ecbdf137de16dec31",
+    "tests/BudgetCheck.java": "3f97e7a5db78b4a005c12683699551549d6896c35ccac0a5fc02cba24e650068",
+    "tests/test_preparation.py": "e1aba63243be8671b4f62120f88b96afc70aa6758609b1fc3da4809e4e16fa5b"
+  },
+  "test_result": "verification/export-acceptance-check/TEST_RESULT.json",
+  "android_build_record": "dist/ANDROID_BUILD_VERIFICATION.json",
+  "native_runtime_validated": false,
+  "device_measured": false,
+  "publication_authorized": false
+}
