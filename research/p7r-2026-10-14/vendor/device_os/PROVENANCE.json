@@ -1,0 +1,9 @@
+{
+  "origin": "gunnchOS3k/gunnchos-device-os",
+  "source_revision": "4f321c2565669a0e476fc73c524ab84dffed90c0",
+  "source_path": "gunnchos_device_os/offline_sync.py",
+  "sha256": "6886cd21a219e94a3e58de84cf767ee03c5ba0e908d4aa9f3e4ab34f449bfe6b",
+  "license": "Retained MIT LICENSE beside source",
+  "modifications": "none",
+  "execution_scope": "Original nonpersonal isolated core-library engineering fixture only;not production application or live network"
+}

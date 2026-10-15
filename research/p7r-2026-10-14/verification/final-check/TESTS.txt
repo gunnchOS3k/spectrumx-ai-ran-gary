@@ -1,0 +1,47 @@
+test_actual_pinned_device_os_core (test_measurement.Measurement.test_actual_pinned_device_os_core) ... ok
+test_all_exogenous_tasks_count_and_duplicates_reject (test_measurement.Measurement.test_all_exogenous_tasks_count_and_duplicates_reject) ... ok
+test_android_capture_boot_reset_incomplete_or_mixed_class_reject (test_measurement.Measurement.test_android_capture_boot_reset_incomplete_or_mixed_class_reject) ... ok
+test_android_capture_complete_sequence (test_measurement.Measurement.test_android_capture_complete_sequence) ... ok
+test_android_capture_future_task_reject (test_measurement.Measurement.test_android_capture_future_task_reject) ... ok
+test_android_clock_and_private_identifiers_reject (test_measurement.Measurement.test_android_clock_and_private_identifiers_reject) ... ok
+test_android_contract_and_missing_telemetry (test_measurement.Measurement.test_android_contract_and_missing_telemetry) ... ok
+test_android_manifest_and_source_do_not_autorun_network_probe (test_measurement.Measurement.test_android_manifest_and_source_do_not_autorun_network_probe) ... ok
+test_bounded_remote_sum_actual_server_compute (test_measurement.Measurement.test_bounded_remote_sum_actual_server_compute) ... ok
+test_capability_does_not_grant_carrier_control (test_measurement.Measurement.test_capability_does_not_grant_carrier_control) ... ok
+test_clock_domain_and_order_reject (test_measurement.Measurement.test_clock_domain_and_order_reject) ... ok
+test_clock_drift_or_order_reject (test_measurement.Measurement.test_clock_drift_or_order_reject) ... ok
+test_clock_offset_interval_no_oneway_inference (test_measurement.Measurement.test_clock_offset_interval_no_oneway_inference) ... ok
+test_clock_reset_or_duplicate_sequence_reject (test_measurement.Measurement.test_clock_reset_or_duplicate_sequence_reject) ... ok
+test_connection_failure_is_retained (test_measurement.Measurement.test_connection_failure_is_retained) ... ok
+test_core_source_mutation_reject (test_measurement.Measurement.test_core_source_mutation_reject) ... ok
+test_device_claimed_correctness_not_used_as_oracle (test_measurement.Measurement.test_device_claimed_correctness_not_used_as_oracle) ... ok
+test_evidence_claim_boundaries (test_measurement.Measurement.test_evidence_claim_boundaries) ... ok
+test_execution_guards_no_config_output (test_measurement.Measurement.test_execution_guards_no_config_output) ... ok
+test_imported_measured_trace_is_replay_not_live (test_measurement.Measurement.test_imported_measured_trace_is_replay_not_live) ... ok
+test_independent_correct_output (test_measurement.Measurement.test_independent_correct_output) ... ok
+test_iperf_tcp_does_not_manufacture_packet_loss (test_measurement.Measurement.test_iperf_tcp_does_not_manufacture_packet_loss) ... ok
+test_iperf_udp_counters_and_failure (test_measurement.Measurement.test_iperf_udp_counters_and_failure) ... ok
+test_json_schemas_are_valid_and_match_fixture (test_measurement.Measurement.test_json_schemas_are_valid_and_match_fixture) ... ok
+test_late_stale_nondurable_and_failure_retained (test_measurement.Measurement.test_late_stale_nondurable_and_failure_retained) ... ok
+test_live_loopback_upload_pause_resume_and_dedup (test_measurement.Measurement.test_live_loopback_upload_pause_resume_and_dedup) ... ok
+test_loopback_latency_bytes_and_packet_loss_unknown (test_measurement.Measurement.test_loopback_latency_bytes_and_packet_loss_unknown) ... ok
+test_matched_contract_and_mismatch (test_measurement.Measurement.test_matched_contract_and_mismatch) ... ok
+test_no_private_or_nonempty_work_directory (test_measurement.Measurement.test_no_private_or_nonempty_work_directory) ... ok
+test_nonlocal_endpoint_refused_before_dns (test_measurement.Measurement.test_nonlocal_endpoint_refused_before_dns) ... ok
+test_original_executable_workloads (test_measurement.Measurement.test_original_executable_workloads) ... ok
+test_paired_session_analysis_not_packet_pseudoreplication (test_measurement.Measurement.test_paired_session_analysis_not_packet_pseudoreplication) ... ok
+test_paired_task_population_mismatch_reject (test_measurement.Measurement.test_paired_task_population_mismatch_reject) ... ok
+test_sensor_unavailable_not_zero (test_measurement.Measurement.test_sensor_unavailable_not_zero) ... ok
+test_server_rejects_offset_and_path_traversal (test_measurement.Measurement.test_server_rejects_offset_and_path_traversal) ... ok
+test_trace_duplicate_keys_nonfinite_and_bool_sequence_reject (test_measurement.Measurement.test_trace_duplicate_keys_nonfinite_and_bool_sequence_reject) ... ok
+test_trace_hash_mutation_reject (test_measurement.Measurement.test_trace_hash_mutation_reject) ... ok
+test_trace_rights_and_fabricated_evidence_reject (test_measurement.Measurement.test_trace_rights_and_fabricated_evidence_reject) ... ok
+test_trace_schema_hash_and_metadata_binding (test_measurement.Measurement.test_trace_schema_hash_and_metadata_binding) ... ok
+test_transaction_analysis_retains_missing_and_failed_attempts (test_measurement.Measurement.test_transaction_analysis_retains_missing_and_failed_attempts) ... ok
+test_transfer_size_and_malformed_compute_reject (test_measurement.Measurement.test_transfer_size_and_malformed_compute_reject) ... ok
+test_wrong_bytes_fail_despite_reported_success (test_measurement.Measurement.test_wrong_bytes_fail_despite_reported_success) ... ok
+
+----------------------------------------------------------------------
+Ran 42 tests in 0.601s
+
+OK

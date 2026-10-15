@@ -1,0 +1,20 @@
+[
+  {
+    "args": [
+      "/Applications/Android Studio.app/Contents/jbr/Contents/Home/bin/javac",
+      "-source",
+      "8",
+      "-target",
+      "8",
+      "-bootclasspath",
+      "/Users/gunnchos/Library/Android/sdk/platforms/android-35/android.jar",
+      "-d",
+      "research/p7r-2026-10-14/verification/android-build-1/classes",
+      "/Users/gunnchos/Downloads/gunnchos-7gc-research-product-spine/repos/_publication_worktrees/spectrumx-ai-ran-gary/research/p7r-2026-10-14/android/src/com/gunnchos/research/p7r/CollectorActivity.java",
+      "/Users/gunnchos/Downloads/gunnchos-7gc-research-product-spine/repos/_publication_worktrees/spectrumx-ai-ran-gary/research/p7r-2026-10-14/android/src/com/gunnchos/research/p7r/ScopedNetworkProbe.java"
+    ],
+    "returncode": 3,
+    "stdout": "",
+    "stderr": "/Users/gunnchos/Downloads/gunnchos-7gc-research-product-spine/repos/_publication_worktrees/spectrumx-ai-ran-gary/research/p7r-2026-10-14/android/src/com/gunnchos/research/p7r/CollectorActivity.java:30: error: cannot find symbol\n    button(layout,\"Start bounded local capture\",()->startCapture());\n                                                ^\n  symbol:   method metafactory(Lookup,String,MethodType,MethodType,MethodHandle,MethodType)\n  location: interface LambdaMetafactory\n1 error\nFatal Error: Unable to find method metafactory\n"
+  }
+]

@@ -1,0 +1,179 @@
+{
+  "upload": {
+    "correct": true,
+    "progress_preserved": true,
+    "attempts": [
+      {
+        "started_ns": 78348674092916,
+        "finished_ns": 78348675731166,
+        "clock_domain": "client_perf_counter_ns",
+        "duration_ns": 1638250,
+        "http_status": 200,
+        "failure": null,
+        "attempted_body_bytes": 896,
+        "received_application_bytes": 140,
+        "response_sha256": "51777bdda3347ee29525c11d46771cbfdc54223508007bbeb6d810ba60fbd163",
+        "evidence_category": "CONSTRUCTED_ENGINEERING_VERIFICATION",
+        "observed_transport": "LOOPBACK",
+        "packet_loss": null,
+        "packet_loss_reason": "HTTP/TCP transaction errors do not identify lost IP packets",
+        "wire_bytes": null
+      },
+      {
+        "started_ns": 78348676067791,
+        "finished_ns": 78348676851291,
+        "clock_domain": "client_perf_counter_ns",
+        "duration_ns": 783500,
+        "http_status": 200,
+        "failure": null,
+        "attempted_body_bytes": 896,
+        "received_application_bytes": 141,
+        "response_sha256": "b391d2d99665a64beb22b324aa47b2b9b4f6c272842d1626c7760478be00b0d7",
+        "evidence_category": "CONSTRUCTED_ENGINEERING_VERIFICATION",
+        "observed_transport": "LOOPBACK",
+        "packet_loss": null,
+        "packet_loss_reason": "HTTP/TCP transaction errors do not identify lost IP packets",
+        "wire_bytes": null
+      },
+      {
+        "started_ns": 78348676869000,
+        "finished_ns": 78348677593708,
+        "clock_domain": "client_perf_counter_ns",
+        "duration_ns": 724708,
+        "http_status": 200,
+        "failure": null,
+        "attempted_body_bytes": 896,
+        "received_application_bytes": 141,
+        "response_sha256": "b391d2d99665a64beb22b324aa47b2b9b4f6c272842d1626c7760478be00b0d7",
+        "evidence_category": "CONSTRUCTED_ENGINEERING_VERIFICATION",
+        "observed_transport": "LOOPBACK",
+        "packet_loss": null,
+        "packet_loss_reason": "HTTP/TCP transaction errors do not identify lost IP packets",
+        "wire_bytes": null
+      },
+      {
+        "started_ns": 78348677600458,
+        "finished_ns": 78348677953250,
+        "clock_domain": "client_perf_counter_ns",
+        "duration_ns": 352792,
+        "http_status": 200,
+        "failure": null,
+        "attempted_body_bytes": 0,
+        "received_application_bytes": 1792,
+        "response_sha256": "b24bb879c043338a6f195108cd345df7c725e4590fb104dc0511bd44ee9a687f",
+        "evidence_category": "CONSTRUCTED_ENGINEERING_VERIFICATION",
+        "observed_transport": "LOOPBACK",
+        "packet_loss": null,
+        "packet_loss_reason": "HTTP/TCP transaction errors do not identify lost IP packets",
+        "wire_bytes": null
+      }
+    ],
+    "receipt": {
+      "application_bytes_persisted": 1792,
+      "sha256": "b24bb879c043338a6f195108cd345df7c725e4590fb104dc0511bd44ee9a687f",
+      "receipt_reopened": true
+    },
+    "recovery_type": "APPLICATION_PAUSE_RESUME_ONLY",
+    "actual_wireless_outage": false,
+    "evidence_category": "CONSTRUCTED_ENGINEERING_VERIFICATION"
+  },
+  "ping": {
+    "observation": {
+      "started_ns": 78348677970291,
+      "finished_ns": 78348678273666,
+      "clock_domain": "client_perf_counter_ns",
+      "duration_ns": 303375,
+      "http_status": 200,
+      "failure": null,
+      "attempted_body_bytes": 0,
+      "received_application_bytes": 152,
+      "response_sha256": "158380b26e578fb0211ef37c8e4d56d71a2eed8815340b19a2507efd83eec670",
+      "evidence_category": "CONSTRUCTED_ENGINEERING_VERIFICATION",
+      "observed_transport": "LOOPBACK",
+      "packet_loss": null,
+      "packet_loss_reason": "HTTP/TCP transaction errors do not identify lost IP packets",
+      "wire_bytes": null
+    },
+    "server": {
+      "server_received_ns": 78348678158000,
+      "server_reply_prepared_ns": 78348678158291,
+      "clock_domain": "server_perf_counter_ns",
+      "one_way_latency_ns": null
+    }
+  },
+  "remote_sum": {
+    "observation": {
+      "started_ns": 78348678287625,
+      "finished_ns": 78348678580625,
+      "clock_domain": "client_perf_counter_ns",
+      "duration_ns": 293000,
+      "http_status": 200,
+      "failure": null,
+      "attempted_body_bytes": 43,
+      "received_application_bytes": 131,
+      "response_sha256": "6f15375e5af721b4959dbeabdb5cd6374c75da5b1f9624ba38e11a19f6dacabc",
+      "evidence_category": "CONSTRUCTED_ENGINEERING_VERIFICATION",
+      "observed_transport": "LOOPBACK",
+      "packet_loss": null,
+      "packet_loss_reason": "HTTP/TCP transaction errors do not identify lost IP packets",
+      "wire_bytes": null
+    },
+    "response": {
+      "sum": 55,
+      "operation": "bounded_integer_sum",
+      "input_sha256": "27d87ef9e6464d6c4d2d20214aa8f41cd9e1007cad5cb027b7d5efc039ffc573"
+    },
+    "correct": true
+  },
+  "server_received_body_bytes": 2731,
+  "server_events": [
+    {
+      "event": "application_upload_chunk",
+      "offset": 0,
+      "body_bytes_received": 896,
+      "persisted_total": 896,
+      "timestamp_ns": 78348674978541,
+      "clock_domain": "server_perf_counter_ns"
+    },
+    {
+      "event": "application_upload_chunk",
+      "offset": 896,
+      "body_bytes_received": 896,
+      "persisted_total": 1792,
+      "timestamp_ns": 78348676708708,
+      "clock_domain": "server_perf_counter_ns"
+    },
+    {
+      "event": "application_upload_chunk",
+      "offset": 896,
+      "body_bytes_received": 896,
+      "persisted_total": 1792,
+      "timestamp_ns": 78348677476875,
+      "clock_domain": "server_perf_counter_ns"
+    }
+  ],
+  "analysis": {
+    "all_attempts": 6,
+    "recorded_attempts": 6,
+    "missing_attempts": 0,
+    "successes": 6,
+    "success_fraction": 1.0,
+    "successful_transaction_mean_ms": 0.6826041666666667,
+    "successful_transaction_max_ms": 1.63825,
+    "mean_adjacent_successful_transaction_duration_difference_ms": 0.26905,
+    "jitter_definition": "Absolute adjacent successful application-transaction duration variation;not packet IPDV/RFC3550 jitter",
+    "application_response_goodput_bits_s": [
+      683656.3406073555,
+      1439693.6821952777,
+      1556488.9583114854,
+      40635842.08258691,
+      4008240.626287598,
+      3576791.80887372
+    ],
+    "goodput_scope": "Received HTTP body per end-to-end transaction;not link capacity,wire bytes or upload persisted unique bytes",
+    "packet_loss": null,
+    "failure_fraction": 0.0
+  },
+  "external_traffic": false,
+  "evidence_category": "CONSTRUCTED_ENGINEERING_VERIFICATION"
+}

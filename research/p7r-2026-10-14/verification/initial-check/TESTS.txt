@@ -1,0 +1,166 @@
+test_actual_pinned_device_os_core (test_measurement.Measurement.test_actual_pinned_device_os_core) ... ok
+test_all_exogenous_tasks_count_and_duplicates_reject (test_measurement.Measurement.test_all_exogenous_tasks_count_and_duplicates_reject) ... ok
+test_android_clock_and_private_identifiers_reject (test_measurement.Measurement.test_android_clock_and_private_identifiers_reject) ... ok
+test_android_contract_and_missing_telemetry (test_measurement.Measurement.test_android_contract_and_missing_telemetry) ... ok
+test_android_manifest_and_source_do_not_autorun_network_probe (test_measurement.Measurement.test_android_manifest_and_source_do_not_autorun_network_probe) ... ok
+test_bounded_remote_sum_actual_server_compute (test_measurement.Measurement.test_bounded_remote_sum_actual_server_compute) ... ERROR
+test_capability_does_not_grant_carrier_control (test_measurement.Measurement.test_capability_does_not_grant_carrier_control) ... ok
+test_clock_domain_and_order_reject (test_measurement.Measurement.test_clock_domain_and_order_reject) ... ok
+test_clock_drift_or_order_reject (test_measurement.Measurement.test_clock_drift_or_order_reject) ... ok
+test_clock_offset_interval_no_oneway_inference (test_measurement.Measurement.test_clock_offset_interval_no_oneway_inference) ... ok
+test_clock_reset_or_duplicate_sequence_reject (test_measurement.Measurement.test_clock_reset_or_duplicate_sequence_reject) ... ok
+test_connection_failure_is_retained (test_measurement.Measurement.test_connection_failure_is_retained) ... ERROR
+test_core_source_mutation_reject (test_measurement.Measurement.test_core_source_mutation_reject) ... ok
+test_device_claimed_correctness_not_used_as_oracle (test_measurement.Measurement.test_device_claimed_correctness_not_used_as_oracle) ... ok
+test_evidence_claim_boundaries (test_measurement.Measurement.test_evidence_claim_boundaries) ... ok
+test_execution_guards_no_config_output (test_measurement.Measurement.test_execution_guards_no_config_output) ... ok
+test_imported_measured_trace_is_replay_not_live (test_measurement.Measurement.test_imported_measured_trace_is_replay_not_live) ... ok
+test_independent_correct_output (test_measurement.Measurement.test_independent_correct_output) ... ok
+test_iperf_tcp_does_not_manufacture_packet_loss (test_measurement.Measurement.test_iperf_tcp_does_not_manufacture_packet_loss) ... ok
+test_iperf_udp_counters_and_failure (test_measurement.Measurement.test_iperf_udp_counters_and_failure) ... ok
+test_json_schemas_are_valid_and_match_fixture (test_measurement.Measurement.test_json_schemas_are_valid_and_match_fixture) ... ok
+test_late_stale_nondurable_and_failure_retained (test_measurement.Measurement.test_late_stale_nondurable_and_failure_retained) ... ok
+test_live_loopback_upload_pause_resume_and_dedup (test_measurement.Measurement.test_live_loopback_upload_pause_resume_and_dedup) ... ERROR
+test_loopback_latency_bytes_and_packet_loss_unknown (test_measurement.Measurement.test_loopback_latency_bytes_and_packet_loss_unknown) ... ERROR
+test_matched_contract_and_mismatch (test_measurement.Measurement.test_matched_contract_and_mismatch) ... ok
+test_no_private_or_nonempty_work_directory (test_measurement.Measurement.test_no_private_or_nonempty_work_directory) ... ok
+test_nonlocal_endpoint_refused_before_dns (test_measurement.Measurement.test_nonlocal_endpoint_refused_before_dns) ... ok
+test_original_executable_workloads (test_measurement.Measurement.test_original_executable_workloads) ... ok
+test_sensor_unavailable_not_zero (test_measurement.Measurement.test_sensor_unavailable_not_zero) ... ok
+test_server_rejects_offset_and_path_traversal (test_measurement.Measurement.test_server_rejects_offset_and_path_traversal) ... ERROR
+test_trace_hash_mutation_reject (test_measurement.Measurement.test_trace_hash_mutation_reject) ... ok
+test_trace_rights_and_fabricated_evidence_reject (test_measurement.Measurement.test_trace_rights_and_fabricated_evidence_reject) ... ok
+test_trace_schema_hash_and_metadata_binding (test_measurement.Measurement.test_trace_schema_hash_and_metadata_binding) ... ok
+test_transfer_size_and_malformed_compute_reject (test_measurement.Measurement.test_transfer_size_and_malformed_compute_reject) ... ERROR
+test_wrong_bytes_fail_despite_reported_success (test_measurement.Measurement.test_wrong_bytes_fail_despite_reported_success) ... ok
+
+======================================================================
+ERROR: test_bounded_remote_sum_actual_server_compute (test_measurement.Measurement.test_bounded_remote_sum_actual_server_compute)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/gunnchos/Downloads/gunnchos-7gc-research-product-spine/repos/_publication_worktrees/spectrumx-ai-ran-gary/research/p7r-2026-10-14/tests/test_measurement.py", line 53, in test_bounded_remote_sum_actual_server_compute
+    with Endpoint(p) as e:
+         ~~~~~~~~^^^
+  File "/Users/gunnchos/Downloads/gunnchos-7gc-research-product-spine/repos/_publication_worktrees/spectrumx-ai-ran-gary/research/p7r-2026-10-14/src/p7r/endpoint.py", line 54, in __init__
+    self.server=HTTPServer(('127.0.0.1',0),Handler);self.thread=threading.Thread(target=self.server.serve_forever,kwargs={'poll_interval':.05},daemon=True)
+                ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 457, in __init__
+    self.server_bind()
+    ~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/server.py", line 148, in server_bind
+    socketserver.TCPServer.server_bind(self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 478, in server_bind
+    self.socket.bind(self.server_address)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+PermissionError: [Errno 1] Operation not permitted
+
+======================================================================
+ERROR: test_connection_failure_is_retained (test_measurement.Measurement.test_connection_failure_is_retained)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/gunnchos/Downloads/gunnchos-7gc-research-product-spine/repos/_publication_worktrees/spectrumx-ai-ran-gary/research/p7r-2026-10-14/tests/test_measurement.py", line 59, in test_connection_failure_is_retained
+    with Endpoint(p) as e:u=e.url
+         ~~~~~~~~^^^
+  File "/Users/gunnchos/Downloads/gunnchos-7gc-research-product-spine/repos/_publication_worktrees/spectrumx-ai-ran-gary/research/p7r-2026-10-14/src/p7r/endpoint.py", line 54, in __init__
+    self.server=HTTPServer(('127.0.0.1',0),Handler);self.thread=threading.Thread(target=self.server.serve_forever,kwargs={'poll_interval':.05},daemon=True)
+                ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 457, in __init__
+    self.server_bind()
+    ~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/server.py", line 148, in server_bind
+    socketserver.TCPServer.server_bind(self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 478, in server_bind
+    self.socket.bind(self.server_address)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+PermissionError: [Errno 1] Operation not permitted
+
+======================================================================
+ERROR: test_live_loopback_upload_pause_resume_and_dedup (test_measurement.Measurement.test_live_loopback_upload_pause_resume_and_dedup)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/gunnchos/Downloads/gunnchos-7gc-research-product-spine/repos/_publication_worktrees/spectrumx-ai-ran-gary/research/p7r-2026-10-14/tests/test_measurement.py", line 45, in test_live_loopback_upload_pause_resume_and_dedup
+    with Endpoint(a) as e:
+         ~~~~~~~~^^^
+  File "/Users/gunnchos/Downloads/gunnchos-7gc-research-product-spine/repos/_publication_worktrees/spectrumx-ai-ran-gary/research/p7r-2026-10-14/src/p7r/endpoint.py", line 54, in __init__
+    self.server=HTTPServer(('127.0.0.1',0),Handler);self.thread=threading.Thread(target=self.server.serve_forever,kwargs={'poll_interval':.05},daemon=True)
+                ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 457, in __init__
+    self.server_bind()
+    ~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/server.py", line 148, in server_bind
+    socketserver.TCPServer.server_bind(self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 478, in server_bind
+    self.socket.bind(self.server_address)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+PermissionError: [Errno 1] Operation not permitted
+
+======================================================================
+ERROR: test_loopback_latency_bytes_and_packet_loss_unknown (test_measurement.Measurement.test_loopback_latency_bytes_and_packet_loss_unknown)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/gunnchos/Downloads/gunnchos-7gc-research-product-spine/repos/_publication_worktrees/spectrumx-ai-ran-gary/research/p7r-2026-10-14/tests/test_measurement.py", line 49, in test_loopback_latency_bytes_and_packet_loss_unknown
+    with Endpoint(p) as e:
+         ~~~~~~~~^^^
+  File "/Users/gunnchos/Downloads/gunnchos-7gc-research-product-spine/repos/_publication_worktrees/spectrumx-ai-ran-gary/research/p7r-2026-10-14/src/p7r/endpoint.py", line 54, in __init__
+    self.server=HTTPServer(('127.0.0.1',0),Handler);self.thread=threading.Thread(target=self.server.serve_forever,kwargs={'poll_interval':.05},daemon=True)
+                ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 457, in __init__
+    self.server_bind()
+    ~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/server.py", line 148, in server_bind
+    socketserver.TCPServer.server_bind(self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 478, in server_bind
+    self.socket.bind(self.server_address)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+PermissionError: [Errno 1] Operation not permitted
+
+======================================================================
+ERROR: test_server_rejects_offset_and_path_traversal (test_measurement.Measurement.test_server_rejects_offset_and_path_traversal)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/gunnchos/Downloads/gunnchos-7gc-research-product-spine/repos/_publication_worktrees/spectrumx-ai-ran-gary/research/p7r-2026-10-14/tests/test_measurement.py", line 63, in test_server_rejects_offset_and_path_traversal
+    with Endpoint(p) as e:
+         ~~~~~~~~^^^
+  File "/Users/gunnchos/Downloads/gunnchos-7gc-research-product-spine/repos/_publication_worktrees/spectrumx-ai-ran-gary/research/p7r-2026-10-14/src/p7r/endpoint.py", line 54, in __init__
+    self.server=HTTPServer(('127.0.0.1',0),Handler);self.thread=threading.Thread(target=self.server.serve_forever,kwargs={'poll_interval':.05},daemon=True)
+                ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 457, in __init__
+    self.server_bind()
+    ~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/server.py", line 148, in server_bind
+    socketserver.TCPServer.server_bind(self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 478, in server_bind
+    self.socket.bind(self.server_address)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+PermissionError: [Errno 1] Operation not permitted
+
+======================================================================
+ERROR: test_transfer_size_and_malformed_compute_reject (test_measurement.Measurement.test_transfer_size_and_malformed_compute_reject)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/gunnchos/Downloads/gunnchos-7gc-research-product-spine/repos/_publication_worktrees/spectrumx-ai-ran-gary/research/p7r-2026-10-14/tests/test_measurement.py", line 68, in test_transfer_size_and_malformed_compute_reject
+    with Endpoint(p) as e:self.assertEqual(request(e.url,'/compute',b'{broken')[0]['http_status'],400)
+         ~~~~~~~~^^^
+  File "/Users/gunnchos/Downloads/gunnchos-7gc-research-product-spine/repos/_publication_worktrees/spectrumx-ai-ran-gary/research/p7r-2026-10-14/src/p7r/endpoint.py", line 54, in __init__
+    self.server=HTTPServer(('127.0.0.1',0),Handler);self.thread=threading.Thread(target=self.server.serve_forever,kwargs={'poll_interval':.05},daemon=True)
+                ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 457, in __init__
+    self.server_bind()
+    ~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/server.py", line 148, in server_bind
+    socketserver.TCPServer.server_bind(self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 478, in server_bind
+    self.socket.bind(self.server_address)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+PermissionError: [Errno 1] Operation not permitted
+
+----------------------------------------------------------------------
+Ran 35 tests in 0.251s
+
+FAILED (errors=6)

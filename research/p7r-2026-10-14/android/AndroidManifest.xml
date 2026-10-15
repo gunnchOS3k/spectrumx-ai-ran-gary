@@ -7,4 +7,5 @@
   <application android:label="P7R Local Collector" android:allowBackup="false" android:usesCleartextTraffic="false" android:theme="@android:style/Theme.Material.Light.NoActionBar">
     <activity android:name=".CollectorActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity>
   </application>
+  <instrumentation android:name=".ProbeInstrumentation" android:targetPackage="com.gunnchos.research.p7r" android:label="P7R manually scoped endpoint probe" />
 </manifest>

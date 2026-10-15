@@ -1,0 +1,5 @@
+__pycache__/
+verification/android-build-*/classes/
+verification/android-build-*/dex/
+verification/android-build-*/*.apk
+verification/android-build-*/*.keystore

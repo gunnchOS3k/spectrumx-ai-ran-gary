@@ -1,0 +1,11 @@
+{
+  "evidence_category": "CONSTRUCTED_ENGINEERING_VERIFICATION",
+  "fixed_original_workloads": 4,
+  "core_library_integration": true,
+  "loopback_upload_resume": true,
+  "wireless_measurements": 0,
+  "device_measurements": 0,
+  "prospective_campaign_executed": false,
+  "physical_calibration": false,
+  "publication_authorized": false
+}

@@ -1,0 +1,154 @@
+[
+  {
+    "task": {
+      "task_id": "program",
+      "expected_sha256": "4c82a221b575ce7fe118b2e8cdf0764bf4ef570a3017e80b6d3438af9095f376",
+      "released_ns": 78348616912583,
+      "deadline_ns": 78353616912583,
+      "clock_domain": "host_perf_counter_ns_single_process_boot",
+      "max_age_ns": 30000000000,
+      "durable_required": false
+    },
+    "result": {
+      "task_id": "program",
+      "clock_domain": "host_perf_counter_ns_single_process_boot",
+      "finished_ns": 78348641749291,
+      "generated_ns": 78348616912583,
+      "observed_output_sha256": "4c82a221b575ce7fe118b2e8cdf0764bf4ef570a3017e80b6d3438af9095f376",
+      "durable_reopened": false,
+      "success_reported": true,
+      "failure": null,
+      "evidence_category": "CONSTRUCTED_ENGINEERING_VERIFICATION",
+      "integration_class": "ORIGINAL_EXECUTABLE_BENCHMARK_NOT_PRODUCTION_APP",
+      "resource": {
+        "parent_cpu_ns": 2012000,
+        "child_cpu_s": 0.021411,
+        "max_rss_raw": 29753344,
+        "max_rss_unit": "OS_NATIVE_NOT_CONVERTED"
+      },
+      "progress_preservation": "Reopened host files;not crash/power-cut durability"
+    },
+    "evaluation": {
+      "task_id": "program",
+      "success": true,
+      "latency_ns": 24836708,
+      "correct": true,
+      "evidence_category": "CONSTRUCTED_ENGINEERING_VERIFICATION",
+      "integration_class": "ORIGINAL_EXECUTABLE_BENCHMARK_NOT_PRODUCTION_APP"
+    }
+  },
+  {
+    "task": {
+      "task_id": "cached_lesson",
+      "expected_sha256": "2217566c889c7defd608015f51d77b0b4b225c66b7088706993c0060bfbdc509",
+      "released_ns": 78348643039833,
+      "deadline_ns": 78353643039833,
+      "clock_domain": "host_perf_counter_ns_single_process_boot",
+      "max_age_ns": 30000000000,
+      "durable_required": true
+    },
+    "result": {
+      "task_id": "cached_lesson",
+      "clock_domain": "host_perf_counter_ns_single_process_boot",
+      "finished_ns": 78348643864708,
+      "generated_ns": 78348643039833,
+      "observed_output_sha256": "2217566c889c7defd608015f51d77b0b4b225c66b7088706993c0060bfbdc509",
+      "durable_reopened": true,
+      "success_reported": true,
+      "failure": null,
+      "evidence_category": "CONSTRUCTED_ENGINEERING_VERIFICATION",
+      "integration_class": "ORIGINAL_EXECUTABLE_BENCHMARK_NOT_PRODUCTION_APP",
+      "resource": {
+        "parent_cpu_ns": 809000,
+        "child_cpu_s": 0.0,
+        "max_rss_raw": 29753344,
+        "max_rss_unit": "OS_NATIVE_NOT_CONVERTED"
+      },
+      "progress_preservation": "Reopened host files;not crash/power-cut durability"
+    },
+    "evaluation": {
+      "task_id": "cached_lesson",
+      "success": true,
+      "latency_ns": 824875,
+      "correct": true,
+      "evidence_category": "CONSTRUCTED_ENGINEERING_VERIFICATION",
+      "integration_class": "ORIGINAL_EXECUTABLE_BENCHMARK_NOT_PRODUCTION_APP"
+    }
+  },
+  {
+    "task": {
+      "task_id": "document",
+      "expected_sha256": "d4f2a92bd72b9a38e1e87cf24dce79ce42435f607081b6d2b2a57b21857c1207",
+      "released_ns": 78348644753458,
+      "deadline_ns": 78353644753458,
+      "clock_domain": "host_perf_counter_ns_single_process_boot",
+      "max_age_ns": 30000000000,
+      "durable_required": true
+    },
+    "result": {
+      "task_id": "document",
+      "clock_domain": "host_perf_counter_ns_single_process_boot",
+      "finished_ns": 78348645208583,
+      "generated_ns": 78348644753458,
+      "observed_output_sha256": "d4f2a92bd72b9a38e1e87cf24dce79ce42435f607081b6d2b2a57b21857c1207",
+      "durable_reopened": true,
+      "success_reported": true,
+      "failure": null,
+      "evidence_category": "CONSTRUCTED_ENGINEERING_VERIFICATION",
+      "integration_class": "ORIGINAL_EXECUTABLE_BENCHMARK_NOT_PRODUCTION_APP",
+      "resource": {
+        "parent_cpu_ns": 427000,
+        "child_cpu_s": 0.0,
+        "max_rss_raw": 29753344,
+        "max_rss_unit": "OS_NATIVE_NOT_CONVERTED"
+      },
+      "progress_preservation": "Reopened host files;not crash/power-cut durability"
+    },
+    "evaluation": {
+      "task_id": "document",
+      "success": true,
+      "latency_ns": 455125,
+      "correct": true,
+      "evidence_category": "CONSTRUCTED_ENGINEERING_VERIFICATION",
+      "integration_class": "ORIGINAL_EXECUTABLE_BENCHMARK_NOT_PRODUCTION_APP"
+    }
+  },
+  {
+    "task": {
+      "task_id": "restore",
+      "expected_sha256": "d4f2a92bd72b9a38e1e87cf24dce79ce42435f607081b6d2b2a57b21857c1207",
+      "released_ns": 78348645601375,
+      "deadline_ns": 78353645601375,
+      "clock_domain": "host_perf_counter_ns_single_process_boot",
+      "max_age_ns": 30000000000,
+      "durable_required": true
+    },
+    "result": {
+      "task_id": "restore",
+      "clock_domain": "host_perf_counter_ns_single_process_boot",
+      "finished_ns": 78348646097833,
+      "generated_ns": 78348645601375,
+      "observed_output_sha256": "d4f2a92bd72b9a38e1e87cf24dce79ce42435f607081b6d2b2a57b21857c1207",
+      "durable_reopened": true,
+      "success_reported": true,
+      "failure": null,
+      "evidence_category": "CONSTRUCTED_ENGINEERING_VERIFICATION",
+      "integration_class": "ORIGINAL_EXECUTABLE_BENCHMARK_NOT_PRODUCTION_APP",
+      "resource": {
+        "parent_cpu_ns": 464000,
+        "child_cpu_s": 0.0,
+        "max_rss_raw": 29753344,
+        "max_rss_unit": "OS_NATIVE_NOT_CONVERTED"
+      },
+      "progress_preservation": "Reopened host files;not crash/power-cut durability"
+    },
+    "evaluation": {
+      "task_id": "restore",
+      "success": true,
+      "latency_ns": 496458,
+      "correct": true,
+      "evidence_category": "CONSTRUCTED_ENGINEERING_VERIFICATION",
+      "integration_class": "ORIGINAL_EXECUTABLE_BENCHMARK_NOT_PRODUCTION_APP"
+    }
+  }
+]

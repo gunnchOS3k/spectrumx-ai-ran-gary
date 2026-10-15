@@ -57,7 +57,9 @@ public final class CollectorActivity extends Activity {
   @Override protected void onStop(){super.onStop();stopCapture();}
   private static void put(JSONObject o,String k,Object v){try{o.put(k,v==null?JSONObject.NULL:v);}catch(JSONException e){throw new IllegalStateException(e);}}
   private synchronized void emit(String kind,JSONObject data){
-    if(!recording || seq>=301)return;
+    if(!recording)return;
+    if(seq>=299 && !"session_stop".equals(kind)){stopCapture();return;}
+    if(seq>=300)return;
     JSONObject o=new JSONObject();put(o,"schema","p7r.android.event.v1");put(o,"seq",seq++);long uptime=SystemClock.uptimeMillis();long elapsed=SystemClock.elapsedRealtimeNanos();put(o,"elapsed_ns",elapsed);put(o,"uptime_ms",uptime);put(o,"kind",kind);put(o,"data",data);put(o,"capture_class","UNREVIEWED_DEVICE_CAPTURE");
     try(FileOutputStream f=new FileOutputStream(trace,true)){f.write((o.toString()+"\n").getBytes("UTF-8"));f.flush();}
     catch(IOException e){recording=false;handler.removeCallbacks(tick);if(callback!=null){try{connectivity.unregisterNetworkCallback(callback);}catch(RuntimeException ignored){}callback=null;}status.setText("Capture write failed;session stopped: "+e.getClass().getSimpleName());}

@@ -15,11 +15,18 @@ def ingest(raw,metadata):
  if metadata['source_kind']!='ORIGINAL_ENGINEERING_FIXTURE' and metadata['evidence_category']!='REAL_MEASUREMENT_REPLAY':raise ContractError('Import/replay of measurements is not a new live experiment')
  if metadata['network_technology'] in {'ACTUAL_6G','6G'}:raise ContractError('No validated actual6G radio evidence in this milestone')
  if metadata['source_kind']!='ORIGINAL_ENGINEERING_FIXTURE' and any(not metadata[k] for k in ['origin','source_revision','independent_unit','acquisition_protocol','authorization_reference']):raise ContractError('Unidentified measurement context/authorization')
- rows=[json.loads(l) for l in data.decode().splitlines() if l]
+ def unique(pairs):
+  d={}
+  for k,v in pairs:
+   if k in d:raise ContractError('Duplicate JSON key')
+   d[k]=v
+  return d
+ def invalid_constant(x):raise ContractError('Nonfinite JSON number')
+ rows=[json.loads(l,object_pairs_hook=unique,parse_constant=invalid_constant) for l in data.decode().splitlines() if l]
  if not rows or len(rows)>1024:raise ContractError('Bounded nonempty trace')
  previous=-1
  for i,r in enumerate(rows):
-  if set(r)!={'seq','timestamp_ns','event','value'} or r['seq']!=i or type(r['timestamp_ns']) is not int or r['timestamp_ns']<previous or not isinstance(r['event'],str):raise ContractError('Trace clock/order/schema')
+  if set(r)!={'seq','timestamp_ns','event','value'} or type(r['seq']) is not int or r['seq']!=i or type(r['timestamp_ns']) is not int or r['timestamp_ns']<previous or not isinstance(r['event'],str):raise ContractError('Trace clock/order/schema')
   previous=r['timestamp_ns']
  return {'rows':rows,'provenance':metadata,'metadata_sha256':digest(metadata),'raw_sha256':sha(data),'external_authenticity_independently_verified':False,'validation_scope':'Bytes/schema/rights attestation/clock metadata only;not physical sensor calibration'}
 
@@ -56,6 +63,21 @@ def evaluate_android_task(event,expected_hashes):
  d=event['data'];taskid=d['task_id']
  if taskid not in expected_hashes:raise ContractError('Independent task catalog identity required')
  from .contracts import Task,evaluate
- task=Task(taskid,expected_hashes[taskid],d['released_ns'],d['released_ns']+5000000000,'Android_elapsedRealtimeNanos_boot',30000000000,taskid!='original-java-sum')
+ task=Task(taskid,expected_hashes[taskid],d['released_ns'],d['released_ns']+5000000000,'Android_elapsedRealtimeNanos_boot',30000000000,taskid not in {'original-java-sum','original-endpoint-sum'})
  result={'task_id':taskid,'clock_domain':d['clock_domain'],'finished_ns':d['finished_ns'],'generated_ns':d['released_ns'],'observed_output_sha256':d['observed_output_sha256'],'durable_reopened':d['durable_reopened'],'success_reported':d['failure'] is None,'failure':d['failure'],'evidence_category':'CONSTRUCTED_ENGINEERING_VERIFICATION' if event['capture_class']=='CONSTRUCTED_ANDROID_FIXTURE' else 'UNCLASSIFIED_PENDING_CAPTURE_REVIEW','integration_class':'ORIGINAL_EXECUTABLE_ANDROID_BENCHMARK_NOT_PRODUCTION'}
  return evaluate(task,result)
+
+def android_capture(path):
+ p=Path(path)
+ if p.stat().st_size>1048576:raise ContractError('Bounded capture')
+ rows=[json.loads(l) for l in p.read_text().splitlines() if l]
+ if not 2<=len(rows)<=301:raise ContractError('Bounded nonempty session')
+ previous=-1
+ capture_class=rows[0]['capture_class']
+ for i,r in enumerate(rows):
+  android_event(r)
+  if r['seq']!=i or r['elapsed_ns']<previous or r['capture_class']!=capture_class:raise ContractError('Sequence/boot-clock reset/mixed capture class')
+  previous=r['elapsed_ns']
+  if r['kind']=='task_result' and not 0<=r['data']['released_ns']<=r['data']['finished_ns']<=r['elapsed_ns']:raise ContractError('Future/inverted task timestamps')
+ if rows[0]['kind']!='session_start' or rows[-1]['kind']!='session_stop':raise ContractError('Incomplete capture retained as integrity failure')
+ return {'events':rows,'capture_class':capture_class,'raw_sha256':sha(p.read_bytes()),'physical_source_independently_verified':False,'clock_accuracy_validated':False,'actual_6g_radio_validation':False}

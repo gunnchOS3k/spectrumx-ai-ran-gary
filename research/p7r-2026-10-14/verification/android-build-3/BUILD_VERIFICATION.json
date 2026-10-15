@@ -1,0 +1,16 @@
+{
+  "apk_sha256": "2fe115e13d9d11628c7997c0350d52c859bfc552e48f5c720fd3f636ef780990",
+  "source_sha256": {
+    "AndroidManifest.xml": "fcbaa1010d928b4003fcb113113dceeb1d8f0379a3b74a3ba11b0e7d64c22fae",
+    "build.py": "72c44a5efd1d86faf511384057d1f38f799a3650b9de71289a09da8d8588d0bc",
+    "src/com/gunnchos/research/p7r/CollectorActivity.java": "8da12160799dd985402bef8ebe273e8c122542a7a0335dccb59c11ea28be865d",
+    "src/com/gunnchos/research/p7r/ScopedNetworkProbe.java": "dd77b0a07e4264e107f9334eb4861dd62bbd526988eadd4658931a7fdf7f5e98"
+  },
+  "android_platform_jar_sha256": "4566663c3876e022b4fa4ced8c8697c4ab1688267f090114fd92d027b32e619b",
+  "tool_versions": "Installed SDK35/build-tools35,JBR;see build log",
+  "compiled": true,
+  "signature": "Fresh local engineering DEBUG key;not owner identity,publication/pilot authorization or production release",
+  "device_installed": false,
+  "device_measured": false,
+  "new_sdk_downloaded_or_terms_accepted": false
+}

@@ -1,0 +1,11 @@
+{
+  "integration_class": "PINNED_DEVICE_OS_CORE_LIBRARY_EXECUTED",
+  "module_sha256": "6886cd21a219e94a3e58de84cf767ee03c5ba0e908d4aa9f3e4ab34f449bfe6b",
+  "correct": true,
+  "record_count": 1,
+  "duplicate_content_preserved": true,
+  "production_application_executed": false,
+  "network_transport_executed": false,
+  "durable_cloud_receipt_verified": false,
+  "evidence_category": "CONSTRUCTED_ENGINEERING_VERIFICATION"
+}

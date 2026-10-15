@@ -1,0 +1,17 @@
+{
+  "apk_sha256": "27c701f9ef749acf9e3d15bb1e24de497262d0ebe6843bd6c32edd7f5e618dd8",
+  "source_sha256": {
+    "AndroidManifest.xml": "06089959d52b403fda5296c68acf1bb23e0088030f9e1d2400404c72f4396b4f",
+    "build.py": "72c44a5efd1d86faf511384057d1f38f799a3650b9de71289a09da8d8588d0bc",
+    "src/com/gunnchos/research/p7r/CollectorActivity.java": "8da12160799dd985402bef8ebe273e8c122542a7a0335dccb59c11ea28be865d",
+    "src/com/gunnchos/research/p7r/ProbeInstrumentation.java": "114fcf17172ea8ca3af70032669e422fb8d5b9fb24e972baa86e76f8bab95f55",
+    "src/com/gunnchos/research/p7r/ScopedNetworkProbe.java": "ab9c718d36759abcfe7201659621ebc47dbbed8732ed46afd94d205a285d2a81"
+  },
+  "android_platform_jar_sha256": "4566663c3876e022b4fa4ced8c8697c4ab1688267f090114fd92d027b32e619b",
+  "tool_versions": "Installed SDK35/build-tools35,JBR;see build log",
+  "compiled": true,
+  "signature": "Fresh local engineering DEBUG key;not owner identity,publication/pilot authorization or production release",
+  "device_installed": false,
+  "device_measured": false,
+  "new_sdk_downloaded_or_terms_accepted": false
+}

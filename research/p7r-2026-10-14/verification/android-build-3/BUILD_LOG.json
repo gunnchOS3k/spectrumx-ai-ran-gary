@@ -1,0 +1,133 @@
+[
+  {
+    "args": [
+      "/Applications/Android Studio.app/Contents/jbr/Contents/Home/bin/javac",
+      "-source",
+      "8",
+      "-target",
+      "8",
+      "-classpath",
+      "/Users/gunnchos/Library/Android/sdk/platforms/android-35/android.jar",
+      "-d",
+      "research/p7r-2026-10-14/verification/android-build-3/classes",
+      "/Users/gunnchos/Downloads/gunnchos-7gc-research-product-spine/repos/_publication_worktrees/spectrumx-ai-ran-gary/research/p7r-2026-10-14/android/src/com/gunnchos/research/p7r/CollectorActivity.java",
+      "/Users/gunnchos/Downloads/gunnchos-7gc-research-product-spine/repos/_publication_worktrees/spectrumx-ai-ran-gary/research/p7r-2026-10-14/android/src/com/gunnchos/research/p7r/ScopedNetworkProbe.java"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": "warning: [options] bootstrap class path not set in conjunction with -source 8\n1 warning\n"
+  },
+  {
+    "args": [
+      "/Users/gunnchos/Library/Android/sdk/build-tools/35.0.0/d8",
+      "--min-api",
+      "29",
+      "--lib",
+      "/Users/gunnchos/Library/Android/sdk/platforms/android-35/android.jar",
+      "--output",
+      "research/p7r-2026-10-14/verification/android-build-3/dex",
+      "research/p7r-2026-10-14/verification/android-build-3/classes/com/gunnchos/research/p7r/CollectorActivity$1.class",
+      "research/p7r-2026-10-14/verification/android-build-3/classes/com/gunnchos/research/p7r/CollectorActivity$2.class",
+      "research/p7r-2026-10-14/verification/android-build-3/classes/com/gunnchos/research/p7r/CollectorActivity.class",
+      "research/p7r-2026-10-14/verification/android-build-3/classes/com/gunnchos/research/p7r/ScopedNetworkProbe.class"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "args": [
+      "/Users/gunnchos/Library/Android/sdk/build-tools/35.0.0/aapt",
+      "package",
+      "-f",
+      "-M",
+      "/Users/gunnchos/Downloads/gunnchos-7gc-research-product-spine/repos/_publication_worktrees/spectrumx-ai-ran-gary/research/p7r-2026-10-14/android/AndroidManifest.xml",
+      "-I",
+      "/Users/gunnchos/Library/Android/sdk/platforms/android-35/android.jar",
+      "-F",
+      "research/p7r-2026-10-14/verification/android-build-3/resources.apk"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "args": [
+      "/Users/gunnchos/Library/Android/sdk/build-tools/35.0.0/zipalign",
+      "-f",
+      "4",
+      "research/p7r-2026-10-14/verification/android-build-3/unsigned.apk",
+      "research/p7r-2026-10-14/verification/android-build-3/aligned.apk"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "args": [
+      "/Applications/Android Studio.app/Contents/jbr/Contents/Home/bin/keytool",
+      "-genkeypair",
+      "-keystore",
+      "research/p7r-2026-10-14/verification/android-build-3/local-debug.keystore",
+      "-storepass",
+      "android",
+      "-keypass",
+      "android",
+      "-alias",
+      "p7r-local-debug",
+      "-keyalg",
+      "RSA",
+      "-keysize",
+      "2048",
+      "-validity",
+      "365",
+      "-dname",
+      "CN=P7R LOCAL ENGINEERING DEBUG,O=Not A Research Authorization"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "args": [
+      "/Users/gunnchos/Library/Android/sdk/build-tools/35.0.0/apksigner",
+      "sign",
+      "--ks",
+      "research/p7r-2026-10-14/verification/android-build-3/local-debug.keystore",
+      "--ks-key-alias",
+      "p7r-local-debug",
+      "--ks-pass",
+      "pass:android",
+      "--key-pass",
+      "pass:android",
+      "--out",
+      "research/p7r-2026-10-14/verification/android-build-3/p7r-local-collector-debug.apk",
+      "research/p7r-2026-10-14/verification/android-build-3/aligned.apk"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "args": [
+      "/Users/gunnchos/Library/Android/sdk/build-tools/35.0.0/apksigner",
+      "verify",
+      "--verbose",
+      "research/p7r-2026-10-14/verification/android-build-3/p7r-local-collector-debug.apk"
+    ],
+    "returncode": 0,
+    "stdout": "Verifies\nVerified using v1 scheme (JAR signing): false\nVerified using v2 scheme (APK Signature Scheme v2): false\nVerified using v3 scheme (APK Signature Scheme v3): true\nVerified using v3.1 scheme (APK Signature Scheme v3.1): false\nVerified using v4 scheme (APK Signature Scheme v4): false\nVerified for SourceStamp: false\nNumber of signers: 1\n",
+    "stderr": ""
+  },
+  {
+    "args": [
+      "/Users/gunnchos/Library/Android/sdk/build-tools/35.0.0/aapt",
+      "dump",
+      "badging",
+      "research/p7r-2026-10-14/verification/android-build-3/p7r-local-collector-debug.apk"
+    ],
+    "returncode": 0,
+    "stdout": "package: name='com.gunnchos.research.p7r' versionCode='' versionName='' platformBuildVersionName='15' platformBuildVersionCode='35' compileSdkVersion='35' compileSdkVersionCodename='15'\nsdkVersion:'29'\ntargetSdkVersion:'35'\nuses-permission: name='android.permission.ACCESS_NETWORK_STATE'\nuses-permission: name='android.permission.READ_PHONE_STATE'\nuses-permission: name='android.permission.INTERNET'\napplication: label='' icon=''\nlaunchable-activity: name='com.gunnchos.research.p7r.CollectorActivity'  label='' icon=''\nfeature-group: label=''\n  uses-feature-not-required: name='android.hardware.telephony'\n  uses-feature: name='android.hardware.faketouch'\n  uses-implied-feature: name='android.hardware.faketouch' reason='default feature for all apps'\nmain\nsupports-screens: 'small' 'normal' 'large' 'xlarge'\nsupports-any-density: 'true'\nlocales:\ndensities:\n",
+    "stderr": ""
+  }
+]
