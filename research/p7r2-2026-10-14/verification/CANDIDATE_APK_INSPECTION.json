@@ -1,0 +1,37 @@
+[
+  {
+    "command": [
+      "/Users/gunnchos/Library/Android/sdk/build-tools/35.0.0/apksigner",
+      "verify",
+      "--verbose",
+      "--print-certs",
+      "research/p7r2-2026-10-14/dist/p7r2-acceptance-candidate.apk"
+    ],
+    "exit_code": 0,
+    "stdout": "Verifies\nVerified using v1 scheme (JAR signing): false\nVerified using v2 scheme (APK Signature Scheme v2): false\nVerified using v3 scheme (APK Signature Scheme v3): true\nVerified using v3.1 scheme (APK Signature Scheme v3.1): false\nVerified using v4 scheme (APK Signature Scheme v4): false\nVerified for SourceStamp: false\nNumber of signers: 1\nSigner #1 certificate DN: CN=P7R LOCAL ENGINEERING DEBUG, O=Not A Research Authorization\nSigner #1 certificate SHA-256 digest: a4571755ede229990b0992c058f812a06579069ba15dab0ec10bfaf806745992\nSigner #1 certificate SHA-1 digest: 3ecc3e4a01599a781fe2ba10f66e5e8ae81282f6\nSigner #1 certificate MD5 digest: a9fec5999cbb2574e53987a0e074f399\nSigner #1 key algorithm: RSA\nSigner #1 key size (bits): 2048\nSigner #1 public key SHA-256 digest: 76248261c54cde6344793c436303829f213ff1f30c9debf3a28f95bc64c24e6c\nSigner #1 public key SHA-1 digest: d96fba39fd72aab78dafa109e02fc516e4929c15\nSigner #1 public key MD5 digest: 8f9ba9ef855d803ca0dda239370d51bd\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/Users/gunnchos/Library/Android/sdk/build-tools/35.0.0/aapt",
+      "dump",
+      "badging",
+      "research/p7r2-2026-10-14/dist/p7r2-acceptance-candidate.apk"
+    ],
+    "exit_code": 0,
+    "stdout": "package: name='com.gunnchos.research.p7r2' versionCode='2' versionName='p7r2-0.1' platformBuildVersionName='15' platformBuildVersionCode='35' compileSdkVersion='35' compileSdkVersionCodename='15'\nsdkVersion:'29'\ntargetSdkVersion:'35'\nuses-permission: name='android.permission.ACCESS_NETWORK_STATE'\nuses-permission: name='android.permission.READ_PHONE_STATE'\nuses-permission: name='android.permission.INTERNET'\napplication: label='' icon=''\nlaunchable-activity: name='com.gunnchos.research.p7r2.CollectorActivity'  label='' icon=''\nfeature-group: label=''\n  uses-feature-not-required: name='android.hardware.telephony'\n  uses-feature: name='android.hardware.faketouch'\n  uses-implied-feature: name='android.hardware.faketouch' reason='default feature for all apps'\nmain\nsupports-screens: 'small' 'normal' 'large' 'xlarge'\nsupports-any-density: 'true'\nlocales:\ndensities:\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/Users/gunnchos/Library/Android/sdk/build-tools/35.0.0/aapt",
+      "dump",
+      "xmltree",
+      "research/p7r2-2026-10-14/dist/p7r2-acceptance-candidate.apk",
+      "AndroidManifest.xml"
+    ],
+    "exit_code": 0,
+    "stdout": "N: android=http://schemas.android.com/apk/res/android\n  E: manifest (line=1)\n    A: android:versionCode(0x0101021b)=(type 0x10)0x2\n    A: android:versionName(0x0101021c)=\"p7r2-0.1\" (Raw: \"p7r2-0.1\")\n    A: android:compileSdkVersion(0x01010572)=(type 0x10)0x23\n    A: android:compileSdkVersionCodename(0x01010573)=\"15\" (Raw: \"15\")\n    A: package=\"com.gunnchos.research.p7r2\" (Raw: \"com.gunnchos.research.p7r2\")\n    A: platformBuildVersionCode=(type 0x10)0x23 (Raw: \"35\")\n    A: platformBuildVersionName=(type 0x10)0xf (Raw: \"15\")\n    E: uses-sdk (line=2)\n      A: android:minSdkVersion(0x0101020c)=(type 0x10)0x1d\n      A: android:targetSdkVersion(0x01010270)=(type 0x10)0x23\n    E: uses-permission (line=3)\n      A: android:name(0x01010003)=\"android.permission.ACCESS_NETWORK_STATE\" (Raw: \"android.permission.ACCESS_NETWORK_STATE\")\n    E: uses-permission (line=4)\n      A: android:name(0x01010003)=\"android.permission.READ_PHONE_STATE\" (Raw: \"android.permission.READ_PHONE_STATE\")\n    E: uses-permission (line=5)\n      A: android:name(0x01010003)=\"android.permission.INTERNET\" (Raw: \"android.permission.INTERNET\")\n    E: uses-feature (line=6)\n      A: android:name(0x01010003)=\"android.hardware.telephony\" (Raw: \"android.hardware.telephony\")\n      A: android:required(0x0101028e)=(type 0x12)0x0\n    E: application (line=7)\n      A: android:theme(0x01010000)=@0x01030241\n      A: android:label(0x01010001)=\"P7R2 Acceptance Collector\" (Raw: \"P7R2 Acceptance Collector\")\n      A: android:allowBackup(0x01010280)=(type 0x12)0x0\n      A: android:usesCleartextTraffic(0x010104ec)=(type 0x12)0x0\n      E: activity (line=8)\n        A: android:name(0x01010003)=\".CollectorActivity\" (Raw: \".CollectorActivity\")\n        A: android:exported(0x01010010)=(type 0x12)0xffffffff\n        E: intent-filter (line=8)\n          E: action (line=8)\n            A: android:name(0x01010003)=\"android.intent.action.MAIN\" (Raw: \"android.intent.action.MAIN\")\n          E: category (line=8)\n            A: android:name(0x01010003)=\"android.intent.category.LAUNCHER\" (Raw: \"android.intent.category.LAUNCHER\")\n    E: instrumentation (line=10)\n      A: android:label(0x01010001)=\"P7R manually scoped endpoint probe\" (Raw: \"P7R manually scoped endpoint probe\")\n      A: android:name(0x01010003)=\".ProbeInstrumentation\" (Raw: \".ProbeInstrumentation\")\n      A: android:targetPackage(0x01010021)=\"com.gunnchos.research.p7r2\" (Raw: \"com.gunnchos.research.p7r2\")\n",
+    "stderr": ""
+  }
+]

@@ -42,7 +42,7 @@ public final class CollectorActivity extends Activity {
   private void startCapture(){
     if(recording)return;
     // Do not overwrite an earlier capture; app-private original benchmark files only.
-    trace=new File(getFilesDir(),"p7r-"+SystemClock.elapsedRealtimeNanos()+".jsonl");seq=0;recording=true;budget=new AcceptanceBudget(SystemClock.elapsedRealtimeNanos());previousAppendNs=0;previousAppendCpuMs=0;handler.postDelayed(hardStop,120000);
+    trace=new File(getFilesDir(),"p7r-"+SystemClock.elapsedRealtimeNanos()+".jsonl");seq=0;recording=true;budget=new AcceptanceBudget(SystemClock.elapsedRealtimeNanos());previousAppendNs=0;previousAppendCpuMs=0;handler.postDelayed(hardStop,110000);
     JSONObject id=new JSONObject();put(id,"manufacturer",Build.MANUFACTURER);put(id,"model",Build.MODEL);put(id,"sdk",Build.VERSION.SDK_INT);put(id,"build_incremental",Build.VERSION.INCREMENTAL);put(id,"protocol_approved",false);put(id,"collector_version","p7r2-0.1");put(id,"window_start_elapsed_ns",budget.startNs);put(id,"maximum_duration_ns",AcceptanceBudget.MAX_NS);put(id,"maximum_periodic_snapshots",120);emit("session_start",id);
     callback=new ConnectivityManager.NetworkCallback(){
       @Override public void onAvailable(Network n){emit("network_available",network(connectivity.getNetworkCapabilities(n)));}

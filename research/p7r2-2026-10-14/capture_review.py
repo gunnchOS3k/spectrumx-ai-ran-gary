@@ -3,10 +3,11 @@ from pathlib import Path
 import argparse,base64,hashlib,json,sys
 ROOT=Path(__file__).resolve().parent
 sys.path.insert(0,str(ROOT.parent/'p7r-2026-10-14/src'))
-from p7r.provenance import android_capture,evaluate_android_task
+from p7r.provenance import android_capture,evaluate_android_task,strict_json
 from p7r.contracts import ContractError
 H=lambda b:hashlib.sha256(b).hexdigest()
 EXPECTED={'original-java-sum':H(b'55\n'),'original-file-edit':H(b'Draft note\nEdited locally.\n'),'original-endpoint-sum':H(b'55\n')}
+PAYLOAD=b'{"values":[1,2,3,4,5,6,7,8,9,10]}'
 
 def decode_instrumentation(raw):
  if len(raw)>262144:raise ContractError('Bounded instrumentation output')
@@ -42,6 +43,13 @@ def review(path,kind,reference=None):
   if local['window_start_elapsed_ns']!=start or rows[0]['elapsed_ns']<local['last_elapsed_ns'] or rows[0]['elapsed_ns']-start>90000000000 or snapshots+local['snapshots']>120 or body>16384:raise ContractError('Cross-capture/window/snapshot/body mismatch')
   d=tasks[0]['data']
   if type(d['attempted_application_body_bytes']) is not int or not 0<=body<=16384 or type(d['received_application_body_bytes']) is not int or not 0<=d['received_application_body_bytes']<=4096:raise ContractError('Body byte bounds')
+  raw=base64.b64decode(d['response_body_base64'],validate=True)
+  if len(raw)!=d['received_application_body_bytes'] or H(raw)!=d['response_body_sha256'] or d['request_body_sha256']!=H(PAYLOAD) or body!=len(PAYLOAD):raise ContractError('Raw request/response byte integrity')
+  try:
+   value=strict_json(raw)['sum'];raw_correct=type(value) is int and value==55 and d['status']==200
+  except (ValueError,TypeError,KeyError):raw_correct=False
+  results[0]['correct']=results[0]['correct'] and raw_correct
+  results[0]['success']=results[0]['success'] and raw_correct
  elif body!=0:raise ContractError('Local phase must not have network task traffic')
  return {'capture_sha256':capture['raw_sha256'],'window_start_elapsed_ns':start,'last_elapsed_ns':end,'window_elapsed_ns':end-start,'snapshots':snapshots,'task_results':results,'attempted_application_body_bytes':body,'collector_error_count':len(errors),'structural_integrity_passed':True,'original_task_checks_passed':all(r['success'] for r in results) and not errors,'physical_authenticity_verified':False,'clock_accuracy_validated':False,'network_path_independently_verified':False,'measurement_acceptance_requires_owner_review':True,'publication_authorized':False}
 

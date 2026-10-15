@@ -9,7 +9,8 @@ class Review(unittest.TestCase):
   add('session_start',100 if kind=='local' else 200,{'window_start_elapsed_ns':start})
   for i,k in enumerate(['original-java-sum','original-file-edit'] if kind=='local' else ['original-endpoint-sum']):
    t=120+i if kind=='local' else 210;d={'task_id':k,'released_ns':t,'finished_ns':t+1,'clock_domain':'Android_elapsedRealtimeNanos_boot','observed_output_sha256':c.EXPECTED[k],'durable_reopened':k=='original-file-edit','failure':None}
-   if kind=='probe':d.update(attempted_application_body_bytes=32,received_application_body_bytes=10)
+   if kind=='probe':
+    raw=b'{"sum":55}';d.update(attempted_application_body_bytes=len(c.PAYLOAD),received_application_body_bytes=len(raw),request_body_sha256=c.H(c.PAYLOAD),response_body_sha256=c.H(raw),response_body_base64=base64.b64encode(raw).decode(),status=200)
    add('task_result',t+2,d)
   add('session_stop',150 if kind=='local' else 220,{});return rows
  def file(self,p,rows):p.write_text(''.join(json.dumps(r)+'\n' for r in rows));return p
@@ -46,3 +47,9 @@ class Review(unittest.TestCase):
  def test_probe_payload_cap_rejected(self):
   with tempfile.TemporaryDirectory() as tmp:
    p=Path(tmp);rows=self.fixture('probe');rows[1]['data']['attempted_application_body_bytes']=16385;a=self.file(p/'local',self.fixture());b=self.file(p/'probe',rows);self.assertRaises(ContractError,c.review,b,'probe',a)
+ def test_raw_wrong_sum_cannot_pass_device_success_claim(self):
+  with tempfile.TemporaryDirectory() as tmp:
+   p=Path(tmp);rows=self.fixture('probe');raw=b'{"sum":54}';rows[1]['data'].update(response_body_sha256=c.H(raw),response_body_base64=base64.b64encode(raw).decode());a=self.file(p/'local',self.fixture());b=self.file(p/'probe',rows);self.assertFalse(c.review(b,'probe',a)['original_task_checks_passed'])
+ def test_response_hash_mismatch_rejected(self):
+  with tempfile.TemporaryDirectory() as tmp:
+   p=Path(tmp);rows=self.fixture('probe');rows[1]['data']['response_body_sha256']='0'*64;a=self.file(p/'local',self.fixture());b=self.file(p/'probe',rows);self.assertRaises(ContractError,c.review,b,'probe',a)
