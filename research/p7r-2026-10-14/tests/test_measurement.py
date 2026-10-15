@@ -136,6 +136,12 @@ class Measurement(unittest.TestCase):
   from p7r.provenance import android_capture
   with tempfile.TemporaryDirectory() as p:
    f=Path(p)/'x';f.write_text(''.join(json.dumps(x)+'\n' for x in self.capture_rows()));r=android_capture(f);self.assertFalse(r['physical_source_independently_verified']);self.assertFalse(r['clock_accuracy_validated'])
+ def test_android_capture_ambiguous_or_nonfinite_json_reject(self):
+  from p7r.provenance import android_capture
+  valid=''.join(json.dumps(x)+'\n' for x in self.capture_rows())
+  for raw in [valid.replace('"seq": 0','"seq": 0, "seq": 0',1),valid.replace('"data": {','"data": {"unvalidated": NaN,',1)]:
+   with tempfile.TemporaryDirectory() as p:
+    f=Path(p)/'x';f.write_text(raw);self.assertRaises(ContractError,android_capture,f)
  def test_android_capture_boot_reset_incomplete_or_mixed_class_reject(self):
   from p7r.provenance import android_capture
   for kind in ['reset','incomplete','mixed']:

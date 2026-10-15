@@ -3,6 +3,16 @@ from pathlib import Path
 import json,math
 from .contracts import ContractError,CATEGORIES,sha,digest,sensor
 
+def strict_json(line):
+ def unique(pairs):
+  d={}
+  for k,v in pairs:
+   if k in d:raise ContractError('Duplicate JSON key')
+   d[k]=v
+  return d
+ def invalid_constant(x):raise ContractError('Nonfinite JSON number')
+ return json.loads(line,object_pairs_hook=unique,parse_constant=invalid_constant)
+
 def ingest(raw,metadata):
  data=Path(raw).read_bytes()
  if len(data)>1048576:raise ContractError('Bounded import')
@@ -15,14 +25,7 @@ def ingest(raw,metadata):
  if metadata['source_kind']!='ORIGINAL_ENGINEERING_FIXTURE' and metadata['evidence_category']!='REAL_MEASUREMENT_REPLAY':raise ContractError('Import/replay of measurements is not a new live experiment')
  if metadata['network_technology'] in {'ACTUAL_6G','6G'}:raise ContractError('No validated actual6G radio evidence in this milestone')
  if metadata['source_kind']!='ORIGINAL_ENGINEERING_FIXTURE' and any(not metadata[k] for k in ['origin','source_revision','independent_unit','acquisition_protocol','authorization_reference']):raise ContractError('Unidentified measurement context/authorization')
- def unique(pairs):
-  d={}
-  for k,v in pairs:
-   if k in d:raise ContractError('Duplicate JSON key')
-   d[k]=v
-  return d
- def invalid_constant(x):raise ContractError('Nonfinite JSON number')
- rows=[json.loads(l,object_pairs_hook=unique,parse_constant=invalid_constant) for l in data.decode().splitlines() if l]
+ rows=[strict_json(l) for l in data.decode().splitlines() if l]
  if not rows or len(rows)>1024:raise ContractError('Bounded nonempty trace')
  previous=-1
  for i,r in enumerate(rows):
@@ -70,7 +73,7 @@ def evaluate_android_task(event,expected_hashes):
 def android_capture(path):
  p=Path(path)
  if p.stat().st_size>1048576:raise ContractError('Bounded capture')
- rows=[json.loads(l) for l in p.read_text().splitlines() if l]
+ rows=[strict_json(l) for l in p.read_text().splitlines() if l]
  if not 2<=len(rows)<=301:raise ContractError('Bounded nonempty session')
  previous=-1
  capture_class=rows[0]['capture_class']
