@@ -1,0 +1,1 @@
+{"$schema":"https://json-schema.org/draft/2020-12/schema","title":"P7-R monotonic trace record v0.1","type":"object","additionalProperties":false,"required":["seq","timestamp_ns","event","value"],"properties":{"seq":{"type":"integer","minimum":0},"timestamp_ns":{"type":"integer","minimum":0},"event":{"type":"string","minLength":1},"value":{}}}
