@@ -1529,6 +1529,26 @@ def run_family(
     }
 
 
+# Same offset as the frozen protocol: train 0..4, held-out 100..104.
+PREDECLARED_HELD_OUT_SEED_OFFSET = 100
+
+
+def separate_held_out_seeds(train_seeds: list[int]) -> list[int]:
+    """Shift train seeds by the protocol offset so held-out does not overlap.
+
+    SYNTHETIC_SIM split bookkeeping only. This does not evaluate held-out
+    and does not create a new performance number.
+    """
+    train = [int(seed) for seed in train_seeds]
+    held = [seed + PREDECLARED_HELD_OUT_SEED_OFFSET for seed in train]
+    if train == held or set(train) & set(held):
+        raise ValueError(
+            "predeclared sensitivity held_out_seeds overlap train_seeds: "
+            f"train={train} held_out={held}"
+        )
+    return held
+
+
 def run_predeclared_sensitivity(proto: dict[str, Any]) -> dict[str, Any]:
     """Small predeclared sensitivity check (not tuned after seeing favorable outcomes)."""
     sp = proto.get("synthetic_parameters") or {}
@@ -1537,12 +1557,13 @@ def run_predeclared_sensitivity(proto: dict[str, Any]) -> dict[str, Any]:
         return {"ran": False, "reason": "no sensitivity_predeclared block"}
     param_path = str(sens["parameter"])
     values = list(sens["values"])
-    seeds = list(sens.get("seeds") or [0])
+    train_seeds = [int(seed) for seed in (sens.get("seeds") or [0])]
+    held_out_seeds = separate_held_out_seeds(train_seeds)
     policies = list(sens.get("policies") or ["fixed_target_fidelity", "adaptive_fidelity"])
     split_override = {
         **proto["split"],
-        "train_seeds": seeds,
-        "held_out_seeds": seeds,
+        "train_seeds": train_seeds,
+        "held_out_seeds": held_out_seeds,
         "n_episodes_per_seed": int(sens.get("n_episodes_per_seed", 1)),
         "n_slots_per_episode": int(sens.get("n_slots_per_episode", 4)),
     }
@@ -1563,7 +1584,7 @@ def run_predeclared_sensitivity(proto: dict[str, Any]) -> dict[str, Any]:
         out = run_family(
             local,
             family="in_distribution",
-            seeds=seeds,
+            seeds=train_seeds,
             policies=policies,
         )
         rows.append(
@@ -1579,8 +1600,11 @@ def run_predeclared_sensitivity(proto: dict[str, Any]) -> dict[str, Any]:
         "ran": True,
         "parameter": param_path,
         "values": values,
-        "seeds": seeds,
-        "n_seeds": len(seeds),
+        "seeds": train_seeds,
+        "train_seeds": train_seeds,
+        "held_out_seeds": held_out_seeds,
+        "n_seeds": len(train_seeds),
+        "held_out_evaluated": False,
         "predeclared": True,
         "outcome_tuned": False,
         "rows": rows,
