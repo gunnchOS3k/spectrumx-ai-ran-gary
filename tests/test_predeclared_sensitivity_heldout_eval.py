@@ -5,7 +5,18 @@ They are not a measured accuracy, latency, or fairness result.
 """
 from __future__ import annotations
 
-from airan_research.experiments.digital_programme import run_predeclared_sensitivity
+import hashlib
+import json
+from pathlib import Path
+
+from airan_research.experiments.digital_programme import (
+    PROTOCOL_RELPATH,
+    load_protocol,
+    run_predeclared_sensitivity,
+)
+
+ROOT = Path(__file__).resolve().parents[1]
+REAL_EVAL_ARTIFACT = ROOT / "results" / "experiments" / "predeclared_sensitivity_heldout_real_eval.json"
 
 
 def _proto() -> dict:
@@ -87,3 +98,44 @@ def test_held_out_evaluator_records_metric_separately_from_train(monkeypatch):
     assert held["fixed_target_fidelity"]["mean"] == -0.25
     assert held["adaptive_fidelity"] is None
     assert held["fixed_target_fidelity"] is not row["policies"]["fixed_target_fidelity"]
+
+
+def _canon(obj) -> str:
+    return json.dumps(obj, sort_keys=True, separators=(",", ":"), allow_nan=True)
+
+
+def test_real_predeclared_sensitivity_evaluator_matches_recorded_run():
+    """Run the unmocked evaluator on the frozen protocol.
+
+    SYNTHETIC_SIM only. This is not a physical measurement or a manuscript claim.
+    """
+    proto = load_protocol(ROOT / PROTOCOL_RELPATH)
+    first = run_predeclared_sensitivity(proto)
+    second = run_predeclared_sensitivity(proto)
+    assert _canon(first) == _canon(second)
+    assert first["train_seeds"] == [0]
+    assert first["held_out_seeds"] == [100]
+    assert set(first["train_seeds"]).isdisjoint(first["held_out_seeds"])
+    assert first["evidence_class"] == "SYNTHETIC_SIM"
+    assert first["held_out_evaluated"] is True
+    recorded = json.loads(
+        REAL_EVAL_ARTIFACT.read_text(encoding="utf-8"),
+        parse_constant=lambda token: float(token),
+    )
+    assert recorded["label"] == "SYNTHETIC_SIM"
+    assert recorded["physical_measurement"] is False
+    assert recorded["manuscript_claim"] is False
+    assert recorded["source_sha"] == "2d70380725177a5603e94903e7073dd94fc83b3e"
+    assert recorded["config_name"] == "sensitivity_predeclared"
+    assert recorded["train_seeds"] == [0]
+    assert recorded["held_out_seeds"] == [100]
+    assert recorded["deterministic_across_two_invocations"] is True
+    fresh = _canon(first)
+    assert fresh == _canon(recorded["evaluator_output"])
+    assert hashlib.sha256(fresh.encode("utf-8")).hexdigest() == recorded["evaluator_output_sha256"]
+    assert _canon(recorded["service_continuity_utility"]["train"][0]["service_continuity_utility"]) == _canon(
+        first["rows"][0]["policies"]
+    )
+    assert _canon(recorded["service_continuity_utility"]["held_out"][0]["service_continuity_utility"]) == _canon(
+        first["rows"][0]["held_out_policies"]
+    )
