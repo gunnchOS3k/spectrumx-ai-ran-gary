@@ -1,0 +1,305 @@
+{
+  "label": "SYNTHETIC_SIM",
+  "evidence_class": "SYNTHETIC_SIM",
+  "physical_measurement": false,
+  "manuscript_claim": false,
+  "publication_claim": false,
+  "source_sha": "2d70380725177a5603e94903e7073dd94fc83b3e",
+  "config_name": "sensitivity_predeclared",
+  "experiment_id": "rq2_cross_layer_continuity",
+  "parameter": "fidelity_continuity_factor.degraded",
+  "values": [
+    0.75,
+    0.85,
+    0.9
+  ],
+  "train_seeds": [
+    0
+  ],
+  "held_out_seeds": [
+    100
+  ],
+  "seed_overlap": [],
+  "deterministic_across_two_invocations": true,
+  "fixture_dataset_identity": {
+    "kind": "frozen_protocol_synthetic_generator",
+    "protocol_path": "paper/artifacts/experiment_protocol.yaml",
+    "experiment_id": "rq2_cross_layer_continuity",
+    "protocol_sha256": "39bafd34627ddb52b6530313da8f7e968f767750c2f6a60356f248c8e9d81aee",
+    "generator": "airan_research.experiments.digital_programme.generate_slot",
+    "evaluator": "airan_research.experiments.digital_programme.run_predeclared_sensitivity",
+    "train_family": "in_distribution",
+    "held_out_family": "held_out",
+    "external_dataset": null
+  },
+  "service_continuity_utility": {
+    "train": [
+      {
+        "parameter": "fidelity_continuity_factor.degraded",
+        "value": 0.75,
+        "service_continuity_utility": {
+          "fixed_target_fidelity": {
+            "n": 1,
+            "mean": 0.783474859051254,
+            "ci_low": NaN,
+            "ci_high": NaN,
+            "sd": NaN
+          },
+          "adaptive_fidelity": {
+            "n": 1,
+            "mean": 0.6913390568286659,
+            "ci_low": NaN,
+            "ci_high": NaN,
+            "sd": NaN
+          }
+        }
+      },
+      {
+        "parameter": "fidelity_continuity_factor.degraded",
+        "value": 0.85,
+        "service_continuity_utility": {
+          "fixed_target_fidelity": {
+            "n": 1,
+            "mean": 0.783474859051254,
+            "ci_low": NaN,
+            "ci_high": NaN,
+            "sd": NaN
+          },
+          "adaptive_fidelity": {
+            "n": 1,
+            "mean": 0.6913390568286659,
+            "ci_low": NaN,
+            "ci_high": NaN,
+            "sd": NaN
+          }
+        }
+      },
+      {
+        "parameter": "fidelity_continuity_factor.degraded",
+        "value": 0.9,
+        "service_continuity_utility": {
+          "fixed_target_fidelity": {
+            "n": 1,
+            "mean": 0.783474859051254,
+            "ci_low": NaN,
+            "ci_high": NaN,
+            "sd": NaN
+          },
+          "adaptive_fidelity": {
+            "n": 1,
+            "mean": 0.6913390568286659,
+            "ci_low": NaN,
+            "ci_high": NaN,
+            "sd": NaN
+          }
+        }
+      }
+    ],
+    "held_out": [
+      {
+        "parameter": "fidelity_continuity_factor.degraded",
+        "value": 0.75,
+        "service_continuity_utility": {
+          "fixed_target_fidelity": {
+            "n": 1,
+            "mean": 0.7813652887877448,
+            "ci_low": NaN,
+            "ci_high": NaN,
+            "sd": NaN
+          },
+          "adaptive_fidelity": {
+            "n": 1,
+            "mean": 0.7779156683741978,
+            "ci_low": NaN,
+            "ci_high": NaN,
+            "sd": NaN
+          }
+        }
+      },
+      {
+        "parameter": "fidelity_continuity_factor.degraded",
+        "value": 0.85,
+        "service_continuity_utility": {
+          "fixed_target_fidelity": {
+            "n": 1,
+            "mean": 0.7813652887877448,
+            "ci_low": NaN,
+            "ci_high": NaN,
+            "sd": NaN
+          },
+          "adaptive_fidelity": {
+            "n": 1,
+            "mean": 0.7779156683741978,
+            "ci_low": NaN,
+            "ci_high": NaN,
+            "sd": NaN
+          }
+        }
+      },
+      {
+        "parameter": "fidelity_continuity_factor.degraded",
+        "value": 0.9,
+        "service_continuity_utility": {
+          "fixed_target_fidelity": {
+            "n": 1,
+            "mean": 0.7813652887877448,
+            "ci_low": NaN,
+            "ci_high": NaN,
+            "sd": NaN
+          },
+          "adaptive_fidelity": {
+            "n": 1,
+            "mean": 0.7779156683741978,
+            "ci_low": NaN,
+            "ci_high": NaN,
+            "sd": NaN
+          }
+        }
+      }
+    ]
+  },
+  "evaluator_output_sha256": "112b8233fba4accc1a2eea500ce8ff9791e5fbca153c5629b5ef81d2ae71ffb8",
+  "evaluator_output_canonicalization": "json.dumps(sort_keys=True, separators=(',', ':'), allow_nan=True) utf-8 sha256",
+  "run_provenance": {
+    "interpreter": "/Library/Frameworks/Python.framework/Versions/3.11/bin/python3",
+    "python": "3.11.2",
+    "numpy": "2.3.5",
+    "invocations": 2
+  },
+  "note": "SYNTHETIC_SIM predeclared sensitivity evaluator output. Not a physical RAN measurement. Not a manuscript or publication claim.",
+  "evaluator_output": {
+    "ran": true,
+    "parameter": "fidelity_continuity_factor.degraded",
+    "values": [
+      0.75,
+      0.85,
+      0.9
+    ],
+    "seeds": [
+      0
+    ],
+    "train_seeds": [
+      0
+    ],
+    "held_out_seeds": [
+      100
+    ],
+    "n_seeds": 1,
+    "held_out_evaluated": true,
+    "held_out_metric": "service_continuity_utility",
+    "predeclared": true,
+    "outcome_tuned": false,
+    "rows": [
+      {
+        "parameter": "fidelity_continuity_factor.degraded",
+        "value": 0.75,
+        "policies": {
+          "fixed_target_fidelity": {
+            "n": 1,
+            "mean": 0.783474859051254,
+            "ci_low": NaN,
+            "ci_high": NaN,
+            "sd": NaN
+          },
+          "adaptive_fidelity": {
+            "n": 1,
+            "mean": 0.6913390568286659,
+            "ci_low": NaN,
+            "ci_high": NaN,
+            "sd": NaN
+          }
+        },
+        "held_out_policies": {
+          "fixed_target_fidelity": {
+            "n": 1,
+            "mean": 0.7813652887877448,
+            "ci_low": NaN,
+            "ci_high": NaN,
+            "sd": NaN
+          },
+          "adaptive_fidelity": {
+            "n": 1,
+            "mean": 0.7779156683741978,
+            "ci_low": NaN,
+            "ci_high": NaN,
+            "sd": NaN
+          }
+        }
+      },
+      {
+        "parameter": "fidelity_continuity_factor.degraded",
+        "value": 0.85,
+        "policies": {
+          "fixed_target_fidelity": {
+            "n": 1,
+            "mean": 0.783474859051254,
+            "ci_low": NaN,
+            "ci_high": NaN,
+            "sd": NaN
+          },
+          "adaptive_fidelity": {
+            "n": 1,
+            "mean": 0.6913390568286659,
+            "ci_low": NaN,
+            "ci_high": NaN,
+            "sd": NaN
+          }
+        },
+        "held_out_policies": {
+          "fixed_target_fidelity": {
+            "n": 1,
+            "mean": 0.7813652887877448,
+            "ci_low": NaN,
+            "ci_high": NaN,
+            "sd": NaN
+          },
+          "adaptive_fidelity": {
+            "n": 1,
+            "mean": 0.7779156683741978,
+            "ci_low": NaN,
+            "ci_high": NaN,
+            "sd": NaN
+          }
+        }
+      },
+      {
+        "parameter": "fidelity_continuity_factor.degraded",
+        "value": 0.9,
+        "policies": {
+          "fixed_target_fidelity": {
+            "n": 1,
+            "mean": 0.783474859051254,
+            "ci_low": NaN,
+            "ci_high": NaN,
+            "sd": NaN
+          },
+          "adaptive_fidelity": {
+            "n": 1,
+            "mean": 0.6913390568286659,
+            "ci_low": NaN,
+            "ci_high": NaN,
+            "sd": NaN
+          }
+        },
+        "held_out_policies": {
+          "fixed_target_fidelity": {
+            "n": 1,
+            "mean": 0.7813652887877448,
+            "ci_low": NaN,
+            "ci_high": NaN,
+            "sd": NaN
+          },
+          "adaptive_fidelity": {
+            "n": 1,
+            "mean": 0.7779156683741978,
+            "ci_low": NaN,
+            "ci_high": NaN,
+            "sd": NaN
+          }
+        }
+      }
+    ],
+    "evidence_class": "SYNTHETIC_SIM",
+    "note": "Predeclared before outcome inspection; not tuned post-hoc."
+  }
+}

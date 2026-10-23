@@ -62,7 +62,9 @@ def test_predeclared_sensitivity_held_out_seeds_do_not_overlap_train(monkeypatch
     assert captured[0]["family"] == "in_distribution"
     assert captured[0]["seeds"] == train
     assert out["evidence_class"] == "SYNTHETIC_SIM"
-    assert out["held_out_evaluated"] is False
+    assert out["held_out_evaluated"] is True
+    assert captured[1]["family"] == "held_out"
+    assert captured[1]["seeds"] == held
     assert out["train_seeds"] == train
     assert out["held_out_seeds"] == held
     single = run_predeclared_sensitivity(_proto([0]))

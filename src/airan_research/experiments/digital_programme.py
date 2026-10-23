@@ -1549,8 +1549,30 @@ def separate_held_out_seeds(train_seeds: list[int]) -> list[int]:
     return held
 
 
+def _recorded_continuity(family_out: dict[str, Any], policies: list[str]) -> dict[str, Any]:
+    """Keep each policy's service_continuity_utility, including None and negatives.
+
+    Missing policies stay None. Values are stored as the evaluator returned them.
+    """
+    blocks = family_out.get("policies") or {}
+    recorded: dict[str, Any] = {}
+    for name in policies:
+        block = blocks.get(name)
+        if not isinstance(block, dict) or "service_continuity_utility" not in block:
+            recorded[name] = None
+            continue
+        recorded[name] = block["service_continuity_utility"]
+    return recorded
+
+
 def run_predeclared_sensitivity(proto: dict[str, Any]) -> dict[str, Any]:
-    """Small predeclared sensitivity check (not tuned after seeing favorable outcomes)."""
+    """Evaluate predeclared sensitivity on train seeds and on held-out seeds.
+
+    Held-out seeds remain train plus the protocol offset and are passed to the
+    existing run_family evaluator. The continuity metric is stored separately
+    from the train metric. Null and negative evaluator results are kept.
+    SYNTHETIC_SIM only: this does not write paper artifacts.
+    """
     sp = proto.get("synthetic_parameters") or {}
     sens = sp.get("sensitivity_predeclared") or {}
     if not sens:
@@ -1568,6 +1590,7 @@ def run_predeclared_sensitivity(proto: dict[str, Any]) -> dict[str, Any]:
         "n_slots_per_episode": int(sens.get("n_slots_per_episode", 4)),
     }
     rows = []
+    held_out_evaluated = False
     for val in values:
         local = json.loads(json.dumps(proto))
         local["split"] = split_override
@@ -1581,19 +1604,29 @@ def run_predeclared_sensitivity(proto: dict[str, Any]) -> dict[str, Any]:
             leaf["value"] = float(val)
         else:
             node[parts[-1]] = {"value": float(val), "provenance": "SYNTHETIC_ASSUMPTION"}
-        out = run_family(
+        train_out = run_family(
             local,
             family="in_distribution",
             seeds=train_seeds,
             policies=policies,
         )
+        held_out = run_family(
+            local,
+            family="held_out",
+            seeds=held_out_seeds,
+            policies=policies,
+        )
+        held_out_evaluated = True
         rows.append(
             {
                 "parameter": param_path,
                 "value": float(val),
                 "policies": {
-                    p: out["policies"][p]["service_continuity_utility"] for p in policies if p in out["policies"]
+                    p: train_out["policies"][p]["service_continuity_utility"]
+                    for p in policies
+                    if p in train_out["policies"]
                 },
+                "held_out_policies": _recorded_continuity(held_out, policies),
             }
         )
     return {
@@ -1604,7 +1637,8 @@ def run_predeclared_sensitivity(proto: dict[str, Any]) -> dict[str, Any]:
         "train_seeds": train_seeds,
         "held_out_seeds": held_out_seeds,
         "n_seeds": len(train_seeds),
-        "held_out_evaluated": False,
+        "held_out_evaluated": held_out_evaluated,
+        "held_out_metric": "service_continuity_utility",
         "predeclared": True,
         "outcome_tuned": False,
         "rows": rows,
