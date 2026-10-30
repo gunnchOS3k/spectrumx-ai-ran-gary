@@ -1,23 +1,46 @@
 .PHONY: setup lint test contract-test benchmark ablation demo-research e2e clean smoke reproduce paper paper-reproduce
 
+# Prefer an in-tree venv. System /usr/bin/python3 on macOS is often 3.9 and cannot
+# import PEP 604 annotations used throughout src/ (requires-python >=3.10).
 PY := $(if $(wildcard .venv/bin/python),.venv/bin/python,python3)
+PYTHON_BOOTSTRAP := $(shell \
+	for c in python3.14 python3.13 python3.12 python3.11 python3.10; do \
+		command -v $$c >/dev/null 2>&1 && $$c -c 'import sys; raise SystemExit(0 if sys.version_info >= (3,10) else 1)' 2>/dev/null && { command -v $$c; break; }; \
+	done)
 
 setup:
-	python3 -m pip install -r requirements.txt
-	python3 -m pip install 'scipy>=1.11' 'numpy>=1.24' jsonschema pytest
+	@if [ -z "$(PYTHON_BOOTSTRAP)" ]; then \
+		echo "ERROR: need Python >=3.10 on PATH to create .venv (found none)."; \
+		echo "Install python3.11+ then re-run: make setup"; \
+		exit 1; \
+	fi
+	@if [ ! -x .venv/bin/python ]; then \
+		echo "Creating .venv with $(PYTHON_BOOTSTRAP)"; \
+		$(PYTHON_BOOTSTRAP) -m venv .venv; \
+	fi
+	.venv/bin/python -c 'import sys; assert sys.version_info >= (3,10), sys.version'
+	.venv/bin/python -m pip install -U pip wheel
+	.venv/bin/python -m pip install -r requirements.txt
+	.venv/bin/python -m pip install 'scipy>=1.11' 'numpy>=1.24' jsonschema pytest
+	@echo "setup OK: $$(.venv/bin/python --version)"
 
 lint:
+	@test -x .venv/bin/python || (echo "Run make setup first (Python >=3.10 venv required)"; exit 1)
 	PYTHONPATH=src $(PY) -m compileall -q src/airan_research/gate2
 
 test:
+	@test -x .venv/bin/python || (echo "Run make setup first (Python >=3.10 venv required)"; exit 1)
+	.venv/bin/python -c 'import sys; assert sys.version_info >= (3,10), sys.version'
 	PYTHONPATH=src $(PY) -m pytest -q tests/test_airan_research.py tests/test_paper_ii_digital.py tests/gate2 tests/test_planning_closed_loop.py
 
 contract-test:
-	PYTHONPATH=src pytest -q tests/gate2
+	@test -x .venv/bin/python || (echo "Run make setup first (Python >=3.10 venv required)"; exit 1)
+	PYTHONPATH=src $(PY) -m pytest -q tests/gate2
 
 reproduce: test
 
 paper-reproduce:
+	@test -x .venv/bin/python || (echo "Run make setup first (Python >=3.10 venv required)"; exit 1)
 	@test -f paper/artifacts/experiment_protocol.yaml
 	$(PY) scripts/demo_airan_policy.py --toy || true
 	PYTHONPATH=src $(PY) scripts/run_paper_ii_heldout.py

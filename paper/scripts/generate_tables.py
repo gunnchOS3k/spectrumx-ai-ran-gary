@@ -85,8 +85,9 @@ def write_policy_table(src: Path, stem: str, caption: str) -> None:
         md_lines.append(
             f"| `{r['policy']}` | {ci} | {fmt(r['latency_ms_mean'])} | {fmt(r['switch_cost_mean'])} | {fmt(r['compute_time_ms_mean'])} | {fmt(r['cohens_d_vs_no_adaptation'])} |"
         )
+        policy_tex = str(r["policy"]).replace("_", r"\_")
         tex_rows.append(
-            f"{r['policy'].replace('_', '\\_')} & {fmt(r['continuity_mean'])} & {fmt(r['continuity_ci_low'])} & {fmt(r['continuity_ci_high'])} & {fmt(r['latency_ms_mean'])} & {fmt(r['switch_cost_mean'])} & {fmt(r['compute_time_ms_mean'])} & {fmt(r['cohens_d_vs_no_adaptation'])} \\\\"
+            f"{policy_tex} & {fmt(r['continuity_mean'])} & {fmt(r['continuity_ci_low'])} & {fmt(r['continuity_ci_high'])} & {fmt(r['latency_ms_mean'])} & {fmt(r['switch_cost_mean'])} & {fmt(r['compute_time_ms_mean'])} & {fmt(r['cohens_d_vs_no_adaptation'])} \\\\"
         )
     md_lines.append("")
     md.write_text("\n".join(md_lines), encoding="utf-8")
@@ -128,8 +129,10 @@ def write_shift_table() -> None:
     tex_rows = []
     for r in rows:
         md_lines.append(f"| `{r['family']}` | `{r['policy']}` | {fmt(r['continuity_mean'])} [{fmt(r['ci_low'])}, {fmt(r['ci_high'])}] |")
+        family_tex = str(r["family"]).replace("_", r"\_")
+        policy_tex = str(r["policy"]).replace("_", r"\_")
         tex_rows.append(
-            f"{str(r['family']).replace('_', '\\_')} & {str(r['policy']).replace('_', '\\_')} & {fmt(r['continuity_mean'])} & {fmt(r['ci_low'])} & {fmt(r['ci_high'])} \\\\"
+            f"{family_tex} & {policy_tex} & {fmt(r['continuity_mean'])} & {fmt(r['ci_low'])} & {fmt(r['ci_high'])} \\\\"
         )
     md.write_text("\n".join(md_lines) + "\n", encoding="utf-8")
     tex.write_text(
@@ -166,8 +169,9 @@ def write_ablation_table() -> None:
     tex_rows = []
     for r in rows:
         md_lines.append(f"| `{r['ablation']}` | {fmt(r['continuity_mean'])} [{fmt(r['ci_low'])}, {fmt(r['ci_high'])}] | {fmt(r['switch_cost_mean'])} |")
+        ablation_tex = str(r["ablation"]).replace("_", r"\_")
         tex_rows.append(
-            f"{str(r['ablation']).replace('_', '\\_')} & {fmt(r['continuity_mean'])} & {fmt(r['ci_low'])} & {fmt(r['ci_high'])} & {fmt(r['switch_cost_mean'])} \\\\"
+            f"{ablation_tex} & {fmt(r['continuity_mean'])} & {fmt(r['ci_low'])} & {fmt(r['ci_high'])} & {fmt(r['switch_cost_mean'])} \\\\"
         )
     md.write_text("\n".join(md_lines) + "\n", encoding="utf-8")
     tex.write_text(
