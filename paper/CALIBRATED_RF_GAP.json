@@ -1,7 +1,7 @@
 {
   "schema": "spectrumx.calibrated_rf_gap/v1",
-  "generated_at": "2026-10-30T21:16:00.000Z",
-  "source_tip": "646a8aeb34d34246eb7361abfd17f0f3b4526987",
+  "generated_at": "2026-10-30T21:54:56Z",
+  "source_tip": "pending_commit",
   "evidence_class_current": "SYNTHETIC_SIM",
   "calibrated_rf_present": false,
   "ota_captures_present": false,
@@ -29,10 +29,18 @@
       "engineering_may_resume_after": false
     }
   ],
+  "engineering_guard": {
+    "module": "src/edge_ran_gary/evidence_class_guard.py",
+    "tests": "tests/test_evidence_class_guard.py",
+    "refuses_calibrated_without": "paper/ota_captures/PROVENANCE.sha256",
+    "refuses_fitted_calibrator_without_bundle": true,
+    "refuses_self_submitted": true
+  },
   "digital_feasibly_complete_without_calibration": [
     "Python 3.10+ local reproduce unblock @ 646a8aeb",
     "Synthetic detector / controller path",
-    "Honesty that results remain SYNTHETIC_SIM"
+    "Honesty that results remain SYNTHETIC_SIM",
+    "evidence_class_guard refuses CALIBRATED/fitted calibrator/SUBMITTED without OTA bundle"
   ],
   "non_claims": [
     "This ledger is not calibrated RF evidence",
