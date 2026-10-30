@@ -1,0 +1,41 @@
+{
+  "schema": "spectrumx.calibrated_rf_gap/v1",
+  "generated_at": "2026-10-30T21:16:00.000Z",
+  "source_tip": "646a8aeb34d34246eb7361abfd17f0f3b4526987",
+  "evidence_class_current": "SYNTHETIC_SIM",
+  "calibrated_rf_present": false,
+  "ota_captures_present": false,
+  "submitted_claim": false,
+  "gaps": [
+    {
+      "id": "SX-GAP-001",
+      "need": "Authorized OTA IQ / spectrum occupancy captures with provenance",
+      "why_cursor_cannot_close": "No OTA dataset in isolated checkout; inventing IQ would falsify competition/research evidence",
+      "unblock_test": "Owner places licensed capture bundle; reproduce refuses CALIBRATED promotion without it",
+      "engineering_may_resume_after": true
+    },
+    {
+      "id": "SX-GAP-002",
+      "need": "Fitted probability calibrator on held-out physical labels",
+      "why_cursor_cannot_close": "Calibrator hooks exist; fitted physical labels do not",
+      "unblock_test": "calibrator.is_fitted with physical held-out labels + evidence_class upgrade path",
+      "engineering_may_resume_after": true
+    },
+    {
+      "id": "SX-GAP-003",
+      "need": "Competition SUBMITTED / awards authority",
+      "why_cursor_cannot_close": "Packet forbids self-SUBMITTED",
+      "unblock_test": "Owner submission stamp outside controller",
+      "engineering_may_resume_after": false
+    }
+  ],
+  "digital_feasibly_complete_without_calibration": [
+    "Python 3.10+ local reproduce unblock @ 646a8aeb",
+    "Synthetic detector / controller path",
+    "Honesty that results remain SYNTHETIC_SIM"
+  ],
+  "non_claims": [
+    "This ledger is not calibrated RF evidence",
+    "HUMAN/RC2/V1/SUBMITTED remain false"
+  ]
+}
