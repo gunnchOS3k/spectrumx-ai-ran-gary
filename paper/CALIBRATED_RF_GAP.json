@@ -1,7 +1,8 @@
 {
   "schema": "spectrumx.calibrated_rf_gap/v1",
-  "generated_at": "2026-10-30T21:54:56Z",
-  "source_tip": "23b5a155c851755dd8cd873007f411728caca8c1",
+  "generated_at": "2026-11-02T01:10:00Z",
+  "source_tip": "34941a5",
+  "promotion_guard_tip": "23b5a155c851755dd8cd873007f411728caca8c1",
   "evidence_class_current": "SYNTHETIC_SIM",
   "calibrated_rf_present": false,
   "ota_captures_present": false,

@@ -53,8 +53,12 @@ def test_stamp_keeps_synthetic():
 
 def test_gap_ledger_honest():
     import json
+    import subprocess
 
     gap = json.loads((ROOT / "paper" / "CALIBRATED_RF_GAP.json").read_text())
+    tip = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, text=True).strip()
     assert gap["evidence_class_current"] == "SYNTHETIC_SIM"
     assert gap["calibrated_rf_present"] is False
     assert gap["submitted_claim"] is False
+    assert gap["source_tip"].startswith(tip[:7])
+    assert "HUMAN/RC2/V1/SUBMITTED remain false" in gap["non_claims"]
