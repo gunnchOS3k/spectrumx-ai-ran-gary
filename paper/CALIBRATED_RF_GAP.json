@@ -1,7 +1,13 @@
 {
   "schema": "spectrumx.calibrated_rf_gap/v1",
-  "generated_at": "2026-11-02T01:10:00Z",
-  "source_tip": "34941a5",
+  "generated_at": "2026-11-03T03:35:00Z",
+  "source_tip": "2e90a67",
+  "source_tip_recorded_in_that_commit": "34941a5",
+  "scientific_tables_tip": "646a8aeb34d34246eb7361abfd17f0f3b4526987",
+  "prose_correction_tip": "310c4b17fe64f9ce227d3dacaf39124cfceb53af",
+  "pdf_rebuilt": false,
+  "pdflatex_present": false,
+  "result_vintages_mixed": false,
   "promotion_guard_tip": "23b5a155c851755dd8cd873007f411728caca8c1",
   "evidence_class_current": "SYNTHETIC_SIM",
   "calibrated_rf_present": false,
@@ -45,6 +51,9 @@
   ],
   "non_claims": [
     "This ledger is not calibrated RF evidence",
-    "HUMAN/RC2/V1/SUBMITTED remain false"
+    "HUMAN/RC2/V1/SUBMITTED remain false",
+    "source_tip names gap-ledger commit 2e90a67. That commit stored parent stamp 34941a5. source_tip is not HEAD.",
+    "Scientific tables under paper/tables are the 646a8ae bytes. Results prose was corrected at 310c4b1. Original and revised result vintages were not mixed.",
+    "The PDF was not rebuilt because pdflatex is absent"
   ]
 }
