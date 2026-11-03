@@ -33,7 +33,7 @@ Original summaries use rounded $t=2.776$; new tables use SciPy's quantile, expla
 
 \section{Results}
 \subsection{The Original Held-Out Hypothesis Fails}
-Table~\ref{tab:heldout} and Fig.~\ref{fig:heldout} show the original result. Procedural twin utility is 0.79303, below cloud fallback's 0.80663. Their paired difference is $-0.01360$ with interval $[-0.01478,-0.01242]$. Every seed difference is negative. The original superiority direction fails in this synthetic comparison. It does not establish that twin information is harmful, because rule structure and optimization opportunities are uncontrolled.
+Table~\ref{tab:heldout} and Fig.~\ref{fig:heldout} show the original result. Procedural twin utility is 0.79302, below cloud fallback's 0.80662. Their paired difference is $-0.01360$ with interval $[-0.01478,-0.01242]$. Every seed difference is negative. The original superiority direction fails in this synthetic comparison. It does not establish that twin information is harmful, because rule structure and optimization opportunities are uncontrolled.
 
 \begin{table*}[t]
 \caption{Original held-out results, five seeds. $\widehat L$ is analytical and $C$ is mean episode sum. See Table~\ref{tab:semantics} for label meanings.}\label{tab:heldout}
@@ -44,12 +44,12 @@ Table~\ref{tab:heldout} and Fig.~\ref{fig:heldout} show the original result. Pro
 \caption{Original held-out utility with 95\% seed intervals and individual seed means. Static feasibility is not enforced, limiting its apparent advantage.}\label{fig:heldout}
 \end{figure*}
 
-The linear selector averages 0.82740. Its paired advantage is 0.02077 over cloud fallback and 0.03437 over the procedural rule; the latter interval is $[0.03326,0.03548]$. Greedy evaluator utility is 0.82710. Linear minus greedy has interval $[-0.00158,0.00219]$, supporting neither a detected difference nor practical equivalence. The slightly higher linear mean is consistent with a transition problem whose greedy reference is not globally optimal.
+The linear selector averages 0.82739. Its paired advantage is 0.02077 over cloud fallback and 0.03437 over the procedural rule; the latter interval is $[0.03326,0.03548]$. Greedy evaluator utility is 0.82708. Linear minus greedy has interval $[-0.00158,0.00219]$, supporting neither a detected difference nor practical equivalence. The slightly higher linear mean is consistent with a transition problem whose greedy reference is not globally optimal.
 
 Static and edge-only results require different interpretations. Static can use unavailable actions and supplies an optimistic reference under incomplete feasibility scoring. Edge-only is a categorical rule rather than physical low-latency deployment. Cloud fallback and optimization-based scores essentially coincide because share optimization does not improve the aggregate-share term. This reflects objective symmetry and scoring architecture, not proof that radio optimization is unnecessary.
 
 \subsection{Switching Reverses the Gross Benefit}
-Figure~\ref{fig:switch} decomposes net utility and average slot charge. Procedural gross continuity is approximately 0.82315 versus 0.81621 for cloud fallback. Episode charges are 0.48180 versus 0.15330, or 0.03011 versus 0.00958 per slot. A gross gain of about 0.00694 is outweighed by 0.02053 additional slot charge. Threshold-based network and placement decisions ignore the previous action during selection.
+Figure~\ref{fig:switch} decomposes net utility and average slot charge. Procedural gross continuity is approximately 0.82313 versus 0.81620 for cloud fallback. Episode charges are 0.48183 versus 0.15333, or 0.03011 versus 0.00958 per slot. A gross gain of about 0.00693 is outweighed by 0.02053 additional slot charge. Threshold-based network and placement decisions ignore the previous action during selection.
 
 \begin{figure*}[t]
 \centering\includegraphics[width=.94\textwidth]{\ArtifactRoot figures/switch_cost.pdf}
@@ -68,14 +68,14 @@ The clipping bound is inactive on these original traces over the plotted range. 
 \end{figure}
 
 \subsection{Shifted Families Do Not Establish Uniform Superiority}
-High-blockage procedural utility is 0.61589 versus cloud fallback 0.59716; outage-heavy values are 0.70461 versus 0.67092. Thus unfavorable held-out performance does not imply unfavorable performance in every family. The linear selector is better in high blockage (0.63104), while their ordering reverses slightly in outage heavy (0.70186 versus 0.70461). These descriptive exploratory outcomes establish no uniform superiority (Fig.~\ref{fig:shift}).
+High-blockage procedural utility is 0.61591 versus cloud fallback 0.59716; outage-heavy values are 0.70463 versus 0.67090. Thus unfavorable held-out performance does not imply unfavorable performance in every family. The linear selector is better in high blockage (0.63104), while their ordering reverses slightly in outage heavy (0.70186 versus 0.70463). These descriptive exploratory outcomes establish no uniform superiority (Fig.~\ref{fig:shift}).
 
 \begin{figure*}[t]
 \centering\includegraphics[width=.93\textwidth]{\ArtifactRoot figures/domain_shift.pdf}
 \caption{Original family comparisons with five-seed intervals. Multiple priors change together. Equal energy-constrained/cloud-fallback values reflect model insensitivity rather than demonstrated energy resilience.}\label{fig:shift}
 \end{figure*}
 
-Energy-constrained cloud fallback and linear utility retain their held-out values because energy does not directly enter continuity and does not change their actions here. Procedural utility drops to 0.79098 through its low-energy placement branch. This does not demonstrate energy-constrained service feasibility. A useful energy study requires battery state, task demand, power-duration accounting, and failure on exhausted budget.
+Energy-constrained cloud fallback and linear utility retain their held-out values because energy does not directly enter continuity and does not change their actions here. Procedural utility drops to 0.79096 through its low-energy placement branch. This does not demonstrate energy-constrained service feasibility. A useful energy study requires battery state, task demand, power-duration accounting, and failure on exhausted budget.
 
 \subsection{Interventions Reveal Scoring Confounds}
 Table~\ref{tab:ablation} preserves all original interventions. \pol{no\_edge\_observations} sets latency and loss to zero in the state used for both control and scoring. Its 0.97971 score reflects a changed scored environment, not evidence that removing observations improves control. \pol{no\_energy\_constraint} sets the covariate to $10^9$, creating enormous energy proxies while leaving original held-out utility unchanged. No enforced battery constraint exists to remove.
@@ -95,7 +95,7 @@ Table~\ref{tab:revised} reports the revised run. Target, degraded, and minimum-u
 \centering\scriptsize\input{\ArtifactRoot tables/revised.tex}
 \end{table}
 
-Adaptive fidelity averages 0.74197 versus fixed target 0.79650. Adaptive checkpoint averages 0.62374 versus checkpoint disabled 0.68232. Both are unfavorable adaptive outcomes. Base network/placement choices also differ, making these whole-policy comparisons rather than isolated feature effects. No application process checkpoints or resumes. Retrospective reproduction does not turn the extension into the original hypothesis or field evidence.
+Adaptive fidelity averages 0.74198 versus fixed target 0.79650. Adaptive checkpoint averages 0.62375 versus checkpoint disabled 0.68230. Both are unfavorable adaptive outcomes. Base network/placement choices also differ, making these whole-policy comparisons rather than isolated feature effects. No application process checkpoints or resumes. Retrospective reproduction does not turn the extension into the original hypothesis or field evidence.
 
 \section{Discussion and Threats to Validity}
 \subsection{What the Negative Result Explains}

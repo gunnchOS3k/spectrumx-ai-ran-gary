@@ -206,6 +206,7 @@ def write_toy() -> None:
 def write_figures() -> None:
     banner = FIGS / "README.md"
     png = FIGS / "rq2_heldout_continuity.png"
+    csv_path = FIGS / "rq2_heldout_continuity.csv"
     if not HELD.exists():
         banner.write_text(
             "**RESULT_PENDING.** Held-out JSON missing; no figure generated.\n",
@@ -226,34 +227,42 @@ def write_figures() -> None:
         means.append(float(u["mean"]))
         lows.append(float(u.get("ci_low", u["mean"])))
         highs.append(float(u.get("ci_high", u["mean"])))
+    with csv_path.open("w", encoding="utf-8", newline="") as fh:
+        w = csv.writer(fh)
+        w.writerow(["policy", "continuity_mean", "ci_low", "ci_high"])
+        for name, mean, lo, hi in zip(names, means, lows, highs):
+            w.writerow([name, mean, lo, hi])
+    wrote_png = False
     try:
         import matplotlib
 
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
+
+        yerr = [[m - lo for m, lo in zip(means, lows)], [hi - m for m, hi in zip(means, highs)]]
+        fig, ax = plt.subplots(figsize=(10, 4.2))
+        ax.bar(range(len(names)), means, yerr=yerr, capsize=3, color="#4C78A8")
+        ax.set_xticks(range(len(names)), names, rotation=35, ha="right")
+        ax.set_ylabel("service_continuity_utility")
+        ax.set_title("Held-out continuity (SYNTHETIC_SIM; 95% t CI over seeds)")
+        ax.grid(True, axis="y", alpha=0.3)
+        fig.tight_layout()
+        fig.savefig(png, dpi=150)
+        plt.close(fig)
+        wrote_png = True
     except Exception:
-        banner.write_text(
-            "**RESULT_PENDING.** matplotlib not importable; CSV/TeX tables still generated from JSON.\n",
-            encoding="utf-8",
-        )
         print("RESULT_PENDING matplotlib")
-        return
-    yerr = [[m - lo for m, lo in zip(means, lows)], [hi - m for m, hi in zip(means, highs)]]
-    fig, ax = plt.subplots(figsize=(10, 4.2))
-    ax.bar(range(len(names)), means, yerr=yerr, capsize=3, color="#4C78A8")
-    ax.set_xticks(range(len(names)), names, rotation=35, ha="right")
-    ax.set_ylabel("service_continuity_utility")
-    ax.set_title("Held-out continuity (SYNTHETIC_SIM; 95% t CI over seeds)")
-    ax.grid(True, axis="y", alpha=0.3)
-    fig.tight_layout()
-    fig.savefig(png, dpi=150)
-    plt.close(fig)
-    banner.write_text(
-        "Figures are generated from `results/experiments/*.json`.\n\n"
-        f"- `{png.name}`: held-out continuity means with 95% t CIs. SYNTHETIC_SIM. Not RF.\n",
-        encoding="utf-8",
-    )
-    print("wrote", png)
+    lines = [
+        "Figures are generated from `results/experiments/*.json`.",
+        "",
+        f"- `{csv_path.name}`: held-out continuity means and 95% t CIs. SYNTHETIC_SIM. Not RF. No host timing.",
+    ]
+    if wrote_png:
+        lines.append(f"- `{png.name}`: the same means with CI error bars.")
+    else:
+        lines.append("PNG is RESULT_PENDING (matplotlib not importable). The CSV is the figure data.")
+    banner.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print("wrote", csv_path, png if wrote_png else "png-pending")
 
 
 def main() -> int:
